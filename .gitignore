@@ -1,0 +1,10 @@
+# OS / 에디터
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Windows Zone.Identifier (Mark of the Web)
+*:Zone.Identifier
+*Zone.Identifier
