@@ -8,6 +8,7 @@ import * as Storage from './storage.js';
 import { renderPartyList } from './party.js';
 import { renderProgress } from './progress.js';
 import { renderMonthlyHistory } from './monthly.js';
+import { renderChannelRoulette } from './roulette.js';
 import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
@@ -133,6 +134,7 @@ function renderPartyDetail(container, party) {
 
   mainCol.appendChild(renderCalendar(party, initialDate, handleDateClick, handleMonthChange));
 
+  main.appendChild(renderChannelRoulette());
   main.appendChild(mainCol);
   main.appendChild(renderMonthlyHistory(party));
 
