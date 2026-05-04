@@ -7,6 +7,7 @@
 import * as Storage from './storage.js';
 import { renderPartyList } from './party.js';
 import { renderProgress } from './progress.js';
+import { renderMonthlyHistory } from './monthly.js';
 import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
@@ -44,8 +45,27 @@ function route() {
   renderPartyList(root);
 }
 
+// 배경 — 6장 중 1장을 페이지 로드마다 랜덤으로.
+// CSS variable의 url()은 사용되는 stylesheet 위치(/css/)를 base로 풀린다.
+// 그래서 ../background/ 로 prefix해야 /background/ 로 풀림.
+const BACKGROUNDS = [
+  '리버스시티.png',
+  '별이삼켜지는심해.png',
+  '빛이마지막으로닿는곳.png',
+  '산호숲가는길.png',
+  '생명의동굴.png',
+  '정령의나무가있는곳.png',
+];
+function applyRandomBackground() {
+  const pick = BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)];
+  document.documentElement.style.setProperty('--bg-image', `url("../background/${pick}")`);
+}
+
 window.addEventListener('hashchange', route);
-window.addEventListener('DOMContentLoaded', route);
+window.addEventListener('DOMContentLoaded', () => {
+  applyRandomBackground();
+  route();
+});
 
 // ── 파티 상세 ─────────────────────────────────────────
 
@@ -78,16 +98,18 @@ function renderPartyDetail(container, party) {
     ),
   ));
 
-  // 본문
+  // 본문 — 파티원 strip은 grid 양쪽에 걸침, 그 아래로 좌(메인)/우(월별 사이드바) 2컬럼
   const main = el('main', { className: 'party-detail-main' });
 
-  // 파티원 strip
+  // 파티원 strip (양 컬럼 위에 걸쳐서 — 좌/우 첫 카드가 같은 y에서 시작하도록)
   main.appendChild(el('div', { className: 'party-members-strip' },
     party.members.map(m => el('span', { className: 'member-chip' }, m))
   ));
 
+  const mainCol = el('div', { className: 'party-detail-mainCol' });
+
   // 진행도 위젯
-  main.appendChild(renderProgress(party));
+  mainCol.appendChild(renderProgress(party));
 
   // 캘린더 — 보고 있던 월 복원, 없으면 오늘 기준.
   const initialDate = calendarViewByParty.get(party.id) || new Date();
@@ -109,7 +131,10 @@ function renderPartyDetail(container, party) {
     calendarViewByParty.set(party.id, date);
   };
 
-  main.appendChild(renderCalendar(party, initialDate, handleDateClick, handleMonthChange));
+  mainCol.appendChild(renderCalendar(party, initialDate, handleDateClick, handleMonthChange));
+
+  main.appendChild(mainCol);
+  main.appendChild(renderMonthlyHistory(party));
 
   container.appendChild(main);
 }

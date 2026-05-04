@@ -70,6 +70,9 @@ function paintCalendar(wrap, party, viewDate, onDateClick, repaint) {
   const allRuns    = Storage.getRunsByParty(party.id);
   const runsByDate = groupByDate(allRuns);
 
+  const allRes    = Storage.getReservationsByParty(party.id);
+  const resByDate = groupByDate(allRes);
+
   const grid = el('div', { className: 'calendar-grid' });
   const todayKey = todayStr();
 
@@ -78,12 +81,14 @@ function paintCalendar(wrap, party, viewDate, onDateClick, repaint) {
     const cellKey  = toDateStr(cellDate);
     const dow      = cellDate.getDay();
     const runsHere = runsByDate[cellKey] || [];
+    const resHere  = resByDate[cellKey] || [];
 
     grid.appendChild(buildCell({
       cellDate,
       cellKey,
       dow,
       runsHere,
+      resHere,
       isOtherMonth: cellDate.getMonth() !== month,
       isToday:      cellKey === todayKey,
       onClick:      () => onDateClick(cellKey),
@@ -92,16 +97,19 @@ function paintCalendar(wrap, party, viewDate, onDateClick, repaint) {
   wrap.appendChild(grid);
 }
 
-function buildCell({ cellDate, cellKey, dow, runsHere, isOtherMonth, isToday, onClick }) {
+function buildCell({ cellDate, cellKey, dow, runsHere, resHere, isOtherMonth, isToday, onClick }) {
   const cls = ['calendar-cell'];
   if (isOtherMonth)             cls.push('other-month');
   if (isToday)                  cls.push('today');
   if (dow === 0 || dow === 6)   cls.push('weekend');
   if (runsHere.length > 0)      cls.push('has-runs');
+  if (resHere && resHere.length > 0) cls.push('has-reservation');
 
   const MAX_PILLS = 4;
   const visiblePills = runsHere.slice(0, MAX_PILLS);
   const overflow     = runsHere.length - visiblePills.length;
+
+  const reservation = resHere && resHere[0];
 
   return el('div', {
     className: cls.join(' '),
@@ -121,6 +129,10 @@ function buildCell({ cellDate, cellKey, dow, runsHere, isOtherMonth, isToday, on
         }, b ? b.name : '?');
       }),
       overflow > 0 ? el('div', { className: 'run-more' }, `+${overflow}`) : null,
+      reservation ? el('div', {
+        className: 'reservation-pill',
+        title: `예약: ${reservation.time}`,
+      }, reservation.time) : null,
     ),
   );
 }

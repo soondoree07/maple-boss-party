@@ -62,7 +62,7 @@ function renderWeekBlock(week, clearedIds, total, perHead, headcount) {
     el('div', { className: 'progress-summary' },
       el('span', { className: 'summary-label' }, '이번 주 1인 분배액'),
       crystalIcon('png/결정석.webp', '결정석 가격 수정'),
-      el('span', { className: 'summary-value' }, total > 0 ? formatMeso(perHead) : '—'),
+      el('span', { className: 'summary-value' }, displayMeso(perHead)),
       el('span', { className: 'summary-sub' },
         total > 0
           ? `(전체 ${formatMeso(total)} ÷ ${headcount}인)`
@@ -87,7 +87,7 @@ function renderMonthBlock(today, clearedIds, total, perHead, headcount) {
     el('div', { className: 'progress-summary' },
       el('span', { className: 'summary-label' }, '이번 달 1인 분배액'),
       crystalIcon('png/월간보스결정석.webp', '결정석 가격 수정'),
-      el('span', { className: 'summary-value' }, total > 0 ? formatMeso(perHead) : '—'),
+      el('span', { className: 'summary-value' }, displayMeso(perHead)),
       el('span', { className: 'summary-sub' },
         total > 0
           ? `(전체 ${formatMeso(total)} ÷ ${headcount}인)`
@@ -98,6 +98,11 @@ function renderMonthBlock(today, clearedIds, total, perHead, headcount) {
 }
 
 // ── 헬퍼 ──
+
+function displayMeso(eok) {
+  const s = formatMeso(eok);
+  return s === '0' ? '0억' : s;
+}
 
 function crystalIcon(src, title) {
   return el('a', {

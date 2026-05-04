@@ -58,40 +58,57 @@ export function openDateModal({ party, dateStr, onChanged }) {
       }, '×'),
     ));
 
-    if (!isFuture) {
-      modal.appendChild(buildChannelPicker({
-        selected:    lockedChannel,
-        locked:      runs.length > 0,
-        onPick: (ch) => { pendingChannel = ch; repaint(); },
-      }));
+    if (isFuture) {
+      // 미래 날짜 — 예약 UI (하루에 하나만 가능)
+      const reservations = Storage.getReservationsByPartyAndDate(party.id, dateStr);
+
+      if (reservations.length === 0) {
+        modal.appendChild(el('div', { className: 'empty-state-sm' }, '예약된 일정이 없어요'));
+        modal.appendChild(buildReservationForm({
+          onAdd: (time) => {
+            Storage.createReservation({ partyId: party.id, date: dateStr, time });
+            mutated = true;
+            repaint();
+          },
+        }));
+      } else {
+        modal.appendChild(el('div', { className: 'reservation-list' },
+          reservations.map(res => renderReservationCard(res, () => {
+            mutated = true; repaint();
+          })),
+        ));
+      }
+      return;
     }
 
+    modal.appendChild(buildChannelPicker({
+      selected:    lockedChannel,
+      locked:      runs.length > 0,
+      onPick: (ch) => { pendingChannel = ch; repaint(); },
+    }));
+
     if (runs.length === 0) {
-      modal.appendChild(el('div', { className: 'empty-state-sm' },
-        isFuture ? '아직 오지 않은 날짜에요' : '이 날 기록이 없어요'
-      ));
+      modal.appendChild(el('div', { className: 'empty-state-sm' }, '이 날 기록이 없어요'));
     } else {
       modal.appendChild(el('div', { className: 'run-list' },
         runs.map(run => renderRunCard(run, () => { mutated = true; repaint(); })),
       ));
     }
 
-    if (!isFuture) {
-      const canAdd = !!lockedChannel;
-      modal.appendChild(el('div', { className: 'modal-actions modal-actions-center' },
-        el('button', {
-          className: isToday ? 'btn btn-primary' : 'btn btn-ghost',
-          type: 'button',
-          disabled: !canAdd,
-          title: canAdd ? '' : '먼저 채널을 선택해주세요',
-          onclick: () => openRecordForm({
-            party, dateStr,
-            channel: lockedChannel,
-            onSaved: () => { mutated = true; repaint(); },
-          }),
-        }, isToday ? '+ 보스 기록 추가' : '+ 이 날 기록 추가'),
-      ));
-    }
+    const canAdd = !!lockedChannel;
+    modal.appendChild(el('div', { className: 'modal-actions modal-actions-center' },
+      el('button', {
+        className: isToday ? 'btn btn-primary' : 'btn btn-ghost',
+        type: 'button',
+        disabled: !canAdd,
+        title: canAdd ? '' : '먼저 채널을 선택해주세요',
+        onclick: () => openRecordForm({
+          party, dateStr,
+          channel: lockedChannel,
+          onSaved: () => { mutated = true; repaint(); },
+        }),
+      }, isToday ? '+ 보스 기록 추가' : '+ 이 날 기록 추가'),
+    ));
   };
 
   repaint();
@@ -126,6 +143,54 @@ function buildChannelPicker({ selected, locked, onPick }) {
   });
   wrap.appendChild(grid);
   return wrap;
+}
+
+// ── 예약 (미래 일정) ────────────────────────────────
+
+function renderReservationCard(res, refresh) {
+  return el('div', { className: 'reservation-card' },
+    el('span', { className: 'reservation-time' }, res.time || '—'),
+    el('button', {
+      className: 'icon-btn-sm',
+      type: 'button',
+      title: '예약 삭제',
+      onclick: () => {
+        Storage.deleteReservation(res.id);
+        refresh();
+      },
+    }, '×'),
+  );
+}
+
+function buildReservationForm({ onAdd }) {
+  const input = el('input', {
+    type: 'time',
+    className: 'text-input',
+    step: '60',
+  });
+
+  const submit = () => {
+    const time = input.value;
+    if (!time) { alert('시간을 입력해주세요'); return; }
+    onAdd(time);
+    input.value = '';
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+  });
+
+  return el('div', { className: 'reservation-form' },
+    el('label', { className: 'form-label' }, '예약 시간'),
+    el('div', { className: 'reservation-form-row' },
+      input,
+      el('button', {
+        className: 'btn btn-primary',
+        type: 'button',
+        onclick: submit,
+      }, '+ 추가'),
+    ),
+  );
 }
 
 // ── 한 회차 카드 (조회용) ────────────────────────────

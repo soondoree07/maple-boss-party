@@ -6,6 +6,7 @@
 //     bossRuns:          [{ id, partyId, date, boss, channel, opener, baseReward,
 //                          memberSnapshot: [닉네임...],
 //                          loot: [{ item, taker, price }] }],
+//     reservations:      [{ id, partyId, date, time: 'HH:MM', createdAt }],
 //     crystalOverrides:  { bossId: number(억) }   // 사용자가 수정한 결정석 가격
 //   }
 //
@@ -13,7 +14,7 @@
 
 const STORAGE_KEY = 'maple-boss-v1';
 
-const blankData = () => ({ parties: [], bossRuns: [], crystalOverrides: {} });
+const blankData = () => ({ parties: [], bossRuns: [], reservations: [], crystalOverrides: {} });
 
 function readRaw() {
   try {
@@ -21,8 +22,9 @@ function readRaw() {
     if (!raw) return blankData();
     const parsed = JSON.parse(raw);
     return {
-      parties:           Array.isArray(parsed.parties)  ? parsed.parties  : [],
-      bossRuns:          Array.isArray(parsed.bossRuns) ? parsed.bossRuns : [],
+      parties:           Array.isArray(parsed.parties)      ? parsed.parties      : [],
+      bossRuns:          Array.isArray(parsed.bossRuns)     ? parsed.bossRuns     : [],
+      reservations:      Array.isArray(parsed.reservations) ? parsed.reservations : [],
       crystalOverrides:  (parsed.crystalOverrides && typeof parsed.crystalOverrides === 'object')
         ? parsed.crystalOverrides
         : {},
@@ -71,11 +73,12 @@ export function updateParty(partyId, patch) {
   return data.parties[idx];
 }
 
-/** 파티 삭제 시 관련 보스런도 함께 제거. */
+/** 파티 삭제 시 관련 보스런·예약도 함께 제거. */
 export function deleteParty(partyId) {
   const data = readRaw();
-  data.parties  = data.parties.filter(p => p.id !== partyId);
-  data.bossRuns = data.bossRuns.filter(r => r.partyId !== partyId);
+  data.parties      = data.parties.filter(p => p.id !== partyId);
+  data.bossRuns     = data.bossRuns.filter(r => r.partyId !== partyId);
+  data.reservations = data.reservations.filter(r => r.partyId !== partyId);
   writeRaw(data);
 }
 
@@ -116,6 +119,36 @@ export function deleteRun(runId) {
   writeRaw(data);
 }
 
+// ── 예약 (미래 보스 일정) ────────────────────────────
+
+export const getReservationsByParty = (partyId) =>
+  readRaw().reservations.filter(r => r.partyId === partyId);
+
+export const getReservationsByPartyAndDate = (partyId, dateStr) =>
+  readRaw().reservations
+    .filter(r => r.partyId === partyId && r.date === dateStr)
+    .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+export function createReservation({ partyId, date, time }) {
+  const data = readRaw();
+  const res = {
+    id: makeId(),
+    partyId,
+    date,
+    time: String(time),
+    createdAt: new Date().toISOString(),
+  };
+  data.reservations.push(res);
+  writeRaw(data);
+  return res;
+}
+
+export function deleteReservation(resId) {
+  const data = readRaw();
+  data.reservations = data.reservations.filter(r => r.id !== resId);
+  writeRaw(data);
+}
+
 // ── 결정석 가격 override ─────────────────────────────
 
 /**
@@ -152,6 +185,7 @@ export function importData(data) {
   writeRaw({
     parties:          data.parties,
     bossRuns:         data.bossRuns,
+    reservations:     Array.isArray(data.reservations) ? data.reservations : [],
     crystalOverrides: (data.crystalOverrides && typeof data.crystalOverrides === 'object')
       ? data.crystalOverrides
       : {},

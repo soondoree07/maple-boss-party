@@ -9,27 +9,32 @@
 
 :root {
   /* 배경 */
-  --bg-base:        #0b0c14;
-  --bg-elevated:    #14151f;
-  --bg-card:        #1a1c28;
-  --bg-card-hover:  #20222f;
-  --bg-overlay:     rgba(8, 9, 14, 0.85);
+  --bg-base:        #050b18;
+  --bg-elevated:    rgba(14, 28, 48, 0.78);
+  --bg-card:        rgba(11, 24, 40, 0.72);
+  --bg-card-hover:  rgba(20, 38, 60, 0.82);
+  --bg-overlay:     rgba(4, 10, 20, 0.78);
 
   /* 보더 */
-  --border-subtle:  #262838;
-  --border-strong:  #353748;
+  --border-subtle:  rgba(120, 220, 240, 0.16);
+  --border-strong:  rgba(120, 220, 240, 0.32);
 
   /* 텍스트 */
-  --text-primary:   #e8e8ee;
-  --text-secondary: #9ea0b3;
-  --text-tertiary:  #5d5f72;
-  --text-muted:     #3d3f50;
+  --text-primary:   #eaf6fb;
+  --text-secondary: #9ec3d6;
+  --text-tertiary:  #6a8aa0;
+  --text-muted:     #3d556a;
 
-  /* 강조색 */
-  --accent-gold:    #D4A056;
-  --accent-purple:  #9B5DE5;
-  --accent-rose:    #FF6B9D;
-  --danger:         #ef4444;
+  /* 강조색 — 시안/aqua + 보라 액센트 (배경 톤에 맞춤) */
+  --accent-gold:    #4ee5f5;     /* 본 강조색: 골드 → 시안 */
+  --accent-purple:  #a78bff;
+  --accent-rose:    #ff7eb6;
+  --accent-aqua:    #4ee5f5;
+  --danger:         #ff6b6b;
+
+  /* 배경 이미지 — CSS의 url()은 stylesheet 위치(/css/) 기준이므로 ../로 루트로 나감.
+     JS가 페이지 로드 시 6장 중 1장으로 override (JS는 document 기준이라 "background/..."). */
+  --bg-image: url("../background/리버스시티.png");
 
   --font-base: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
@@ -47,7 +52,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-base);
   font-size: 14px;
@@ -57,12 +61,32 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-body {
+/* 배경 — html에 직접 fixed로 깔기. body는 transparent. */
+html {
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%,    rgba(155, 93, 229, 0.06), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 90% 100%,  rgba(212, 160, 86, 0.04), transparent 70%),
+    linear-gradient(180deg, rgba(5, 11, 24, 0.18) 0%, rgba(5, 11, 24, 0.40) 100%),
+    var(--bg-image) center center / cover no-repeat,
     var(--bg-base);
   background-attachment: fixed;
+}
+body {
+  background: transparent;
+}
+
+/* 카드 / 모달 — 배경 위에서 가독성을 위해 blur. */
+.party-card,
+.progress-block,
+.month-card,
+.run-card,
+.reservation-card,
+.calendar-section,
+.modal,
+.channel-picker,
+.crystals-section,
+.boss-card,
+.crystal-card {
+  backdrop-filter: blur(10px) saturate(125%);
+  -webkit-backdrop-filter: blur(10px) saturate(125%);
 }
 
 button { font-family: inherit; cursor: pointer; }
@@ -72,7 +96,8 @@ a { color: inherit; text-decoration: none; }
 /* ── 페이지 셸 ───────────────────────────────────────── */
 
 #app {
-  max-width: 1200px;
+  position: relative;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 24px 20px 80px;
 }
@@ -220,7 +245,7 @@ a { color: inherit; text-decoration: none; }
 .create-party-btn:hover {
   border-color: var(--accent-gold);
   color: var(--accent-gold);
-  background: rgba(212, 160, 86, 0.04);
+  background: rgba(78, 229, 245, 0.06);
 }
 
 .remove-btn {
@@ -330,11 +355,116 @@ a { color: inherit; text-decoration: none; }
 
 /* ── 파티 상세 ───────────────────────────────────────── */
 
+.party-detail-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.party-detail-mainCol {
+  min-width: 0;
+}
+
 .party-members-strip {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 24px;
+  margin-bottom: 4px;
+}
+
+/* ── 월별 누적 사이드바 ─────────────────────────────── */
+
+.monthly-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.month-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.month-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.month-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.month-card-perhead {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-feature-settings: 'tnum';
+}
+
+.month-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.month-empty {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.month-loot-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  font-size: 13px;
+}
+
+.month-loot-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.month-loot-img-fallback {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.month-loot-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.month-loot-price {
+  color: var(--text-secondary);
+  font-feature-settings: 'tnum';
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 /* ── 진행도 위젯 ─────────────────────────────────────── */
@@ -404,7 +534,7 @@ a { color: inherit; text-decoration: none; }
   padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -418,12 +548,12 @@ a { color: inherit; text-decoration: none; }
 }
 
 .crystal-icon {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   vertical-align: middle;
   display: block;
-  filter: drop-shadow(0 0 4px rgba(212, 160, 86, 0.35));
+  filter: drop-shadow(0 0 6px rgba(78, 229, 245, 0.55));
 }
 
 .crystal-icon-link {
@@ -437,7 +567,7 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
 }
 .crystal-icon-link:hover {
-  background: rgba(212, 160, 86, 0.15);
+  background: rgba(78, 229, 245, 0.18);
   transform: scale(1.1);
 }
 
@@ -588,7 +718,7 @@ a { color: inherit; text-decoration: none; }
 .calendar-cell.other-month { opacity: 0.35; }
 .calendar-cell.weekend .cell-date { color: var(--accent-rose); }
 
-.calendar-cell.today { background: rgba(212, 160, 86, 0.06); }
+.calendar-cell.today { background: rgba(78, 229, 245, 0.10); }
 .calendar-cell.today .cell-date {
   background: var(--accent-gold);
   color: #1a1102;
@@ -631,6 +761,21 @@ a { color: inherit; text-decoration: none; }
   font-size: 10px;
   color: var(--text-tertiary);
   padding: 0 6px;
+}
+
+.reservation-pill {
+  background: color-mix(in srgb, var(--accent-gold) 18%, transparent);
+  color: var(--accent-gold);
+  border: 1px dashed color-mix(in srgb, var(--accent-gold) 55%, transparent);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  font-feature-settings: 'tnum';
+  text-align: center;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  margin-top: 2px;
 }
 
 /* ── 모달 ────────────────────────────────────────────── */
@@ -835,6 +980,53 @@ a { color: inherit; text-decoration: none; }
   font-weight: 700;
 }
 
+/* ── 예약 (미래 일정) ──────────────────────────────── */
+
+.reservation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.reservation-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reservation-time {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+  letter-spacing: 0.02em;
+}
+
+.reservation-form {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reservation-form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.reservation-form-row .text-input {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── 회차 카드 (조회) ──────────────────────────────── */
 
 .run-list {
@@ -1028,6 +1220,17 @@ a { color: inherit; text-decoration: none; }
 .price-input::-webkit-inner-spin-button { display: none; }
 
 /* ── 반응형 ─────────────────────────────────────────── */
+
+@media (max-width: 1080px) {
+  .party-detail-main {
+    grid-template-columns: 1fr;
+  }
+  .monthly-side {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
 
 @media (max-width: 720px) {
   #app { padding: 16px 12px 80px; }

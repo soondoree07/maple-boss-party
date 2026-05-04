@@ -61,7 +61,6 @@ export function renderCrystalsPage(container) {
         const map = {};
         for (const b of BOSSES) map[b.id] = draft[b.id];
         Storage.setCrystalOverrides(map);
-        alert('저장됐어요');
         history.back();
       },
     }, '저장'),
