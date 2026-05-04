@@ -1215,12 +1215,20 @@ a { color: inherit; text-decoration: none; }
 
 .loot-item {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 12px;
+  grid-template-columns: 24px 1fr auto auto;
+  gap: 10px;
   font-size: 13px;
   padding: 4px 0;
-  align-items: baseline;
+  align-items: center;
 }
+
+.loot-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.loot-img-fallback { background: rgba(255, 255, 255, 0.06); }
 
 .loot-name  { font-weight: 500; }
 .loot-taker { color: var(--text-secondary); font-size: 12px; }

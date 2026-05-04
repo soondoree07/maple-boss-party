@@ -239,7 +239,11 @@ function renderRunCard(run, refresh) {
             run.loot.map(lt => {
               const def   = getLootDef(run.boss, lt.item);
               const color = getDisplayLootColor(lt.item, def?.group);
+              const img   = getLootImage(lt.item);
               return el('div', { className: 'loot-item' },
+                img
+                  ? el('img', { className: 'loot-img', src: img, alt: lt.item, loading: 'lazy' })
+                  : el('span', { className: 'loot-img loot-img-fallback' }),
                 el('span', {
                   className: 'loot-name',
                   style: color ? { color } : null,
