@@ -25,6 +25,7 @@
 12. **배경 이미지 6장 + aqua 팔레트 전환** — 페이지 로드마다 랜덤. 골드 → 시안 (#4ee5f5). 카드 backdrop-blur. CSS variable url() base 함정 해결 (`../background/` prefix 통일)
 13. **GitHub Pages 배포** — `soondoree07/maple-boss-party` repo로 push, Pages API 활성화. `0aae021`, `3bfd313` 커밋
 14. **채널 룰렛 사이드 카드** (`roulette.js`) — 좌측 220px sticky. 슬롯 윈도우 + 시안/보라 그라데이션 "🎰 뽑기" 버튼. 1.1초 동안 굴러가다 채널 1개로 멈춤. 파티 상세 grid를 220 / 1fr / 320 3컬럼으로
+15. **회차 카드 전리품 행에도 이미지 표시** (`record.renderRunCard`) — grid를 `24px 1fr auto auto`로 늘리고 `loot-img` 추가, fallback 박스 처리
 
 ## 현재 막힌 지점 / 결정 대기
 
