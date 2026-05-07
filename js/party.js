@@ -86,7 +86,17 @@ function renderPartyCard(party, container) {
     }, '×'),
     el('div', { className: 'party-card-name' }, party.name),
     el('div', { className: 'party-card-members' },
-      party.members.map(m => el('span', { className: 'member-chip' }, m))
+      party.members.map(m => el('span', { className: 'member-chip' }, m)),
+      el('button', {
+        className: 'member-chip member-chip-add',
+        type: 'button',
+        title: '파티원 추가',
+        onclick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openAddMemberModal(party, () => renderPartyList(container));
+        },
+      }, '+ 추가'),
     ),
     el('div', { className: 'party-card-meta' },
       el('span', null, `${party.members.length}인 파티`),
