@@ -1,4 +1,4 @@
-# 메이플 보스 파티 기록 — 진행 상황 (2026-05-07 KST 기준)
+# 메이플 보스 파티 기록 — 진행 상황 (2026-05-08 KST 기준)
 
 ## 프로젝트 개요
 메이플스토리 본진 보스 파티의 주간/월간 클리어 + 전리품 분배 기록용 1인 정적 사이트. Vanilla HTML + ES Module + localStorage. 빌드 시스템 없음.
@@ -24,7 +24,8 @@
 11. **파티원 추가** — 두 곳에서: 메인 파티 카드 멤버 그리드 끝 "+ 추가" 칩 + 파티 상세 strip 끝 "+ 추가" 칩. 클릭 시 닉네임 모달(trim/중복 검사) → `updateParty`로 members append → 재렌더
 12. **보스 select 가림 제거** — 같은 주/달 클리어 보스도 항상 노출 (중복 회차 기록 자유)
 13. **레이아웃 재배치** — 진행도 위젯('이번 주/달 현황') 제거. earnings 두 카드를 메인 컬럼 최상단으로: 위 = '이번 주 파티원별 수익', 아래 = '이번 달 전체 수익'(헤더에 파티 전체 누적). 캘린더는 그 아래. 결정석 페이지 진입점은 페이지 헤더 '결정석' 링크
-14. **GitHub Pages 푸시** — `... 31d2424 c1bd0a7` 커밋 추가
+14. **이름 input lang='ko'** — 사다리 이름·파티명·파티원 슬롯·파티원 추가 모달. Chrome/Edge에서 IME 한국어 자동 활성 유도(OS 키보드 상태가 우선이라 100% 보장은 아님)
+15. **GitHub Pages 푸시** — `... c1bd0a7 06446e6` 커밋까지 모두 main에 반영
 
 ## 현재 막힌 지점 / 결정 대기
 
@@ -41,11 +42,11 @@
 
 ## 다음 액션 (이어할 작업)
 
-1. **사용자 검증 후 발견된 이슈 수정** (기능별 토글 동작·계산 정확도·UX)
-2. **유피테르 활성화 결정** — 한 줄 (`enabled: true`) 또는 보류
-3. (선택) 분배 OFF 전리품에 대해서도 회차 참여자 명단으로 taker 후보를 제한하는 검증을 강화
-4. (선택) 사다리타기에 당첨 인원수 옵션 추가 (현재 1명 고정)
-5. (선택) earnings 섹션을 월간 누적도 보여주는 토글 추가
+1. **배포 사이트 직접 사용해보고 발견된 이슈 정리** — https://soondoree07.github.io/maple-boss-party/ 에서 실제로 회차 한두 건 입력 → 수정 → earnings 두 카드(주/월) 합 확인 → 사다리 가림→공개→이름 클릭 추적 → 파티원 카드/strip "+ 추가" → input 한글 입력 흐름 한 바퀴
+2. **유피테르 활성화 결정** — `data.js`의 `BOSSES`에서 `jupiter`의 `enabled: true` 한 줄 또는 보류 유지
+3. (선택) 사다리타기 당첨 인원수 옵션 (현재 1명 고정)
+4. (선택) earnings에 월간 토글 외 추가 기간(직전 주/직전 달 비교) 노출
+5. (선택) 분배 OFF 전리품 taker가 회차 참여자에 없을 때의 검증 강화
 
 ## 환경/구조 메모
 
@@ -55,7 +56,10 @@
 - 이미지 sync: `cp /home/soondoree07/maple-boss/png/*.{png,webp} "/mnt/c/Users/박정혁/Downloads/maple-boss/png/"`
 - 배경 sync: `cp /home/soondoree07/maple-boss/background/*.png "/mnt/c/Users/박정혁/Downloads/maple-boss/background/"`
 - 라우트: `#/` / `#/party/:id` / `#/crystals`
-- 모듈 13개: `app / data / storage / utils / party / progress / calendar / record / monthly / earnings / roulette / ladder / crystals / backup`
+- 모듈 14개: `app / data / storage / utils / party / progress(미사용) / calendar / record / monthly / earnings / roulette / ladder / crystals / backup`
+  - **progress.js는 더 이상 import되지 않음** — '이번 주/달 현황' 위젯이 v0.4에서 제거됨. 파일은 남아있지만 호출처 없음
+  - 메인 컬럼 순서: earnings(이번 주) → earnings(이번 달, 전체 합 표기) → calendar
+  - 결정석 가격 편집 진입점은 페이지 헤더 '결정석' 링크
 - 데이터 모델 v0.4:
   - `BossRun.memberSnapshot` = 회차 실제 참여자 (파티 전체일 수도 일부일 수도)
   - `LootEntry.shared` = true(N등분) / false(taker 전액) / undefined(legacy → 단독)
