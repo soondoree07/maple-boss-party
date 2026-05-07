@@ -15,7 +15,6 @@ import {
 } from './data.js';
 import {
   todayStr, longDateLabel, formatMeso, el, clear,
-  parseDateStr, getWeekRange, getMonthRange,
 } from './utils.js';
 
 /**
@@ -344,26 +343,8 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
   );
   const visibleMembers = () => party.members.filter(m => selectedMembers.has(m));
 
-  // 같은 주/달 클리어 보스 → 드롭다운에서 가림. 수정 모드에선 자기 회차는 제외하고 계산.
-  const dateObj   = parseDateStr(dateStr);
-  const week      = getWeekRange(dateObj);
-  const month     = getMonthRange(dateObj);
-  const weekRuns  = Storage.getRunsByPartyInRange(party.id, week.start,  week.end)
-    .filter(r => !isEdit || r.id !== existingRun.id);
-  const monthRuns = Storage.getRunsByPartyInRange(party.id, month.start, month.end)
-    .filter(r => !isEdit || r.id !== existingRun.id);
-  const clearedBossIds = new Set();
-  weekRuns.forEach(r => {
-    const b = getBoss(r.boss);
-    if (b?.cycle === 'weekly') clearedBossIds.add(r.boss);
-  });
-  monthRuns.forEach(r => {
-    const b = getBoss(r.boss);
-    if (b?.cycle === 'monthly') clearedBossIds.add(r.boss);
-  });
-
-  // ── 보스 select ──
-  const bossSelect = buildBossSelect(clearedBossIds);
+  // ── 보스 select — 모든 활성 보스 노출 (이미 클리어한 보스도 가리지 않음) ──
+  const bossSelect = buildBossSelect();
   if (isEdit) bossSelect.value = existingRun.boss;
   bossSelect.addEventListener('change', () => {
     const newBoss = bossSelect.value || null;
