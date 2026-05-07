@@ -120,6 +120,7 @@ function openCreatePartyModal(container) {
     className: 'text-input',
     placeholder: `파티원 ${i + 1}`,
     maxlength: '20',
+    lang: 'ko',
   }));
 
   // Enter로 다음 칸 이동.
@@ -138,6 +139,7 @@ function openCreatePartyModal(container) {
     className: 'text-input',
     placeholder: '예: 본진 파티',
     maxlength: '40',
+    lang: 'ko',
   });
 
   modal.appendChild(el('div', { className: 'modal-header' },
@@ -213,6 +215,7 @@ export function openAddMemberModal(party, onSaved) {
     className: 'text-input',
     placeholder: '닉네임',
     maxlength: '20',
+    lang: 'ko',
   });
 
   const submit = () => {

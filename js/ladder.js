@@ -112,6 +112,7 @@ export function renderLadder(party) {
           placeholder: String(i + 1),
           value: names[i],
           maxlength: 8,
+          lang: 'ko',
         });
         input.addEventListener('input', () => { names[i] = input.value; });
         namesGrid.appendChild(input);
