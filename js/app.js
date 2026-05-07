@@ -6,11 +6,10 @@
 
 import * as Storage from './storage.js';
 import { renderPartyList, openAddMemberModal } from './party.js';
-import { renderProgress } from './progress.js';
 import { renderMonthlyHistory } from './monthly.js';
 import { renderChannelRoulette } from './roulette.js';
 import { renderLadder } from './ladder.js';
-import { renderWeeklyEarnings } from './earnings.js';
+import { renderWeeklyEarnings, renderMonthlyEarnings } from './earnings.js';
 import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
@@ -80,6 +79,11 @@ function renderPartyDetail(container, party) {
     el('a', { href: '#/', className: 'back-btn' }, '← 파티 목록'),
     el('h1', { className: 'page-title' }, party.name),
     el('div', { className: 'header-actions' },
+      el('a', {
+        href: '#/crystals',
+        className: 'icon-btn',
+        title: '결정석 가격 수정',
+      }, '결정석'),
       el('button', {
         className: 'icon-btn',
         type: 'button',
@@ -120,8 +124,9 @@ function renderPartyDetail(container, party) {
 
   const mainCol = el('div', { className: 'party-detail-mainCol' });
 
-  // 진행도 위젯
-  mainCol.appendChild(renderProgress(party));
+  // 위쪽: 이번 주 / 이번 달 수익 카드.
+  mainCol.appendChild(renderWeeklyEarnings(party));
+  mainCol.appendChild(renderMonthlyEarnings(party));
 
   // 캘린더 — 보고 있던 월 복원, 없으면 오늘 기준.
   const initialDate = calendarViewByParty.get(party.id) || new Date();
@@ -144,7 +149,6 @@ function renderPartyDetail(container, party) {
   };
 
   mainCol.appendChild(renderCalendar(party, initialDate, handleDateClick, handleMonthChange));
-  mainCol.appendChild(renderWeeklyEarnings(party));
 
   // 좌측 사이드: 룰렛 + 사다리타기
   const sideLeft = el('aside', { className: 'side-left' },

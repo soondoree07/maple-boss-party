@@ -1,6 +1,4 @@
-// earnings.js — 파티원별 주간 수익
-//
-// 메이플 주차(목 0시 ~ 수 23:59) 기준으로 각 파티원이 그 주에 번 돈을 합산.
+// earnings.js — 파티원별 수익 (이번 주 / 이번 달)
 //
 // 멤버 m의 수익 = Σ(m이 회차 참여자에 포함된 회차들에 대해)
 //   결정석:    getEffectiveCrystal(boss) / r.memberSnapshot.length
@@ -10,19 +8,45 @@
 
 import * as Storage from './storage.js';
 import { getBoss, getEffectiveCrystal } from './data.js';
-import { getWeekRange, formatMeso, shortMD, el } from './utils.js';
+import { getWeekRange, getMonthRange, formatMeso, shortMD, el } from './utils.js';
 
-/**
- * @param {{id: string, members: string[]}} party
- * @returns {HTMLElement}
- */
+/** 이번 주(목~수) 멤버별 수익. */
 export function renderWeeklyEarnings(party) {
   const today = new Date();
   const week  = getWeekRange(today);
   const runs  = Storage.getRunsByPartyInRange(party.id, week.start, week.end);
-  const overrides = Storage.getCrystalOverrides();
+  return renderEarningsCard({
+    party,
+    runs,
+    title: '이번 주 파티원별 수익',
+    rangeLabel: `${shortMD(week.start)} ~ ${shortMD(week.end)}`,
+    emptyText: '이번 주 회차 기록이 없어요',
+  });
+}
 
-  // 멤버별 수익 누적.
+/** 이번 달(1일~말일) 파티 전체 + 멤버별 수익. */
+export function renderMonthlyEarnings(party) {
+  const today = new Date();
+  const month = getMonthRange(today);
+  const runs  = Storage.getRunsByPartyInRange(party.id, month.start, month.end);
+  return renderEarningsCard({
+    party,
+    runs,
+    title: '이번 달 전체 수익',
+    rangeLabel: `${today.getFullYear()}년 ${today.getMonth() + 1}월`,
+    emptyText: '이번 달 회차 기록이 없어요',
+    showGrandTotal: true,
+  });
+}
+
+/**
+ * 공용 카드 렌더러.
+ * @param {{
+ *   party, runs, title, rangeLabel, emptyText, showGrandTotal?: boolean
+ * }} opts
+ */
+function renderEarningsCard({ party, runs, title, rangeLabel, emptyText, showGrandTotal = false }) {
+  const overrides = Storage.getCrystalOverrides();
   const earnings = new Map(party.members.map(m => [m, { crystal: 0, loot: 0 }]));
 
   for (const r of runs) {
@@ -30,14 +54,12 @@ export function renderWeeklyEarnings(party) {
     const n = participants.length;
     if (n === 0) continue;
 
-    // 결정석 — 참여자에게 1/N씩.
     const boss = getBoss(r.boss);
     if (boss) {
       const share = getEffectiveCrystal(r.boss, overrides) / n;
       participants.forEach(m => earnings.get(m).crystal += share);
     }
 
-    // 전리품
     if (Array.isArray(r.loot)) {
       for (const lt of r.loot) {
         const price = Number(lt.price);
@@ -46,7 +68,6 @@ export function renderWeeklyEarnings(party) {
           const share = price / n;
           participants.forEach(m => earnings.get(m).loot += share);
         } else if (lt.taker && earnings.has(lt.taker)) {
-          // 단독 — taker에게 전액 (기존 데이터 호환: shared 미정의도 단독으로 해석).
           earnings.get(lt.taker).loot += price;
         }
       }
@@ -60,13 +81,23 @@ export function renderWeeklyEarnings(party) {
 
   const grandTotal = rows.reduce((s, r) => s + r.total, 0);
 
+  const headerRight = showGrandTotal && grandTotal > 0
+    ? el('span', {
+        className: 'earnings-grand',
+        title: `${rangeLabel} 파티 전체 누적`,
+      },
+        el('span', { className: 'earnings-grand-label' }, '파티 전체'),
+        el('span', { className: 'earnings-grand-value' }, formatMesoOrZero(grandTotal)),
+      )
+    : el('span', { className: 'earnings-range' }, rangeLabel);
+
   return el('section', { className: 'earnings-section' },
     el('div', { className: 'earnings-header' },
-      el('h3', { className: 'earnings-title' }, '이번 주 파티원별 수익'),
-      el('span', { className: 'earnings-range' }, `${shortMD(week.start)} ~ ${shortMD(week.end)}`),
+      el('h3', { className: 'earnings-title' }, title),
+      headerRight,
     ),
     rows.length === 0 || grandTotal === 0
-      ? el('div', { className: 'empty-state-sm' }, '이번 주 회차 기록이 없어요')
+      ? el('div', { className: 'empty-state-sm' }, emptyText)
       : el('div', { className: 'earnings-list' },
           rows.map(r => renderEarningRow(r, grandTotal)),
         ),
