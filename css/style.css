@@ -334,6 +334,19 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid var(--border-subtle);
 }
 
+.member-chip-add {
+  cursor: pointer;
+  border-style: dashed;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.member-chip-add:hover {
+  border-color: var(--accent-aqua);
+  color: var(--accent-aqua);
+  background: rgba(78, 229, 245, 0.08);
+}
+
 .party-card-meta {
   font-size: 12px;
   color: var(--text-tertiary);
@@ -1438,13 +1451,19 @@ a { color: inherit; text-decoration: none; }
 }
 .ladder-name-input::placeholder { color: var(--text-muted); }
 
+.ladder-svg-wrap {
+  position: relative;
+}
 .ladder-svg {
   width: 100%;
   height: auto;
   display: block;
-  /* viewBox 비율을 무시(preserveAspectRatio=none)해서 카드 폭에 자연스럽게 맞춤 — 시각적 비율을 잡기 위해 명시적 height. */
   aspect-ratio: 100 / 192;
   overflow: visible;
+  transition: filter 0.25s ease-out;
+}
+.ladder-svg.hidden {
+  filter: blur(2px) brightness(0.5);
 }
 .ladder-spine {
   stroke: var(--border-strong);
@@ -1458,9 +1477,90 @@ a { color: inherit; text-decoration: none; }
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 0 2px rgba(78, 229, 245, 0.4));
 }
-.ladder-dot {
-  filter: drop-shadow(0 0 4px currentColor);
+
+/* 사다리 가림 cover */
+.ladder-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 6px;
+  background: rgba(5, 11, 24, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+}
+.ladder-cover-icon { font-size: 22px; filter: grayscale(0.2); }
+.ladder-cover-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.ladder-cover-hint {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* trace path & dot */
+.ladder-trace-path {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+.ladder-trace-dot {
+  filter: drop-shadow(0 0 5px currentColor);
+  vector-effect: non-scaling-stroke;
+}
+
+/* 이름 칩 (공개 단계) */
+.ladder-name-chip {
+  --chip-color: var(--accent-aqua);
+  background: color-mix(in srgb, var(--chip-color) 12%, transparent);
+  border: 1.4px solid color-mix(in srgb, var(--chip-color) 50%, transparent);
+  color: var(--chip-color);
+  padding: 4px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  width: 100%;
+  min-width: 0;
+  transition: all 0.15s;
+}
+.ladder-name-chip:hover {
+  background: color-mix(in srgb, var(--chip-color) 22%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--chip-color) 35%, transparent);
+}
+.ladder-name-chip.focused {
+  background: color-mix(in srgb, var(--chip-color) 28%, transparent);
+  border-color: var(--chip-color);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--chip-color) 50%, transparent);
+}
+
+.ladder-trace-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.ladder-result-arrival {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+  animation: ladder-result-pop 0.4s ease-out 1;
 }
 
 .ladder-result {

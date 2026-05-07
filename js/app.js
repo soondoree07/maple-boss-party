@@ -5,7 +5,7 @@
 //   #/party/:id       파티 상세 (진행도 + 캘린더)
 
 import * as Storage from './storage.js';
-import { renderPartyList } from './party.js';
+import { renderPartyList, openAddMemberModal } from './party.js';
 import { renderProgress } from './progress.js';
 import { renderMonthlyHistory } from './monthly.js';
 import { renderChannelRoulette } from './roulette.js';
@@ -104,9 +104,18 @@ function renderPartyDetail(container, party) {
   // 본문 — 파티원 strip은 grid 양쪽에 걸침, 그 아래로 좌(메인)/우(월별 사이드바) 2컬럼
   const main = el('main', { className: 'party-detail-main' });
 
-  // 파티원 strip (양 컬럼 위에 걸쳐서 — 좌/우 첫 카드가 같은 y에서 시작하도록)
+  // 파티원 strip (양 컬럼 위에 걸쳐서 — 좌/우 첫 카드가 같은 y에서 시작하도록).
+  // 끝에 "+ 추가" 칩 — 클릭 시 인라인 모달.
   main.appendChild(el('div', { className: 'party-members-strip' },
-    party.members.map(m => el('span', { className: 'member-chip' }, m))
+    party.members.map(m => el('span', { className: 'member-chip' }, m)),
+    el('button', {
+      className: 'member-chip member-chip-add',
+      type: 'button',
+      title: '파티원 추가',
+      onclick: () => openAddMemberModal(party, (updated) => {
+        renderPartyDetail(container, updated);
+      }),
+    }, '+ 추가'),
   ));
 
   const mainCol = el('div', { className: 'party-detail-mainCol' });

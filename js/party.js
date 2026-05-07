@@ -188,6 +188,78 @@ function openCreatePartyModal(container) {
   setTimeout(() => nameInput.focus(), 50);
 }
 
+// ── 파티원 추가 모달 (파티 상세에서 호출) ──────────────
+
+/**
+ * 기존 파티에 멤버 1명 추가하는 가벼운 모달.
+ * 저장 성공 시 onSaved(updatedParty)가 호출된다. 호출부가 화면 재렌더 담당.
+ */
+export function openAddMemberModal(party, onSaved) {
+  const overlay = el('div', { className: 'modal-overlay' });
+  const modal   = el('div', { className: 'modal' });
+
+  const input = el('input', {
+    type: 'text',
+    className: 'text-input',
+    placeholder: '닉네임',
+    maxlength: '20',
+  });
+
+  const submit = () => {
+    const name = input.value.trim();
+    if (!name) { alert('닉네임을 입력해주세요'); input.focus(); return; }
+    if (party.members.includes(name)) {
+      alert(`"${name}"은(는) 이미 파티에 있어요`);
+      input.focus();
+      return;
+    }
+    const updated = Storage.updateParty(party.id, {
+      members: [...party.members, name],
+    });
+    if (!updated) { alert('파티를 찾을 수 없어요'); overlay.remove(); return; }
+    overlay.remove();
+    onSaved?.(updated);
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+  });
+
+  modal.appendChild(el('div', { className: 'modal-header' },
+    el('h2', { className: 'modal-title' }, '파티원 추가'),
+    el('button', {
+      className: 'icon-btn-close',
+      type: 'button',
+      onclick: () => overlay.remove(),
+      'aria-label': '닫기',
+    }, '×'),
+  ));
+  modal.appendChild(el('div', { className: 'form-meta' },
+    `${party.name} · 현재 ${party.members.length}명`,
+  ));
+  modal.appendChild(el('div', { className: 'form-group' },
+    el('label', { className: 'form-label' }, '닉네임'),
+    input,
+  ));
+  modal.appendChild(el('div', { className: 'modal-actions' },
+    el('button', {
+      className: 'btn btn-ghost',
+      type: 'button',
+      onclick: () => overlay.remove(),
+    }, '취소'),
+    el('button', {
+      className: 'btn btn-primary',
+      type: 'button',
+      onclick: submit,
+    }, '추가'),
+  ));
+
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  setTimeout(() => input.focus(), 50);
+}
+
 // ── 백업/복원 ─────────────────────────────────────────
 
 function handleImport(file, container) {
