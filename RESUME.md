@@ -21,8 +21,8 @@
 8. **side-left wrapper** — 룰렛+사다리를 좌측 sticky 컬럼 안에 함께
 9. **호환성** — 기존 데이터의 `memberSnapshot`은 그대로 회차 참여자로 해석, 기존 `LootEntry.shared` 미정의는 단독(taker 전액)으로 해석해 기존 동작 보존
 10. **사다리 UX 개선 (3차)** — 뽑기 전엔 SVG가 블러+🎴 cover로 가려짐. 뽑기 누르면 공개 + 이름 input들이 클릭 가능한 색상 칩으로 전환. 칩 클릭 시 그 사람만 stroke-dashoffset 애니메이션으로 path가 그려지며 dot 추적, 도착 셀 outline+pop. 다른 이름 클릭 시 이전 trace 정리
-11. **파티원 추가** — 파티원 strip 끝에 "+ 추가" dashed 칩. 클릭 시 닉네임 모달(trim/중복 검사) → `updateParty`로 members append → 재렌더
-12. **GitHub Pages 푸시** — `0d68c46` / `3aa36fe` / `40b295d` / `221a840` / `9661cf1` 커밋
+11. **파티원 추가** — 두 곳에서: 메인 파티 카드 멤버 그리드 끝 "+ 추가" 칩 + 파티 상세 strip 끝 "+ 추가" 칩. 클릭 시 닉네임 모달(trim/중복 검사) → `updateParty`로 members append → 재렌더
+12. **GitHub Pages 푸시** — `0d68c46` / `3aa36fe` / `40b295d` / `221a840` / `9661cf1` / `c45cfec` 커밋
 
 ## 현재 막힌 지점 / 결정 대기
 
