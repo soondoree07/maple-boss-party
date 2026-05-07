@@ -232,6 +232,15 @@ function renderRunCard(run, refresh) {
       el('span', { className: 'meta-value' }, run.baseReward || '—'),
     ),
 
+    run.memberSnapshot && run.memberSnapshot.length > 0
+      ? el('div', { className: 'run-meta-row' },
+          el('span', { className: 'meta-label' }, '참여자'),
+          el('span', { className: 'meta-value run-members' },
+            `${run.memberSnapshot.join(', ')} (${run.memberSnapshot.length}인)`
+          ),
+        )
+      : null,
+
     run.loot && run.loot.length > 0
       ? el('div', { className: 'run-section' },
           el('div', { className: 'run-section-label' }, '전리품'),
@@ -240,6 +249,11 @@ function renderRunCard(run, refresh) {
               const def   = getLootDef(run.boss, lt.item);
               const color = getDisplayLootColor(lt.item, def?.group);
               const img   = getLootImage(lt.item);
+              // shared가 명시적으로 true면 분배. 미정의(기존 데이터)는 단독(taker 전액)으로 해석.
+              const shared = lt.shared === true;
+              const takerLabel = shared
+                ? `분배 ÷${run.memberSnapshot?.length || 1}`
+                : (lt.taker || '—');
               return el('div', { className: 'loot-item' },
                 img
                   ? el('img', { className: 'loot-img', src: img, alt: lt.item, loading: 'lazy' })
@@ -248,7 +262,9 @@ function renderRunCard(run, refresh) {
                   className: 'loot-name',
                   style: color ? { color } : null,
                 }, lt.item),
-                el('span', { className: 'loot-taker' }, lt.taker || '—'),
+                el('span', {
+                  className: 'loot-taker' + (shared ? ' loot-taker-shared' : ''),
+                }, takerLabel),
                 el('span', { className: 'loot-price' },
                   lt.price != null ? formatMeso(lt.price) : ''
                 ),
@@ -271,12 +287,22 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
   const overlay = el('div', { className: 'modal-overlay modal-overlay-top' });
   const modal   = el('div', { className: 'modal modal-wide' });
 
-  // 폼 상태
-  let selectedBossId = null;
-  let lootEntries = []; // [{ item, taker, price }] - price는 string으로 보관 (입력 그대로)
+  // 같은 날 직전 회차 — 멤버 / opener / baseReward 자동 미리 채움.
+  const existingRuns = Storage.getRunsByPartyAndDate(party.id, dateStr);
+  const prevRun = existingRuns[existingRuns.length - 1] || null;
 
-  // 같은 주(주간 보스) / 같은 달(월간 보스)에 이미 클리어한 보스 ID 모음.
-  // 그 보스들은 드롭다운에서 가린다.
+  // ── 상태 ──
+  let selectedBossId = null;
+  let lootEntries = []; // [{ item, taker, price, shared }] - price/shared는 입력 상태
+  // 회차 참여자 — 직전 회차가 있으면 그 멤버를, 없으면 파티 전체. party.members 부분 집합으로만 유지.
+  const selectedMembers = new Set(
+    (prevRun?.memberSnapshot && prevRun.memberSnapshot.length > 0
+      ? prevRun.memberSnapshot.filter(m => party.members.includes(m))
+      : party.members)
+  );
+  const visibleMembers = () => party.members.filter(m => selectedMembers.has(m));
+
+  // 같은 주/달 클리어 보스 → 드롭다운에서 가림.
   const dateObj   = parseDateStr(dateStr);
   const week      = getWeekRange(dateObj);
   const month     = getMonthRange(dateObj);
@@ -292,38 +318,65 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
     if (b?.cycle === 'monthly') clearedBossIds.add(r.boss);
   });
 
-  // ── 보스 ──
+  // ── 보스 select ──
   const bossSelect = buildBossSelect(clearedBossIds);
   bossSelect.addEventListener('change', () => {
     selectedBossId = bossSelect.value || null;
-    // 보스가 바뀌면 다른 보스의 전리품 항목은 의미가 없으니 비움.
     lootEntries = [];
     paintLoot();
   });
 
-  // 같은 날 이미 회차가 있으면 상자 연 사람/기본 보상은 직전 값으로 미리 채움.
-  const existingRuns = Storage.getRunsByPartyAndDate(party.id, dateStr);
-  const prevRun = existingRuns[existingRuns.length - 1] || null;
+  // ── 회차 참여자 picker ──
+  const memberGrid = el('div', { className: 'member-toggle-grid' });
+  const paintMembers = () => {
+    clear(memberGrid);
+    party.members.forEach(m => {
+      const active = selectedMembers.has(m);
+      memberGrid.appendChild(el('button', {
+        className: 'member-toggle' + (active ? ' active' : ''),
+        type: 'button',
+        onclick: () => {
+          if (selectedMembers.has(m)) selectedMembers.delete(m);
+          else selectedMembers.add(m);
+          paintMembers();
+          paintOpenerReward();
+          paintLoot(); // taker select도 회차 참여자만으로 좁힘
+        },
+      }, m));
+    });
+  };
 
-  // ── 상자 연 사람 ──
-  const openerSelect = buildMemberSelect(party.members, '선택...');
-  if (prevRun?.opener) openerSelect.value = prevRun.opener;
+  // ── 상자 연 사람 / 기본 보상 — 회차 참여자만 옵션 ──
+  // slot 안에 매번 새로 만들어서 끼워넣는 방식. 현재 select는 .firstElementChild로 접근.
+  const openerSlot = el('div', { className: 'select-slot' });
+  const rewardSlot = el('div', { className: 'select-slot' });
 
-  // ── 기본 보상 ──
-  // (보스 기본 보상을 받아간 사람)
-  const baseRewardSelect = buildMemberSelect(party.members, '선택...');
-  if (prevRun?.baseReward) baseRewardSelect.value = prevRun.baseReward;
+  const paintOpenerReward = () => {
+    const prevOpener = openerSlot.firstElementChild?.value
+      || (selectedMembers.has(prevRun?.opener) ? prevRun.opener : '');
+    const prevReward = rewardSlot.firstElementChild?.value
+      || (selectedMembers.has(prevRun?.baseReward) ? prevRun.baseReward : '');
+
+    clear(openerSlot);
+    clear(rewardSlot);
+    const opSel = buildMemberSelect(visibleMembers(), '선택...');
+    const rwSel = buildMemberSelect(visibleMembers(), '선택...');
+    if (selectedMembers.has(prevOpener)) opSel.value = prevOpener;
+    if (selectedMembers.has(prevReward)) rwSel.value = prevReward;
+    openerSlot.appendChild(opSel);
+    rewardSlot.appendChild(rwSel);
+  };
+
+  paintMembers();
+  paintOpenerReward();
 
   // ── 전리품 영역 ──
-  // 위: 보스 전리품 타일 그리드 (이미지 + 이름, 클릭 토글)
-  // 아래: 선택된 전리품마다 [먹은 사람] [가격] 입력행
   const lootGrid    = el('div', { className: 'loot-grid' });
   const lootRowList = el('div', { className: 'loot-form-list' });
 
   const findEntryIdx = (itemName) => lootEntries.findIndex(e => e.item === itemName);
 
   const paintLoot = () => {
-    // ── 그리드 ──
     clear(lootGrid);
     if (!selectedBossId) {
       lootGrid.appendChild(el('div', { className: 'empty-state-sm' }, '보스를 먼저 선택해주세요'));
@@ -334,13 +387,13 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
         lootGrid.appendChild(buildLootTile(loot, isSelected, () => {
           const idx = findEntryIdx(loot.name);
           if (idx >= 0) lootEntries.splice(idx, 1);
-          else lootEntries.push({ item: loot.name, taker: '', price: '' });
+          // 신규 entry: 분배 디폴트 ON.
+          else lootEntries.push({ item: loot.name, taker: '', price: '', shared: true });
           paintLoot();
         }));
       });
     }
 
-    // ── 선택된 전리품 입력 행 ──
     clear(lootRowList);
     if (lootEntries.length === 0) {
       lootRowList.appendChild(el('div', { className: 'empty-state-sm' }, '아직 선택된 전리품이 없어요'));
@@ -349,8 +402,9 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
         lootRowList.appendChild(buildLootRow({
           entry,
           bossId: selectedBossId,
-          members: party.members,
+          members: visibleMembers(),
           onRemove: () => { lootEntries.splice(idx, 1); paintLoot(); },
+          onChange: () => paintLoot(), // shared 토글 시 taker 표시 갱신
         }));
       });
     }
@@ -377,14 +431,19 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
     bossSelect,
   ));
 
+  modal.appendChild(el('div', { className: 'form-group' },
+    el('label', { className: 'form-label' }, '이번 회차 참여자 (눌러서 토글)'),
+    memberGrid,
+  ));
+
   modal.appendChild(el('div', { className: 'form-row' },
     el('div', { className: 'form-group' },
       el('label', { className: 'form-label' }, '상자 연 사람'),
-      openerSelect,
+      openerSlot,
     ),
     el('div', { className: 'form-group' },
       el('label', { className: 'form-label' }, '기본 보상'),
-      baseRewardSelect,
+      rewardSlot,
     ),
   ));
 
@@ -409,14 +468,14 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
 
   function save() {
     const bossId     = bossSelect.value;
-    const opener     = openerSelect.value;
-    const baseReward = baseRewardSelect.value;
+    const opener     = openerSlot.firstElementChild?.value || '';
+    const baseReward = rewardSlot.firstElementChild?.value || '';
 
     if (!bossId) { alert('보스를 선택해주세요'); return; }
+    if (selectedMembers.size === 0) { alert('회차 참여자를 1명 이상 선택해주세요'); return; }
     if (!opener) { alert('상자 연 사람을 선택해주세요'); return; }
-    // 기본 보상 / 전리품은 비워도 저장 가능
 
-    // 빈 행은 스킵, 나머지는 검증.
+    // 전리품 검증 — 분배 OFF인 경우만 taker 필요.
     const validLoot = [];
     for (const e of lootEntries) {
       if (!e.item) continue;
@@ -426,7 +485,17 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
         alert(`"${e.item}" 가격이 숫자가 아니에요`);
         return;
       }
-      validLoot.push({ item: e.item, taker: e.taker, price: priceNum });
+      const shared = !!e.shared;
+      if (!shared && !e.taker) {
+        alert(`"${e.item}" — 분배 안 함이면 먹은 사람을 선택해주세요`);
+        return;
+      }
+      validLoot.push({
+        item:   e.item,
+        taker:  shared ? '' : e.taker,
+        price:  priceNum,
+        shared,
+      });
     }
 
     Storage.createRun({
@@ -436,7 +505,7 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
       channel,
       opener,
       baseReward,
-      memberSnapshot: [...party.members],
+      memberSnapshot: visibleMembers(),
       loot:           validLoot,
     });
 
@@ -473,25 +542,24 @@ function buildMemberSelect(members, placeholder) {
 
 // ── 전리품 한 행 ──────────────────────────────────────
 
-function buildLootRow({ entry, bossId, members, onRemove }) {
-  // 아이템 — 타일에서 이미 정해졌으므로 라벨로만 표시.
+function buildLootRow({ entry, bossId, members, onRemove, onChange }) {
   const def = getLootDef(bossId, entry.item);
   const color = getDisplayLootColor(entry.item, def?.group);
   const itemLabel = el('div', { className: 'loot-row-name' });
   if (color) itemLabel.style.color = color;
   itemLabel.textContent = entry.item;
 
-  // 먹은 사람
+  // 먹은 사람 — 분배 ON일 땐 비활성화 (의미 없음).
   const takerSelect = el('select', { className: 'select-input' });
-  takerSelect.appendChild(el('option', { value: '' }, '먹은 사람...'));
+  takerSelect.appendChild(el('option', { value: '' }, entry.shared ? '분배: 전원 N등분' : '먹은 사람...'));
   members.forEach(m => {
     const opt = el('option', { value: m }, m);
     if (entry.taker === m) opt.selected = true;
     takerSelect.appendChild(opt);
   });
+  if (entry.shared) takerSelect.disabled = true;
   takerSelect.addEventListener('change', () => { entry.taker = takerSelect.value; });
 
-  // 가격 (단위: 억)
   const priceInput = el('input', {
     type: 'number',
     step: '0.01',
@@ -503,10 +571,26 @@ function buildLootRow({ entry, bossId, members, onRemove }) {
   });
   priceInput.addEventListener('input', () => { entry.price = priceInput.value; });
 
+  // 분배 체크박스 — ON이면 taker 비활성화 + 가격 ÷ 회차 인원 자동.
+  const sharedCheck = el('input', {
+    type: 'checkbox',
+    className: 'loot-shared-check',
+    checked: !!entry.shared,
+  });
+  sharedCheck.addEventListener('change', () => {
+    entry.shared = sharedCheck.checked;
+    onChange?.();
+  });
+  const sharedLabel = el('label', {
+    className: 'loot-shared-label',
+    title: '체크 시 가격을 회차 참여자 N명에게 나눔',
+  }, sharedCheck, '분배');
+
   return el('div', { className: 'loot-form-row' },
     itemLabel,
     takerSelect,
     priceInput,
+    sharedLabel,
     el('button', {
       className: 'icon-btn-sm',
       type: 'button',

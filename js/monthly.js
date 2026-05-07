@@ -12,7 +12,7 @@ import {
   getLootImage,
   getDisplayLootColor,
 } from './data.js';
-import { formatMeso, divideMeso, toDateStr, el } from './utils.js';
+import { formatMeso, toDateStr, el } from './utils.js';
 
 /**
  * @param {{id: string, members: string[]}} party
@@ -49,16 +49,15 @@ function renderMonthCard(party, m) {
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const overrides = Storage.getCrystalOverrides();
+  const partyCount = Math.max(party.members.length, 1);
 
-  // 결정석 합 = 그 달의 모든(weekly+monthly) enabled 보스 회차 결정석 합산.
-  const crystalTotal = runs.reduce((sum, r) => {
+  // 인당 결정석 = Σ(회차 결정석 / 회차 참여자 수). 한 사람이 모든 회차 참여 시 받는 금액.
+  const perHead = runs.reduce((sum, r) => {
     const b = getBoss(r.boss);
     if (!b) return sum;
-    return sum + getEffectiveCrystal(r.boss, overrides);
+    const n = r.memberSnapshot?.length || partyCount;
+    return sum + getEffectiveCrystal(r.boss, overrides) / Math.max(n, 1);
   }, 0);
-
-  const headcount = party.members.length;
-  const perHead   = divideMeso(crystalTotal, headcount);
 
   // 전리품 행: 회차들의 loot 항목 평탄화 (최근 날짜 순).
   const lootRows = [];

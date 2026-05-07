@@ -1,11 +1,12 @@
 // progress.js — 이번 주/이번 달 진행도 위젯
 //
-// PLAN.md 6.3 — 1인 분배액 = 이번 주차 회차의 결정석 합 ÷ 현재 파티원 수.
+// 1인 분배액 = Σ(회차 결정석 ÷ 회차 참여자 수). 회차마다 인원이 다를 수 있어
+// 한 사람이 모든 회차에 참여했을 때 받는 금액에 해당. 멤버별 정확한 수익은 earnings.js.
 // 결정석 가격은 사용자가 #/crystals에서 수정한 override를 우선 적용.
 
 import * as Storage from './storage.js';
 import { getWeeklyBosses, getMonthlyBosses, getBoss, getEffectiveCrystal } from './data.js';
-import { getWeekRange, getMonthRange, formatMeso, divideMeso, shortMD, el } from './utils.js';
+import { getWeekRange, getMonthRange, formatMeso, shortMD, el } from './utils.js';
 
 /**
  * @param {{id: string, members: string[]}} party
@@ -24,33 +25,43 @@ export function renderProgress(party) {
 
   const overrides = Storage.getCrystalOverrides();
 
-  // 주간: weekly cycle 회차의 결정석만 합산.
+  // 회차 결정석 합계 + 회차별 1/N 합산.
+  // run.memberSnapshot이 비어있는 비정상 케이스는 파티 전체 인원수로 fallback.
+  const partyCount = Math.max(party.members.length, 1);
+
   const weekCrystalTotal = weekRuns.reduce((sum, r) => {
     const b = getBoss(r.boss);
     if (!b || b.cycle !== 'weekly') return sum;
     return sum + getEffectiveCrystal(r.boss, overrides);
   }, 0);
+  const weekPerHead = weekRuns.reduce((sum, r) => {
+    const b = getBoss(r.boss);
+    if (!b || b.cycle !== 'weekly') return sum;
+    const n = r.memberSnapshot?.length || partyCount;
+    return sum + getEffectiveCrystal(r.boss, overrides) / Math.max(n, 1);
+  }, 0);
 
-  // 월간: monthly cycle 회차의 결정석만.
   const monthCrystalTotal = monthRuns.reduce((sum, r) => {
     const b = getBoss(r.boss);
     if (!b || b.cycle !== 'monthly') return sum;
     return sum + getEffectiveCrystal(r.boss, overrides);
   }, 0);
-
-  const headcount     = party.members.length;
-  const weekPerHead   = divideMeso(weekCrystalTotal,  headcount);
-  const monthPerHead  = divideMeso(monthCrystalTotal, headcount);
+  const monthPerHead = monthRuns.reduce((sum, r) => {
+    const b = getBoss(r.boss);
+    if (!b || b.cycle !== 'monthly') return sum;
+    const n = r.memberSnapshot?.length || partyCount;
+    return sum + getEffectiveCrystal(r.boss, overrides) / Math.max(n, 1);
+  }, 0);
 
   return el('section', { className: 'progress-section' },
-    renderWeekBlock(week, weeklyClearedIds, weekCrystalTotal, weekPerHead, headcount),
-    renderMonthBlock(today, monthlyClearedIds, monthCrystalTotal, monthPerHead, headcount),
+    renderWeekBlock(week, weeklyClearedIds, weekCrystalTotal, weekPerHead),
+    renderMonthBlock(today, monthlyClearedIds, monthCrystalTotal, monthPerHead),
   );
 }
 
 // ── 주간 블록 ──
 
-function renderWeekBlock(week, clearedIds, total, perHead, headcount) {
+function renderWeekBlock(week, clearedIds, total, perHead) {
   return el('div', { className: 'progress-block' },
     el('div', { className: 'progress-block-header' },
       el('h3', { className: 'progress-title' }, '이번 주 현황'),
@@ -65,7 +76,7 @@ function renderWeekBlock(week, clearedIds, total, perHead, headcount) {
       el('span', { className: 'summary-value' }, displayMeso(perHead)),
       el('span', { className: 'summary-sub' },
         total > 0
-          ? `(전체 ${formatMeso(total)} ÷ ${headcount}인)`
+          ? `(전체 ${formatMeso(total)} · 회차별 ÷ 인원)`
           : '아직 회차 기록이 없어요',
       ),
     ),
@@ -74,7 +85,7 @@ function renderWeekBlock(week, clearedIds, total, perHead, headcount) {
 
 // ── 월간 블록 ──
 
-function renderMonthBlock(today, clearedIds, total, perHead, headcount) {
+function renderMonthBlock(today, clearedIds, total, perHead) {
   return el('div', { className: 'progress-block' },
     el('div', { className: 'progress-block-header' },
       el('h3', { className: 'progress-title' }, '이번 달 현황'),
@@ -90,7 +101,7 @@ function renderMonthBlock(today, clearedIds, total, perHead, headcount) {
       el('span', { className: 'summary-value' }, displayMeso(perHead)),
       el('span', { className: 'summary-sub' },
         total > 0
-          ? `(전체 ${formatMeso(total)} ÷ ${headcount}인)`
+          ? `(전체 ${formatMeso(total)} · 회차별 ÷ 인원)`
           : '아직 회차 기록이 없어요',
       ),
     ),

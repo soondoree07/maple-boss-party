@@ -9,6 +9,8 @@ import { renderPartyList } from './party.js';
 import { renderProgress } from './progress.js';
 import { renderMonthlyHistory } from './monthly.js';
 import { renderChannelRoulette } from './roulette.js';
+import { renderLadder } from './ladder.js';
+import { renderWeeklyEarnings } from './earnings.js';
 import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
@@ -133,8 +135,15 @@ function renderPartyDetail(container, party) {
   };
 
   mainCol.appendChild(renderCalendar(party, initialDate, handleDateClick, handleMonthChange));
+  mainCol.appendChild(renderWeeklyEarnings(party));
 
-  main.appendChild(renderChannelRoulette());
+  // 좌측 사이드: 룰렛 + 사다리타기
+  const sideLeft = el('aside', { className: 'side-left' },
+    renderChannelRoulette(),
+    renderLadder(party),
+  );
+
+  main.appendChild(sideLeft);
   main.appendChild(mainCol);
   main.appendChild(renderMonthlyHistory(party));
 

@@ -374,11 +374,23 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 4px;
 }
 
-/* ── 채널 룰렛 (좌측 사이드) ───────────────────────── */
+/* ── 좌측 사이드 컬럼 (룰렛 + 사다리타기) ─────────── */
 
-.roulette-side {
+.side-left {
   position: sticky;
   top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* 룰렛/사다리는 sticky 컨테이너 안에 들어가므로 본인은 sticky 해제. */
+.roulette-side,
+.ladder-side {
+  position: static;
 }
 
 .roulette-card {
@@ -1339,6 +1351,277 @@ a { color: inherit; text-decoration: none; }
 .price-input { font-feature-settings: 'tnum'; }
 .price-input::-webkit-inner-spin-button { display: none; }
 
+/* ── 사다리타기 카드 ───────────────────────────────── */
+
+.ladder-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 14px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  backdrop-filter: blur(10px) saturate(125%);
+  -webkit-backdrop-filter: blur(10px) saturate(125%);
+}
+
+.ladder-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.ladder-count-row {
+  display: grid;
+  grid-template-columns: auto 64px 1fr;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+}
+.ladder-label {
+  color: var(--text-secondary);
+  text-align: right;
+}
+.ladder-count {
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: right;
+  font-feature-settings: 'tnum';
+}
+.ladder-count::-webkit-inner-spin-button { display: none; }
+.ladder-cap-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: left;
+}
+
+.ladder-name-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ladder-name-row {
+  display: grid;
+  grid-template-columns: 1fr 28px;
+  gap: 6px;
+  align-items: center;
+}
+.ladder-name-input {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.ladder-result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 800;
+  font-feature-settings: 'tnum';
+}
+.ladder-result-win {
+  background: color-mix(in srgb, var(--accent-aqua) 22%, transparent);
+  color: var(--accent-aqua);
+  border: 1px solid color-mix(in srgb, var(--accent-aqua) 55%, transparent);
+  text-shadow: 0 0 8px rgba(78, 229, 245, 0.55);
+}
+.ladder-result-lose {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-subtle);
+}
+
+.ladder-btn {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent-purple) 75%, transparent),
+    color-mix(in srgb, var(--accent-aqua) 75%, transparent));
+  color: #0b1626;
+  border: none;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s;
+  box-shadow:
+    0 4px 14px rgba(167, 139, 255, 0.20),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.ladder-btn:hover { transform: translateY(-1px); }
+.ladder-btn:active { transform: translateY(0); }
+
+.ladder-winner {
+  font-size: 13px;
+  color: var(--accent-aqua);
+  font-weight: 600;
+}
+.ladder-winner strong { color: var(--text-primary); font-weight: 700; }
+
+/* ── 회차 참여자 picker (기록 폼) ──────────────────── */
+
+.member-toggle-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.member-toggle {
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.12s;
+  cursor: pointer;
+}
+.member-toggle:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+.member-toggle.active {
+  background: color-mix(in srgb, var(--accent-aqua) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent-aqua) 60%, transparent);
+  color: var(--accent-aqua);
+  font-weight: 700;
+}
+
+/* ── 분배 체크박스 (전리품 행) ─────────────────────── */
+
+.loot-form-row {
+  /* 기본 4컬럼이었던 grid를 5컬럼으로 확장: 아이템 / taker / 가격 / 분배 / × */
+  grid-template-columns: 1.2fr 1fr 0.8fr auto 24px;
+}
+
+.loot-shared-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+.loot-shared-check {
+  accent-color: var(--accent-aqua);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* 분배 회차 표시 (조회 카드) */
+.loot-taker-shared {
+  color: var(--accent-aqua);
+  font-weight: 600;
+}
+
+.run-members {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ── 파티원별 주간 수익 섹션 ─────────────────────── */
+
+.earnings-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-top: 20px;
+  backdrop-filter: blur(10px) saturate(125%);
+  -webkit-backdrop-filter: blur(10px) saturate(125%);
+}
+
+.earnings-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.earnings-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.earnings-range {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.earnings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.earning-row {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name bar total"
+    "name break break";
+  gap: 4px 12px;
+  align-items: center;
+}
+
+.earning-name {
+  grid-area: name;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.earning-bar {
+  grid-area: bar;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.earning-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-aqua), var(--accent-purple));
+  border-radius: inherit;
+  transition: width 0.3s ease-out;
+}
+
+.earning-total {
+  grid-area: total;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-aqua);
+  font-feature-settings: 'tnum';
+  white-space: nowrap;
+}
+
+.earning-breakdown {
+  grid-area: break;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-feature-settings: 'tnum';
+}
+
+/* select-input wrapping slot — repaint시 자식 select만 교체 */
+.select-slot { display: contents; }
+
 /* ── 반응형 ─────────────────────────────────────────── */
 
 @media (max-width: 1080px) {
@@ -1346,7 +1629,9 @@ a { color: inherit; text-decoration: none; }
     grid-template-columns: 1fr;
   }
   .monthly-side,
-  .roulette-side {
+  .roulette-side,
+  .ladder-side,
+  .side-left {
     position: static;
     max-height: none;
     overflow: visible;
@@ -1374,13 +1659,15 @@ a { color: inherit; text-decoration: none; }
   .loot-form-row {
     grid-template-columns: 1fr 1fr 24px;
     grid-template-areas:
-      "item  item  remove"
-      "taker price price";
+      "item   item   remove"
+      "taker  price  price"
+      "shared shared shared";
   }
   .loot-form-row > *:nth-child(1) { grid-area: item; }
   .loot-form-row > *:nth-child(2) { grid-area: taker; }
   .loot-form-row > *:nth-child(3) { grid-area: price; }
-  .loot-form-row > *:nth-child(4) { grid-area: remove; }
+  .loot-form-row > *:nth-child(4) { grid-area: shared; justify-self: start; }
+  .loot-form-row > *:nth-child(5) { grid-area: remove; }
 
   .modal { padding: 18px; }
   .modal-actions { flex-direction: column-reverse; align-items: stretch; }
