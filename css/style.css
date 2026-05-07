@@ -1175,6 +1175,20 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 10px;
 }
 
+.run-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.icon-btn-edit {
+  color: var(--text-tertiary);
+}
+.icon-btn-edit:hover {
+  background: rgba(78, 229, 245, 0.15);
+  color: var(--accent-aqua);
+}
+
 .run-card-title {
   display: flex;
   gap: 8px;
@@ -1398,44 +1412,90 @@ a { color: inherit; text-decoration: none; }
   text-align: left;
 }
 
-.ladder-name-list {
+.ladder-board {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+  background: rgba(5, 11, 24, 0.55);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 6px;
+  box-shadow:
+    inset 0 0 18px rgba(78, 229, 245, 0.08),
+    inset 0 0 0 1px rgba(78, 229, 245, 0.06);
 }
 
-.ladder-name-row {
+.ladder-grid {
   display: grid;
-  grid-template-columns: 1fr 28px;
-  gap: 6px;
-  align-items: center;
+  gap: 4px;
 }
 .ladder-name-input {
-  padding: 6px 8px;
-  font-size: 12px;
+  padding: 4px 4px;
+  font-size: 11px;
+  text-align: center;
+  width: 100%;
+  min-width: 0;
+}
+.ladder-name-input::placeholder { color: var(--text-muted); }
+
+.ladder-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  /* viewBox 비율을 무시(preserveAspectRatio=none)해서 카드 폭에 자연스럽게 맞춤 — 시각적 비율을 잡기 위해 명시적 height. */
+  aspect-ratio: 100 / 192;
+  overflow: visible;
+}
+.ladder-spine {
+  stroke: var(--border-strong);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+.ladder-rung {
+  stroke: color-mix(in srgb, var(--accent-aqua) 75%, transparent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 2px rgba(78, 229, 245, 0.4));
+}
+.ladder-dot {
+  filter: drop-shadow(0 0 4px currentColor);
+  vector-effect: non-scaling-stroke;
 }
 
 .ladder-result {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 14px;
+  width: 100%;
+  height: 26px;
+  border-radius: 5px;
+  font-size: 13px;
   font-weight: 800;
   font-feature-settings: 'tnum';
+}
+.ladder-result-pending {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-tertiary);
+  border: 1px dashed var(--border-subtle);
 }
 .ladder-result-win {
   background: color-mix(in srgb, var(--accent-aqua) 22%, transparent);
   color: var(--accent-aqua);
   border: 1px solid color-mix(in srgb, var(--accent-aqua) 55%, transparent);
   text-shadow: 0 0 8px rgba(78, 229, 245, 0.55);
+  animation: ladder-result-pop 0.4s ease-out 1;
 }
 .ladder-result-lose {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-tertiary);
   border: 1px solid var(--border-subtle);
+}
+
+@keyframes ladder-result-pop {
+  0%   { transform: scale(0.85); }
+  50%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
 }
 
 .ladder-btn {

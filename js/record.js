@@ -91,7 +91,11 @@ export function openDateModal({ party, dateStr, onChanged }) {
       modal.appendChild(el('div', { className: 'empty-state-sm' }, '이 날 기록이 없어요'));
     } else {
       modal.appendChild(el('div', { className: 'run-list' },
-        runs.map(run => renderRunCard(run, () => { mutated = true; repaint(); })),
+        runs.map(run => renderRunCard(
+          run,
+          () => { mutated = true; repaint(); },
+          () => openEditFor(run),
+        )),
       ));
     }
 
@@ -109,7 +113,18 @@ export function openDateModal({ party, dateStr, onChanged }) {
         }),
       }, isToday ? '+ 보스 기록 추가' : '+ 이 날 기록 추가'),
     ));
+
   };
+
+  // 회차 카드 ✎ 클릭 → 수정 모드로 폼 열기.
+  function openEditFor(run) {
+    openRecordForm({
+      party, dateStr,
+      channel: run.channel,
+      existingRun: run,
+      onSaved: () => { mutated = true; repaint(); },
+    });
+  }
 
   repaint();
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
@@ -195,7 +210,7 @@ function buildReservationForm({ onAdd }) {
 
 // ── 한 회차 카드 (조회용) ────────────────────────────
 
-function renderRunCard(run, refresh) {
+function renderRunCard(run, refresh, onEdit) {
   const boss      = getBoss(run.boss);
   const bossName  = boss ? boss.name : run.boss;
   const bossColor = boss ? boss.color : '#666';
@@ -209,17 +224,27 @@ function renderRunCard(run, refresh) {
         }, bossName),
         el('span', { className: 'run-channel' }, channelLabel(run.channel)),
       ),
-      el('button', {
-        className: 'icon-btn-sm',
-        type: 'button',
-        title: '회차 삭제',
-        onclick: () => {
-          if (confirm('이 회차 기록을 삭제할까요?')) {
-            Storage.deleteRun(run.id);
-            refresh();
-          }
-        },
-      }, '×'),
+      el('div', { className: 'run-card-actions' },
+        onEdit
+          ? el('button', {
+              className: 'icon-btn-sm icon-btn-edit',
+              type: 'button',
+              title: '회차 수정',
+              onclick: () => onEdit(),
+            }, '✎')
+          : null,
+        el('button', {
+          className: 'icon-btn-sm',
+          type: 'button',
+          title: '회차 삭제',
+          onclick: () => {
+            if (confirm('이 회차 기록을 삭제할까요?')) {
+              Storage.deleteRun(run.id);
+              refresh();
+            }
+          },
+        }, '×'),
+      ),
     ),
 
     el('div', { className: 'run-meta-row' },
@@ -279,35 +304,54 @@ function renderRunCard(run, refresh) {
 // ── 기록 추가 폼 ─────────────────────────────────────
 
 /**
- * @param {{party, dateStr: string, channel: string, onSaved: () => void}} opts
+ * @param {{
+ *   party, dateStr: string, channel: string, onSaved: () => void,
+ *   existingRun?: object,   // 있으면 수정 모드 (값 prefill + updateRun)
+ * }} opts
  *
  * channel은 날짜 모달에서 정해진 값(필수). 폼에서는 잠긴 값으로 표시되고 저장에 그대로 사용.
  */
-function openRecordForm({ party, dateStr, channel, onSaved }) {
+function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
+  const isEdit = !!existingRun;
+
   const overlay = el('div', { className: 'modal-overlay modal-overlay-top' });
   const modal   = el('div', { className: 'modal modal-wide' });
 
-  // 같은 날 직전 회차 — 멤버 / opener / baseReward 자동 미리 채움.
+  // 같은 날 직전 회차 — 추가 모드에서만 미리 채움 용도. 수정 모드에선 existingRun이 우선.
   const existingRuns = Storage.getRunsByPartyAndDate(party.id, dateStr);
-  const prevRun = existingRuns[existingRuns.length - 1] || null;
+  const prevRun = isEdit ? null : (existingRuns[existingRuns.length - 1] || null);
 
   // ── 상태 ──
-  let selectedBossId = null;
-  let lootEntries = []; // [{ item, taker, price, shared }] - price/shared는 입력 상태
-  // 회차 참여자 — 직전 회차가 있으면 그 멤버를, 없으면 파티 전체. party.members 부분 집합으로만 유지.
+  let selectedBossId = isEdit ? existingRun.boss : null;
+  // 수정 모드: 기존 loot prefill. price는 string 입력으로 유지. shared는 명시적 boolean.
+  let lootEntries = isEdit
+    ? (existingRun.loot || []).map(lt => ({
+        item:   lt.item,
+        taker:  lt.taker || '',
+        price:  lt.price != null ? String(lt.price) : '',
+        // legacy 데이터 호환 — shared 미정의면 단독(false)으로 prefill (원래 의미 보존).
+        shared: lt.shared === true,
+      }))
+    : [];
+
+  // 회차 참여자 — 수정 모드에선 기존 memberSnapshot, 추가 모드에선 직전 회차/파티 전체.
   const selectedMembers = new Set(
-    (prevRun?.memberSnapshot && prevRun.memberSnapshot.length > 0
-      ? prevRun.memberSnapshot.filter(m => party.members.includes(m))
-      : party.members)
+    isEdit
+      ? (existingRun.memberSnapshot || []).filter(m => party.members.includes(m))
+      : (prevRun?.memberSnapshot && prevRun.memberSnapshot.length > 0
+          ? prevRun.memberSnapshot.filter(m => party.members.includes(m))
+          : party.members)
   );
   const visibleMembers = () => party.members.filter(m => selectedMembers.has(m));
 
-  // 같은 주/달 클리어 보스 → 드롭다운에서 가림.
+  // 같은 주/달 클리어 보스 → 드롭다운에서 가림. 수정 모드에선 자기 회차는 제외하고 계산.
   const dateObj   = parseDateStr(dateStr);
   const week      = getWeekRange(dateObj);
   const month     = getMonthRange(dateObj);
-  const weekRuns  = Storage.getRunsByPartyInRange(party.id, week.start,  week.end);
-  const monthRuns = Storage.getRunsByPartyInRange(party.id, month.start, month.end);
+  const weekRuns  = Storage.getRunsByPartyInRange(party.id, week.start,  week.end)
+    .filter(r => !isEdit || r.id !== existingRun.id);
+  const monthRuns = Storage.getRunsByPartyInRange(party.id, month.start, month.end)
+    .filter(r => !isEdit || r.id !== existingRun.id);
   const clearedBossIds = new Set();
   weekRuns.forEach(r => {
     const b = getBoss(r.boss);
@@ -320,10 +364,14 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
 
   // ── 보스 select ──
   const bossSelect = buildBossSelect(clearedBossIds);
+  if (isEdit) bossSelect.value = existingRun.boss;
   bossSelect.addEventListener('change', () => {
-    selectedBossId = bossSelect.value || null;
-    lootEntries = [];
-    paintLoot();
+    const newBoss = bossSelect.value || null;
+    if (newBoss !== selectedBossId) {
+      selectedBossId = newBoss;
+      lootEntries = []; // 다른 보스의 전리품은 의미가 없으니 비움.
+      paintLoot();
+    }
   });
 
   // ── 회차 참여자 picker ──
@@ -352,10 +400,14 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
   const rewardSlot = el('div', { className: 'select-slot' });
 
   const paintOpenerReward = () => {
+    // 첫 paint 시점(slot이 비어있을 때) — 수정 모드는 existingRun, 추가 모드는 prevRun으로 prefill.
+    const fallbackOpener = isEdit ? existingRun.opener : prevRun?.opener;
+    const fallbackReward = isEdit ? existingRun.baseReward : prevRun?.baseReward;
+
     const prevOpener = openerSlot.firstElementChild?.value
-      || (selectedMembers.has(prevRun?.opener) ? prevRun.opener : '');
+      || (selectedMembers.has(fallbackOpener) ? fallbackOpener : '');
     const prevReward = rewardSlot.firstElementChild?.value
-      || (selectedMembers.has(prevRun?.baseReward) ? prevRun.baseReward : '');
+      || (selectedMembers.has(fallbackReward) ? fallbackReward : '');
 
     clear(openerSlot);
     clear(rewardSlot);
@@ -413,7 +465,7 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
 
   // ── 모달 조립 ──
   modal.appendChild(el('div', { className: 'modal-header' },
-    el('h2', { className: 'modal-title' }, '보스 기록 추가'),
+    el('h2', { className: 'modal-title' }, isEdit ? '보스 기록 수정' : '보스 기록 추가'),
     el('button', {
       className: 'icon-btn-close',
       type: 'button',
@@ -463,7 +515,7 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
       className: 'btn btn-primary',
       type: 'button',
       onclick: () => save(),
-    }, '저장'),
+    }, isEdit ? '수정 저장' : '저장'),
   ));
 
   function save() {
@@ -498,7 +550,7 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
       });
     }
 
-    Storage.createRun({
+    const payload = {
       partyId:        party.id,
       date:           dateStr,
       boss:           bossId,
@@ -507,7 +559,10 @@ function openRecordForm({ party, dateStr, channel, onSaved }) {
       baseReward,
       memberSnapshot: visibleMembers(),
       loot:           validLoot,
-    });
+    };
+
+    if (isEdit) Storage.updateRun(existingRun.id, payload);
+    else        Storage.createRun(payload);
 
     overlay.remove();
     onSaved?.();
