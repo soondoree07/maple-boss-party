@@ -1,4 +1,4 @@
-# 메이플 보스 파티 기록 — 진행 상황 (2026-05-04 KST 기준)
+# 메이플 보스 파티 기록 — 진행 상황 (2026-05-07 KST 기준)
 
 ## 프로젝트 개요
 메이플스토리 본진 보스 파티의 주간/월간 클리어 + 전리품 분배 기록용 1인 정적 사이트. Vanilla HTML + ES Module + localStorage. 빌드 시스템 없음.
@@ -9,36 +9,36 @@
 **배포 URL:** https://soondoree07.github.io/maple-boss-party/
 **Repo:** https://github.com/soondoree07/maple-boss-party (main / root, GitHub Pages 활성)
 
-## 오늘 완료한 것 (2026-05-04, 어제 MVP 가동분 포함)
+## 오늘 완료한 것 (2026-05-07 — v0.4)
 
-1. **MVP 9개 모듈 + 결정석 편집 페이지** (`#/crystals`, `crystalOverrides`)
-2. **파티 모달 6칸 닉네임 그리드 / 카드 × 삭제**
-3. **채널 picker 그리드 / 같은 주·달 보스 자동 제외 / opener·baseReward 자동 미리 채움**
-4. **전리품 입력 타일 그리드** (이미지+이름 토글) + 유니크 6종 도미넌트 컬러
-5. **이미지 27+1종 sync**, 유피테르에 "오만의 원죄"(보스는 `enabled: false`)
-6. **분배액 cycle 가드 fix** (월간 검마가 주간 합에 더해지던 문제)
-7. **결정석 가격 편집 페이지** — 저장 시 `alert` 제거 후 `history.back()`
-8. **결정석 아이콘 22→30px**, summary baseline→center, 분배액 0건은 `—` 대신 `0억`
-9. **월별 누적 사이드바 신설** (`monthly.js`) — 이번/-1/-2 카드 3개. 인당 총 결정석 + 전리품 행 (이미지+이름+나누기 전 가격)
-10. **파티원 strip이 grid 양쪽에 걸쳐서** 좌우 첫 카드가 같은 y
-11. **미래 날짜 예약 기능** (`storage.reservations`) — 시간만 입력, 하루 1건, 캘린더에 골드 점선 pill
-12. **배경 이미지 6장 + aqua 팔레트 전환** — 페이지 로드마다 랜덤. 골드 → 시안 (#4ee5f5). 카드 backdrop-blur. CSS variable url() base 함정 해결 (`../background/` prefix 통일)
-13. **GitHub Pages 배포** — `soondoree07/maple-boss-party` repo로 push, Pages API 활성화. `0aae021`, `3bfd313` 커밋
-14. **채널 룰렛 사이드 카드** (`roulette.js`) — 좌측 220px sticky. 슬롯 윈도우 + 시안/보라 그라데이션 "🎰 뽑기" 버튼. 1.1초 동안 굴러가다 채널 1개로 멈춤. 파티 상세 grid를 220 / 1fr / 320 3컬럼으로
-15. **회차 카드 전리품 행에도 이미지 표시** (`record.renderRunCard`) — grid를 `24px 1fr auto auto`로 늘리고 `loot-img` 추가, fallback 박스 처리
+1. **회차별 참여자 선택** — 파티 단위 고정이던 멤버를 회차마다 선택. 같은 날 직전 회차 멤버 자동 미리 채움(없으면 파티 전체). 후보는 파티 생성 시 등록된 멤버만
+2. **전리품 분배 체크박스** — 행에 분배 ON/OFF. ON(디폴트)이면 가격 ÷ 회차 인원, OFF면 taker 전액. ON일 때 taker select 비활성화
+3. **결정석 분배 자동화** — progress.js·monthly.js 1인 분배액을 Σ(crystal/회차 인원) 합산으로 변경
+4. **회차 카드 표시 개선** — 참여자 명단 행 추가, 분배 전리품은 'taker' 자리에 '분배 ÷N' aqua 색
+5. **earnings.js 신설** — 파티원별 이번 주(목~수) 수익 카드. 결정석 1/N + 분배 전리품 1/N + 단독 전리품 전액 합산. progress bar 비중 시각화. 캘린더 바로 밑
+6. **ladder.js 신설** — 룰렛 밑 사다리타기 카드. 인원수(2~파티 총원, 디폴트 2), 이름 N개, 뽑기 → 1명 O 나머지 X 즉시 셔플. 1인 파티는 안내 메시지만
+7. **side-left wrapper** — 룰렛+사다리를 좌측 sticky 컬럼 안에 함께
+8. **호환성** — 기존 데이터의 `memberSnapshot`은 그대로 회차 참여자로 해석, 기존 `LootEntry.shared` 미정의는 단독(taker 전액)으로 해석해 기존 동작 보존
+9. **GitHub Pages 푸시** — `0d68c46` 커밋
 
 ## 현재 막힌 지점 / 결정 대기
 
-- **GitHub Pages 한글 파일명 서빙 확인 대기** — 첫 빌드 끝나면 https://soondoree07.github.io/maple-boss-party/ 접속해서 배경 이미지(`background/리버스시티.png` 등)와 전리품 이미지(`png/해머(얼굴장식).png` 등)가 정상 표시되는지 사용자 확인 필요. 안 보이면 영문 alias로 rename + LOOT_IMAGE/BACKGROUNDS 매핑 변경
-- **유피테르 활성화 여부** — 오만의 원죄 추가됐지만 `enabled: false` 유지
-- **이전 `maple-boss` repo (어제 push분)** — GitHub에 그대로 남아있음. 정리 원하면 `gh repo delete soondoree07/maple-boss --yes` (사용자 직접 결정)
+- **사용자 브라우저 검증 대기** — https://soondoree07.github.io/maple-boss-party/ 에서 다음 확인:
+  - 회차 추가 시 회차 참여자 토글 정상 동작 (직전 회차 멤버 미리 채움 / 빼고 추가)
+  - 전리품 분배 체크 ON/OFF 토글 + taker 비활성화/활성화
+  - 진행도 위젯 1인 분배액이 회차별 1/N 합산으로 계산되는지
+  - 캘린더 밑 "이번 주 파티원별 수익" 카드 — 멤버별 합산이 직관적인지, progress bar 비중
+  - 룰렛 밑 사다리타기 — 인원수 변경 / 이름 입력 / 뽑기 → O/X 셔플 + 당첨자 표시
+  - 기존 데이터(있다면) 그대로 잘 표시되는지
+- **유피테르 활성화 여부** — 오만의 원죄 추가됐지만 `enabled: false` 유지 중
 
 ## 다음 액션 (이어할 작업)
 
-1. **배포 사이트 동작 확인** — https://soondoree07.github.io/maple-boss-party/ 에 접속해서 한글 이미지 서빙·룰렛·예약·월별 사이드 동작 검증
+1. **사용자 검증 후 발견된 이슈 수정** (기능별 토글 동작·계산 정확도·UX)
 2. **유피테르 활성화 결정** — 한 줄 (`enabled: true`) 또는 보류
-3. (선택) 해머/박스/석재 fallback 시각 개선
-4. (선택) 룰렛 결과를 회차 기록 폼에 자동 채우기 등 연계 기능
+3. (선택) 분배 OFF 전리품에 대해서도 회차 참여자 명단으로 taker 후보를 제한하는 검증을 강화
+4. (선택) 사다리타기에 당첨 인원수 옵션 추가 (현재 1명 고정)
+5. (선택) earnings 섹션을 월간 누적도 보여주는 토글 추가
 
 ## 환경/구조 메모
 
@@ -48,5 +48,8 @@
 - 이미지 sync: `cp /home/soondoree07/maple-boss/png/*.{png,webp} "/mnt/c/Users/박정혁/Downloads/maple-boss/png/"`
 - 배경 sync: `cp /home/soondoree07/maple-boss/background/*.png "/mnt/c/Users/박정혁/Downloads/maple-boss/background/"`
 - 라우트: `#/` / `#/party/:id` / `#/crystals`
-- 모듈 11개: `app / data / storage / utils / party / progress / calendar / record / monthly / roulette / crystals / backup`
+- 모듈 13개: `app / data / storage / utils / party / progress / calendar / record / monthly / earnings / roulette / ladder / crystals / backup`
+- 데이터 모델 v0.4:
+  - `BossRun.memberSnapshot` = 회차 실제 참여자 (파티 전체일 수도 일부일 수도)
+  - `LootEntry.shared` = true(N등분) / false(taker 전액) / undefined(legacy → 단독)
 - 트리거 키워드: `메이플보스` 또는 `/메이플보스` 입력 시 이 RESUME.md를 가장 먼저 읽음
