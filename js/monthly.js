@@ -8,7 +8,7 @@ import * as Storage from './storage.js';
 import {
   getBoss,
   getEffectiveCrystal,
-  getLootDef,
+  resolveDifficultyKey,
   getLootImage,
   getDisplayLootColor,
 } from './data.js';
@@ -48,7 +48,7 @@ function renderMonthCard(party, m) {
   const runs = Storage.getRunsByPartyInRange(party.id, m.startStr, m.endStr)
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const overrides = Storage.getCrystalOverrides();
+  const defaults = Storage.getBossSettings().defaults;
   const partyCount = Math.max(party.members.length, 1);
 
   // 인당 결정석 = Σ(회차 결정석 / 회차 참여자 수). 한 사람이 모든 회차 참여 시 받는 금액.
@@ -56,7 +56,8 @@ function renderMonthCard(party, m) {
     const b = getBoss(r.boss);
     if (!b) return sum;
     const n = r.memberSnapshot?.length || partyCount;
-    return sum + getEffectiveCrystal(r.boss, overrides) / Math.max(n, 1);
+    const diffKey = resolveDifficultyKey(r.boss, r.difficulty, defaults);
+    return sum + getEffectiveCrystal(r.boss, diffKey) / Math.max(n, 1);
   }, 0);
 
   // 전리품 행: 회차들의 loot 항목 평탄화 (최근 날짜 순).
@@ -84,9 +85,7 @@ function renderMonthCard(party, m) {
 }
 
 function renderLootRow(row) {
-  const def = getLootDef(row._bossId, row.item);
-  const group = def?.group || 'default';
-  const color = getDisplayLootColor(row.item, group);
+  const color = getDisplayLootColor(row.item);
   const img   = getLootImage(row.item);
 
   const priceText = (row.price == null || isNaN(Number(row.price)))

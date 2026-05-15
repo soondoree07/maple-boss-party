@@ -1,56 +1,53 @@
-// crystals.js — 보스 결정석 가격 편집 페이지
+// crystals.js — 보스 설정 페이지 (등장 유무 / 기본 난이도 / 난이도별 결정석·전리품 조회)
 //
 // 라우트: #/crystals
 //
-// 상단: 주간 보스 카드들 (가로 2열)
-// 하단: 월간 보스(검마) 카드 한 개 (별도 섹션)
-// 페이지 하단: 저장 버튼 한 개 — 한 번에 모두 저장.
+// 보스마다 가로로 긴 행 1개 (가나다순):
+//   [☑ 보이기] [보스명] [기본 난이도 ▼]   난이도별 [결정석 가격 · 전리품 종류]
+//
+// 결정석 가격은 data.js의 고정값(조회 전용). 사용자가 정하는 건
+//   - 보이기 체크박스   → 회차 폼 보스 드롭다운 노출 여부
+//   - 기본 난이도        → 회차 폼 난이도 초기값 후보
+// 저장 시 localStorage(bossSettings)에 반영.
 
 import * as Storage from './storage.js';
-import { BOSSES, getEffectiveCrystal } from './data.js';
-import { el, clear } from './utils.js';
+import { bossesByName, difficultyLabel, getLootImage, getDisplayLootColor } from './data.js';
+import { formatMeso, el, clear } from './utils.js';
 
 export function renderCrystalsPage(container) {
   clear(container);
 
-  // 입력 상태 — bossId → string (사용자 타이핑 그대로)
-  const overrides = Storage.getCrystalOverrides();
-  const draft = {};
-  BOSSES.forEach(b => {
-    const eff = getEffectiveCrystal(b.id, overrides);
-    draft[b.id] = String(eff);
+  const settings = Storage.getBossSettings();
+  const bosses = bossesByName();
+
+  // 드래프트 — 저장 버튼 누를 때까지 화면에만 반영.
+  const draftVisible  = {};  // { [id]: boolean }
+  const draftDefaults = {};  // { [id]: difficultyKey }
+  bosses.forEach(b => {
+    draftVisible[b.id]  = settings.visible[b.id] !== false;
+    const dft = settings.defaults[b.id];
+    draftDefaults[b.id] = (dft && b.difficulties.some(d => d.key === dft))
+      ? dft
+      : (b.difficulties[0]?.key || '');
   });
 
   // ── 헤더 ──
   container.appendChild(el('header', { className: 'page-header' },
     el('a', { href: 'javascript:history.back()', className: 'back-btn' }, '← 뒤로'),
-    el('h1', { className: 'page-title' }, '결정석 가격 수정'),
+    el('h1', { className: 'page-title' }, '보스 설정 · 결정석'),
     el('div', { className: 'header-actions' }),
   ));
 
-  // ── 본문 ──
   const main = el('main', { className: 'crystals-main' });
 
-  const weekly  = BOSSES.filter(b => b.cycle === 'weekly');
-  const monthly = BOSSES.filter(b => b.cycle === 'monthly');
-
-  // 주간 섹션
-  main.appendChild(el('section', { className: 'crystals-section' },
-    el('h2', { className: 'crystals-section-title' }, '주간 보스'),
-    el('div', { className: 'crystals-grid' },
-      weekly.map(b => buildBossCard(b, draft)),
-    ),
+  main.appendChild(el('p', { className: 'crystals-hint' },
+    '보이기를 끄면 회차 기록의 보스 드롭다운에서 숨겨져요. ' +
+    '기본 난이도는 회차를 처음 기록할 때 미리 선택돼요 (회차마다 바꿀 수 있어요).',
   ));
 
-  // 월간 섹션
-  if (monthly.length > 0) {
-    main.appendChild(el('section', { className: 'crystals-section' },
-      el('h2', { className: 'crystals-section-title' }, '월간 보스'),
-      el('div', { className: 'crystals-grid' },
-        monthly.map(b => buildBossCard(b, draft)),
-      ),
-    ));
-  }
+  main.appendChild(el('div', { className: 'boss-setting-list' },
+    bosses.map(b => buildBossRow(b, draftVisible, draftDefaults)),
+  ));
 
   // 저장 버튼 (페이지 하단)
   main.appendChild(el('div', { className: 'crystals-actions' },
@@ -58,9 +55,7 @@ export function renderCrystalsPage(container) {
       className: 'btn btn-primary',
       type: 'button',
       onclick: () => {
-        const map = {};
-        for (const b of BOSSES) map[b.id] = draft[b.id];
-        Storage.setCrystalOverrides(map);
+        Storage.setBossSettings({ visible: { ...draftVisible }, defaults: { ...draftDefaults } });
         history.back();
       },
     }, '저장'),
@@ -69,26 +64,70 @@ export function renderCrystalsPage(container) {
   container.appendChild(main);
 }
 
-function buildBossCard(boss, draft) {
-  const input = el('input', {
-    type: 'number',
-    step: '0.1',
-    min: '0',
-    inputmode: 'decimal',
-    className: 'text-input crystal-input',
-    value: draft[boss.id],
-    placeholder: '0',
+function buildBossRow(boss, draftVisible, draftDefaults) {
+  // 보이기 체크박스
+  const visibleCheck = el('input', {
+    type: 'checkbox',
+    className: 'boss-visible-check',
+    checked: draftVisible[boss.id],
   });
-  input.addEventListener('input', () => { draft[boss.id] = input.value; });
+  visibleCheck.addEventListener('change', () => {
+    draftVisible[boss.id] = visibleCheck.checked;
+    card.classList.toggle('boss-hidden', !visibleCheck.checked);
+  });
 
-  return el('div', {
-    className: 'crystal-card',
-    style: { '--accent': boss.color },
-  },
-    el('div', { className: 'crystal-card-name' }, boss.name),
-    el('div', { className: 'crystal-card-input-row' },
-      input,
-      el('span', { className: 'crystal-card-unit' }, '억'),
+  // 기본 난이도 select
+  const defaultSelect = el('select', { className: 'select-input boss-default-select' },
+    boss.difficulties.map(d =>
+      el('option', { value: d.key }, difficultyLabel(d.key))
     ),
   );
+  defaultSelect.value = draftDefaults[boss.id];
+  defaultSelect.addEventListener('change', () => {
+    draftDefaults[boss.id] = defaultSelect.value;
+  });
+
+  // 난이도별 결정석 + 전리품 행
+  const diffRows = boss.difficulties.map(d => {
+    const lootNodes = d.loot && d.loot.length > 0
+      ? d.loot.map(name => {
+          const img   = getLootImage(name);
+          const color = getDisplayLootColor(name);
+          return el('span', { className: 'bsd-loot', title: name },
+            img
+              ? el('img', { className: 'bsd-loot-img', src: img, alt: name, loading: 'lazy' })
+              : null,
+            el('span', { className: 'bsd-loot-name', style: color ? { color } : null }, name),
+          );
+        })
+      : [el('span', { className: 'bsd-loot-none' }, '결정석만')];
+
+    return el('div', { className: 'bsd-row' },
+      el('span', { className: 'bsd-diff' }, difficultyLabel(d.key)),
+      el('span', { className: 'bsd-crystal' }, formatMeso(d.crystal)),
+      el('span', { className: 'bsd-loots' }, lootNodes),
+    );
+  });
+
+  const card = el('div', {
+    className: 'boss-setting-card' + (draftVisible[boss.id] ? '' : ' boss-hidden'),
+    style: { '--accent': boss.color },
+  },
+    el('div', { className: 'boss-setting-head' },
+      el('label', { className: 'boss-visible-label', title: '회차 기록에 노출' },
+        visibleCheck,
+        el('span', {}, '보이기'),
+      ),
+      el('span', { className: 'boss-setting-name' }, boss.name),
+      el('span', { className: 'boss-setting-cycle' },
+        boss.cycle === 'monthly' ? '월간' : '주간'),
+      el('label', { className: 'boss-default-label' },
+        el('span', { className: 'boss-default-cap' }, '기본 난이도'),
+        defaultSelect,
+      ),
+    ),
+    el('div', { className: 'boss-setting-diffs' }, diffRows),
+  );
+
+  return card;
 }

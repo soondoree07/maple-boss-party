@@ -7,7 +7,7 @@
 //     · lt.shared !== true (단독 / 기존 데이터)   → lt.taker === m 일 때만 lt.price 전액
 
 import * as Storage from './storage.js';
-import { getBoss, getEffectiveCrystal } from './data.js';
+import { getBoss, getEffectiveCrystal, resolveDifficultyKey } from './data.js';
 import { getWeekRange, getMonthRange, formatMeso, shortMD, el } from './utils.js';
 
 /** 이번 주(목~수) 멤버별 수익. */
@@ -46,7 +46,7 @@ export function renderMonthlyEarnings(party) {
  * }} opts
  */
 function renderEarningsCard({ party, runs, title, rangeLabel, emptyText, showGrandTotal = false }) {
-  const overrides = Storage.getCrystalOverrides();
+  const defaults = Storage.getBossSettings().defaults;
   const earnings = new Map(party.members.map(m => [m, { crystal: 0, loot: 0 }]));
 
   for (const r of runs) {
@@ -56,7 +56,8 @@ function renderEarningsCard({ party, runs, title, rangeLabel, emptyText, showGra
 
     const boss = getBoss(r.boss);
     if (boss) {
-      const share = getEffectiveCrystal(r.boss, overrides) / n;
+      const diffKey = resolveDifficultyKey(r.boss, r.difficulty, defaults);
+      const share = getEffectiveCrystal(r.boss, diffKey) / n;
       participants.forEach(m => earnings.get(m).crystal += share);
     }
 

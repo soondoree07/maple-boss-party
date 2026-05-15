@@ -1,66 +1,54 @@
-# 메이플 보스 파티 기록 — 진행 상황 (2026-05-08 KST 기준)
+# 메이플 보스 파티 기록 — 진행 상황 (2026-05-16 KST 기준)
 
 ## 프로젝트 개요
 메이플스토리 본진 보스 파티의 주간/월간 클리어 + 전리품 분배 기록용 1인 정적 사이트. Vanilla HTML + ES Module + localStorage. 빌드 시스템 없음.
 
 **프로젝트 위치:** `/mnt/c/Users/박정혁/Downloads/maple-boss/` (Windows Downloads 폴더)
 **png 원본 폴더:** `/home/soondoree07/maple-boss/png/`
-**배경 원본 폴더:** `/home/soondoree07/maple-boss/background/`
+**보스 데이터 원본:** `/home/soondoree07/maple-boss/boss_table.md` (사용자가 준 보스×난이도×결정석×전리품 표)
 **배포 URL:** https://soondoree07.github.io/maple-boss-party/
 **Repo:** https://github.com/soondoree07/maple-boss-party (main / root, GitHub Pages 활성)
 
-## 오늘 완료한 것 (2026-05-07 — v0.4)
+## 오늘 완료한 것 (2026-05-16 — v0.5: 보스 난이도 모델 전면 도입)
 
-1. **회차별 참여자 선택** — 파티 단위 고정이던 멤버를 회차마다 선택. 같은 날 직전 회차 멤버 자동 미리 채움(없으면 파티 전체). 후보는 파티 생성 시 등록된 멤버만
-2. **전리품 분배 체크박스** — 행에 분배 ON/OFF. ON(디폴트)이면 가격 ÷ 회차 인원, OFF면 taker 전액. ON일 때 taker select 비활성화
-3. **결정석 분배 자동화** — progress.js·monthly.js 1인 분배액을 Σ(crystal/회차 인원) 합산으로 변경
-4. **회차 카드 표시 개선** — 참여자 명단 행 추가, 분배 전리품은 'taker' 자리에 '분배 ÷N' aqua 색
-5. **earnings.js 신설** — 파티원별 이번 주(목~수) 수익 카드. 결정석 1/N + 분배 전리품 1/N + 단독 전리품 전액 합산. progress bar 비중 시각화. 캘린더 바로 밑
-6. **ladder.js — 1차 단순 셔플 → 2차 SVG 시각화 전면 재작성**. N개 세로줄+랜덤 가로줄 그리고 점 N개가 색상별로 동시에 위에서 내려가며 가로줄에서 휘어지는 rAF 애니메이션(1.7초). 도착 시 O/X 셀 + winner pop + '🏆 X 당첨!'
-7. **회차 기록 수정 기능** — 회차 카드에 ✎ 버튼. openRecordForm에 existingRun 파라미터 추가해서 모든 필드 prefill, 저장 시 updateRun. 수정 모드 보스 select은 자기 보스도 옵션에 포함
-8. **side-left wrapper** — 룰렛+사다리를 좌측 sticky 컬럼 안에 함께
-9. **호환성** — 기존 데이터의 `memberSnapshot`은 그대로 회차 참여자로 해석, 기존 `LootEntry.shared` 미정의는 단독(taker 전액)으로 해석해 기존 동작 보존
-10. **사다리 UX 개선 (3차)** — 뽑기 전엔 SVG가 블러+🎴 cover로 가려짐. 뽑기 누르면 공개 + 이름 input들이 클릭 가능한 색상 칩으로 전환. 칩 클릭 시 그 사람만 stroke-dashoffset 애니메이션으로 path가 그려지며 dot 추적, 도착 셀 outline+pop. 다른 이름 클릭 시 이전 trace 정리
-11. **파티원 추가** — 두 곳에서: 메인 파티 카드 멤버 그리드 끝 "+ 추가" 칩 + 파티 상세 strip 끝 "+ 추가" 칩. 클릭 시 닉네임 모달(trim/중복 검사) → `updateParty`로 members append → 재렌더
-12. **보스 select 가림 제거** — 같은 주/달 클리어 보스도 항상 노출 (중복 회차 기록 자유)
-13. **레이아웃 재배치** — 진행도 위젯('이번 주/달 현황') 제거. earnings 두 카드를 메인 컬럼 최상단으로: 위 = '이번 주 파티원별 수익', 아래 = '이번 달 전체 수익'(헤더에 파티 전체 누적). 캘린더는 그 아래. 결정석 페이지 진입점은 페이지 헤더 '결정석' 링크
-14. **이름 input lang='ko'** — 사다리 이름·파티명·파티원 슬롯·파티원 추가 모달. Chrome/Edge에서 IME 한국어 자동 활성 유도(OS 키보드 상태가 우선이라 100% 보장은 아님)
-15. **GitHub Pages 푸시** — `... c1bd0a7 06446e6` 커밋까지 모두 main에 반영
+1. **결정석 = 보스×난이도별 고정값** — 사용자 자유 입력(`crystalOverrides`) 폐기. `boss_table.md`의 메소를 억 단위로 변환해 `data.js`에 고정. node 스크립트로 표와 전수 대조 통과
+2. **보스 27종** — 기존 9 + 미등록 18 전부 추가. 기존 9보스는 ID 보존(seren/kalos/lotus/baldrix/adversary/kaling/limbo/jupiter/blackmage → 풀네임 매핑)해 기존 BossRun 데이터 그대로 해석
+3. **`data.js` 모델 변경** — 보스에 `difficulties: [{ key, crystal, loot }]`. 난이도 키 easy/normal/hard/chaos/extreme + 라벨/정렬 헬퍼. `getEffectiveCrystal(bossId, difficultyKey)`, `getBossLoot(bossId, difficultyKey)`, `resolveDifficultyKey`, `getVisibleBosses`, `bossesByName`, `getLootGroup` 신설. 전리품 그룹은 아이템 이름 기반(`LOOT_GROUP`)으로 단순화 → `getLootDef`/`BOSS_LOOT`/`getEnabledBosses` 제거
+4. **전리품 병합 규칙** — 표에 전리품 적힌 (보스,난이도)는 표 값 / 빈칸은 결정석만(전리품 없음) / **단, '선택받은 세렌'은 표 전 난이도가 비어 기존 세렌 전리품(해머(얼굴장식)·미트라의 분노·영달포+공통)으로 채움** (사용자 결정)
+5. **커포 → 커포링 통일** — `LOOT_GROUP`/`LOOT_IMAGE` 키 변경. 이미지 파일은 `png/커포.png` 그대로, 레거시 기록의 `커포`도 같은 이미지/그룹으로 호환
+6. **`storage.js`** — `crystalOverrides` 폐기, `bossSettings: { visible, defaults }` 신규(getter/setter + readRaw/import 정규화). 구버전 백업의 crystalOverrides는 무시
+7. **결정석 페이지(`#/crystals`) → 보스 설정 페이지로 확장** — 보스마다 가로 행: `[☑ 보이기] [보스명] [기본 난이도 ▼]` + 난이도별 `[결정석 가격 · 전리품 종류]` 조회. 가나다순. 저장 시 bossSettings 반영. (정렬 커스텀용 자리만 비워둠 — 사용자가 순서 추후 지정 예정)
+8. **`record.js` 회차 폼** — 보스 select(보이는 보스만, 가나다순) → 그 다음 **난이도 select** 노출. 난이도 초기값 캐스케이드: ① 이 파티가 그 보스 마지막 기록 시 난이도 → ② 보스 설정 기본 난이도 → ③ 첫 난이도. 매 회차 드롭다운 변경 가능. 전리품 타일은 (보스×난이도) 기준. `BossRun.difficulty` 저장. 회차 카드에 난이도 칩 표시
+9. **`earnings.js` / `monthly.js`** — 결정석 계산을 `resolveDifficultyKey(boss, run.difficulty, defaults)` 기준으로. 난이도 없는 legacy 회차는 기본설정 → 첫 난이도로 fallback
+10. **CSS** — 보스 설정 페이지 가로행 레이아웃(`.boss-setting-card`/`.bsd-row` 등), `.run-difficulty` 칩, `.form-hint`. 구 `.crystal-card*` 규칙 제거
+11. **검증** — 전 JS `node --check` 통과 / data.js 표 전수 대조 스크립트 ALL PASS(27보스) / 로컬 서버 주요 자산 200(한글 png 포함)
 
 ## 현재 막힌 지점 / 결정 대기
 
-- **사용자 브라우저 검증 대기** — https://soondoree07.github.io/maple-boss-party/ 에서 다음 확인:
-  - 회차 추가 시 회차 참여자 토글 정상 동작 (직전 회차 멤버 미리 채움 / 빼고 추가)
-  - 전리품 분배 체크 ON/OFF 토글 + taker 비활성화/활성화
-  - 진행도 위젯 1인 분배액이 회차별 1/N 합산으로 계산되는지
-  - 캘린더 밑 "이번 주 파티원별 수익" 카드 — 멤버별 합산이 직관적인지, progress bar 비중
-  - **사다리타기** — 뽑기 전 사다리 가려진 상태 / 뽑기 누르면 공개 + 이름이 칩으로 전환 / 이름 클릭 시 그 사람만 path 그려지며 점 따라감 / 도착 셀 강조
-  - **파티원 추가** — strip 끝 "+ 추가" 칩 → 모달 → 저장 후 회차 폼/sidebar 등에서 새 멤버가 자동 노출
-  - **회차 카드 ✎ 수정** — 모든 필드 prefill 정상 / 저장 시 같은 회차 ID 유지 / 보스 변경 시에만 loot 비워지는지
-  - 기존 데이터(있다면) 그대로 잘 표시되는지
-- **유피테르 활성화 여부** — 오만의 원죄 추가됐지만 `enabled: false` 유지 중
+- **사용자 브라우저 검증 대기** — https://soondoree07.github.io/maple-boss-party/ 푸시 후:
+  - `#/crystals` 보스 설정: 보이기 토글 / 기본 난이도 변경 / 난이도별 결정석·전리품 표시 / 저장 후 유지
+  - 회차 폼: 보스 선택 후 난이도 드롭다운 노출 / 같은 보스 직전 회차 난이도 자동 선택 / 난이도 바꾸면 전리품 목록 갱신
+  - 보이기 끈 보스가 회차 보스 드롭다운에서 사라지는지 (기존 기록·캘린더엔 그대로 보이는지)
+  - 주/월 수익 카드가 회차 난이도 결정석으로 합산되는지
+  - 기존(난이도 없는) 회차 데이터가 깨지지 않고 fallback 난이도로 표시되는지
+- **보스 표시 순서** — 현재 가나다순. 사용자가 커스텀 순서 추후 지정 예정(데이터에 `order` 자리 미도입, 지정 시 추가)
 
 ## 다음 액션 (이어할 작업)
 
-1. **배포 사이트 직접 사용해보고 발견된 이슈 정리** — https://soondoree07.github.io/maple-boss-party/ 에서 실제로 회차 한두 건 입력 → 수정 → earnings 두 카드(주/월) 합 확인 → 사다리 가림→공개→이름 클릭 추적 → 파티원 카드/strip "+ 추가" → input 한글 입력 흐름 한 바퀴
-2. **유피테르 활성화 결정** — `data.js`의 `BOSSES`에서 `jupiter`의 `enabled: true` 한 줄 또는 보류 유지
-3. (선택) 사다리타기 당첨 인원수 옵션 (현재 1명 고정)
-4. (선택) earnings에 월간 토글 외 추가 기간(직전 주/직전 달 비교) 노출
-5. (선택) 분배 OFF 전리품 taker가 회차 참여자에 없을 때의 검증 강화
+1. 배포 사이트에서 위 검증 항목 한 바퀴 — 특히 회차 입력 시 난이도 캐스케이드 + 보이기 필터 + 기존 데이터 호환
+2. 사용자가 보스 표시 순서(커스텀)를 주면 `data.js` 보스 배열에 `order` 필드 도입 + 설정 페이지/회차 드롭다운 정렬 교체
+3. (선택) 보스 설정 페이지에 검색/필터(보이는 것만 보기) — 27보스라 길어짐
+4. (선택) 회차 카드/월별 사이드에도 난이도 표기 일관성 점검
 
 ## 환경/구조 메모
 
 - 로컬 서버: `cd "/mnt/c/Users/박정혁/Downloads/maple-boss" && python3 -m http.server 8000`
-- localStorage 키: `maple-boss-v1` (`parties / bossRuns / reservations / crystalOverrides`)
-- 모든 JS는 `node --check` 통과
+- localStorage 키: `maple-boss-v1` → `{ parties, bossRuns, reservations, bossSettings:{visible,defaults} }`
 - 이미지 sync: `cp /home/soondoree07/maple-boss/png/*.{png,webp} "/mnt/c/Users/박정혁/Downloads/maple-boss/png/"`
-- 배경 sync: `cp /home/soondoree07/maple-boss/background/*.png "/mnt/c/Users/박정혁/Downloads/maple-boss/background/"`
-- 라우트: `#/` / `#/party/:id` / `#/crystals`
-- 모듈 14개: `app / data / storage / utils / party / progress(미사용) / calendar / record / monthly / earnings / roulette / ladder / crystals / backup`
-  - **progress.js는 더 이상 import되지 않음** — '이번 주/달 현황' 위젯이 v0.4에서 제거됨. 파일은 남아있지만 호출처 없음
-  - 메인 컬럼 순서: earnings(이번 주) → earnings(이번 달, 전체 합 표기) → calendar
-  - 결정석 가격 편집 진입점은 페이지 헤더 '결정석' 링크
-- 데이터 모델 v0.4:
-  - `BossRun.memberSnapshot` = 회차 실제 참여자 (파티 전체일 수도 일부일 수도)
-  - `LootEntry.shared` = true(N등분) / false(taker 전액) / undefined(legacy → 단독)
-- 트리거 키워드: `메이플보스` 또는 `/메이플보스` 입력 시 이 RESUME.md를 가장 먼저 읽음
+- 라우트: `#/` / `#/party/:id` / `#/crystals`(보스 설정·결정석)
+- 데이터 모델 v0.5:
+  - `BOSSES[].difficulties = [{ key, crystal(억), loot:[이름...] }]` (난이도 오름차순)
+  - `BossRun.difficulty` = 그 회차 난이도 key (legacy 미정의 → resolveDifficultyKey fallback)
+  - `bossSettings.visible[id] === false` 면 회차 폼에서 숨김 / `bossSettings.defaults[id]` = 기본 난이도
+- **progress.js는 여전히 미사용(dead)** — 이번에 갱신 안 함. import처 없음(브라우저 미로드). 재사용 시 import 수정 필요
+- 트리거 키워드: `메이플보스` / `/메이플보스` 입력 시 이 RESUME.md를 가장 먼저 읽음

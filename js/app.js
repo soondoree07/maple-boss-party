@@ -82,8 +82,8 @@ function renderPartyDetail(container, party) {
       el('a', {
         href: '#/crystals',
         className: 'icon-btn',
-        title: '결정석 가격 수정',
-      }, '결정석'),
+        title: '보스 등장/난이도 설정 · 결정석 표',
+      }, '보스 설정'),
       el('button', {
         className: 'icon-btn',
         type: 'button',

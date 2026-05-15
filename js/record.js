@@ -10,7 +10,8 @@
 
 import * as Storage from './storage.js';
 import {
-  getEnabledBosses, getBoss, BOSS_LOOT, getLootDef, getLootColor, getDisplayLootColor, getLootImage,
+  getBoss, getVisibleBosses, getBossLoot, getBossDifficulties,
+  difficultyLabel, getLootColor, getDisplayLootColor, getLootImage,
   CHANNELS, channelLabel,
 } from './data.js';
 import {
@@ -221,6 +222,9 @@ function renderRunCard(run, refresh, onEdit) {
           className: 'run-boss-badge',
           style: { backgroundColor: bossColor },
         }, bossName),
+        run.difficulty
+          ? el('span', { className: 'run-difficulty' }, difficultyLabel(run.difficulty))
+          : null,
         el('span', { className: 'run-channel' }, channelLabel(run.channel)),
       ),
       el('div', { className: 'run-card-actions' },
@@ -270,8 +274,7 @@ function renderRunCard(run, refresh, onEdit) {
           el('div', { className: 'run-section-label' }, '전리품'),
           el('div', { className: 'loot-list' },
             run.loot.map(lt => {
-              const def   = getLootDef(run.boss, lt.item);
-              const color = getDisplayLootColor(lt.item, def?.group);
+              const color = getDisplayLootColor(lt.item);
               const img   = getLootImage(lt.item);
               // shared가 명시적으로 true면 분배. 미정의(기존 데이터)는 단독(taker 전액)으로 해석.
               const shared = lt.shared === true;
@@ -320,8 +323,37 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
   const existingRuns = Storage.getRunsByPartyAndDate(party.id, dateStr);
   const prevRun = isEdit ? null : (existingRuns[existingRuns.length - 1] || null);
 
+  const bossSettings = Storage.getBossSettings();
+
+  /**
+   * 회차 폼 난이도 초기값.
+   *  1) (수정) existingRun.difficulty 가 유효하면
+   *  2) 이 파티가 그 보스를 마지막으로 기록했을 때의 난이도
+   *  3) 보스 설정 페이지의 기본 난이도
+   *  4) 보스의 첫(가장 낮은) 난이도
+   */
+  function computeInitialDifficulty(bossId) {
+    const diffs = getBossDifficulties(bossId);
+    if (diffs.length === 0) return '';
+    const has = (k) => diffs.some(d => d.key === k);
+
+    if (isEdit && existingRun.boss === bossId && has(existingRun.difficulty)) {
+      return existingRun.difficulty;
+    }
+    const prior = Storage.getRunsByParty(party.id)
+      .filter(r => r.boss === bossId && r.difficulty && (!isEdit || r.id !== existingRun.id))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .find(r => has(r.difficulty));
+    if (prior) return prior.difficulty;
+
+    const dft = bossSettings.defaults[bossId];
+    if (dft && has(dft)) return dft;
+    return diffs[0].key;
+  }
+
   // ── 상태 ──
   let selectedBossId = isEdit ? existingRun.boss : null;
+  let selectedDifficulty = selectedBossId ? computeInitialDifficulty(selectedBossId) : '';
   // 수정 모드: 기존 loot prefill. price는 string 입력으로 유지. shared는 명시적 boolean.
   let lootEntries = isEdit
     ? (existingRun.loot || []).map(lt => ({
@@ -343,14 +375,41 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
   );
   const visibleMembers = () => party.members.filter(m => selectedMembers.has(m));
 
-  // ── 보스 select — 모든 활성 보스 노출 (이미 클리어한 보스도 가리지 않음) ──
-  const bossSelect = buildBossSelect();
+  // ── 보스 select — 보이는 보스만, 가나다순 ──
+  // 수정 모드에선 자기 보스가 숨겨졌더라도 옵션에 포함시킨다.
+  const bossSelect = buildBossSelect(bossSettings.visible, isEdit ? existingRun.boss : null);
   if (isEdit) bossSelect.value = existingRun.boss;
+
+  // ── 난이도 select — 보스 선택 후 노출 ──
+  const diffSlot = el('div', { className: 'select-slot' });
+  const paintDifficulty = () => {
+    clear(diffSlot);
+    if (!selectedBossId) {
+      diffSlot.appendChild(el('div', { className: 'form-hint' }, '보스를 먼저 선택해주세요'));
+      return;
+    }
+    const diffs = getBossDifficulties(selectedBossId);
+    const sel = el('select', { className: 'select-input' },
+      diffs.map(d => el('option', { value: d.key }, difficultyLabel(d.key))),
+    );
+    sel.value = selectedDifficulty || (diffs[0]?.key || '');
+    selectedDifficulty = sel.value;
+    sel.addEventListener('change', () => {
+      if (sel.value === selectedDifficulty) return;
+      selectedDifficulty = sel.value;
+      lootEntries = []; // 난이도가 바뀌면 전리품 목록이 달라지므로 비움.
+      paintLoot();
+    });
+    diffSlot.appendChild(sel);
+  };
+
   bossSelect.addEventListener('change', () => {
     const newBoss = bossSelect.value || null;
     if (newBoss !== selectedBossId) {
       selectedBossId = newBoss;
+      selectedDifficulty = newBoss ? computeInitialDifficulty(newBoss) : '';
       lootEntries = []; // 다른 보스의 전리품은 의미가 없으니 비움.
+      paintDifficulty();
       paintLoot();
     }
   });
@@ -414,7 +473,11 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
     if (!selectedBossId) {
       lootGrid.appendChild(el('div', { className: 'empty-state-sm' }, '보스를 먼저 선택해주세요'));
     } else {
-      const lootList = BOSS_LOOT[selectedBossId] || [];
+      const lootList = getBossLoot(selectedBossId, selectedDifficulty);
+      if (lootList.length === 0) {
+        lootGrid.appendChild(el('div', { className: 'empty-state-sm' },
+          '이 난이도는 전리품 없이 결정석만 기록돼요'));
+      }
       lootList.forEach(loot => {
         const isSelected = findEntryIdx(loot.name) >= 0;
         lootGrid.appendChild(buildLootTile(loot, isSelected, () => {
@@ -442,6 +505,7 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
       });
     }
   };
+  paintDifficulty();
   paintLoot();
 
   // ── 모달 조립 ──
@@ -459,9 +523,15 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
     `${longDateLabel(dateStr)} · ${channelLabel(channel)}`
   ));
 
-  modal.appendChild(el('div', { className: 'form-group' },
-    el('label', { className: 'form-label' }, '보스'),
-    bossSelect,
+  modal.appendChild(el('div', { className: 'form-row' },
+    el('div', { className: 'form-group' },
+      el('label', { className: 'form-label' }, '보스'),
+      bossSelect,
+    ),
+    el('div', { className: 'form-group' },
+      el('label', { className: 'form-label' }, '난이도'),
+      diffSlot,
+    ),
   ));
 
   modal.appendChild(el('div', { className: 'form-group' },
@@ -505,6 +575,10 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
     const baseReward = rewardSlot.firstElementChild?.value || '';
 
     if (!bossId) { alert('보스를 선택해주세요'); return; }
+    const difficulty = selectedDifficulty;
+    if (!difficulty || !getBossDifficulties(bossId).some(d => d.key === difficulty)) {
+      alert('난이도를 선택해주세요'); return;
+    }
     if (selectedMembers.size === 0) { alert('회차 참여자를 1명 이상 선택해주세요'); return; }
     if (!opener) { alert('상자 연 사람을 선택해주세요'); return; }
 
@@ -535,6 +609,7 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
       partyId:        party.id,
       date:           dateStr,
       boss:           bossId,
+      difficulty,
       channel,
       opener,
       baseReward,
@@ -558,13 +633,16 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
 
 // ── select 빌더들 ─────────────────────────────────────
 
-function buildBossSelect(excludeIds = new Set()) {
-  const available = getEnabledBosses().filter(b => !excludeIds.has(b.id));
-  const placeholder = available.length === 0
-    ? '이번 주/달에 모두 클리어 ✓'
-    : '보스 선택...';
+function buildBossSelect(visibleMap = {}, keepId = null) {
+  const available = getVisibleBosses(visibleMap);
+  // 수정 모드에서 자기 보스가 숨겨졌어도 옵션엔 남긴다.
+  if (keepId && !available.some(b => b.id === keepId)) {
+    const kept = getBoss(keepId);
+    if (kept) available.push(kept);
+  }
+  available.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
   return el('select', { className: 'select-input' },
-    el('option', { value: '' }, placeholder),
+    el('option', { value: '' }, '보스 선택...'),
     available.map(b => el('option', { value: b.id }, b.name)),
   );
 }
@@ -578,9 +656,8 @@ function buildMemberSelect(members, placeholder) {
 
 // ── 전리품 한 행 ──────────────────────────────────────
 
-function buildLootRow({ entry, bossId, members, onRemove, onChange }) {
-  const def = getLootDef(bossId, entry.item);
-  const color = getDisplayLootColor(entry.item, def?.group);
+function buildLootRow({ entry, members, onRemove, onChange }) {
+  const color = getDisplayLootColor(entry.item);
   const itemLabel = el('div', { className: 'loot-row-name' });
   if (color) itemLabel.style.color = color;
   itemLabel.textContent = entry.item;

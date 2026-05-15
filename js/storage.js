@@ -7,14 +7,26 @@
 //                          memberSnapshot: [닉네임...],
 //                          loot: [{ item, taker, price }] }],
 //     reservations:      [{ id, partyId, date, time: 'HH:MM', createdAt }],
-//     crystalOverrides:  { bossId: number(억) }   // 사용자가 수정한 결정석 가격
+//     bossSettings:      { visible: { [bossId]: false }, defaults: { [bossId]: difficultyKey } }
+//       // visible: 결정석/보스 설정 페이지에서 끈 보스(회차 폼 드롭다운에서 숨김)
+//       // defaults: 보스별 기본 난이도(회차 폼 난이도 초기값 후보)
 //   }
 //
 // 모든 데이터는 단일 JSON으로 'maple-boss-v1' 키에 저장.
+// (구버전의 crystalOverrides는 폐기 — 결정석은 data.js 난이도별 고정값.)
 
 const STORAGE_KEY = 'maple-boss-v1';
 
-const blankData = () => ({ parties: [], bossRuns: [], reservations: [], crystalOverrides: {} });
+const blankSettings = () => ({ visible: {}, defaults: {} });
+const blankData = () => ({ parties: [], bossRuns: [], reservations: [], bossSettings: blankSettings() });
+
+function normalizeSettings(s) {
+  const src = (s && typeof s === 'object') ? s : {};
+  return {
+    visible:  (src.visible  && typeof src.visible  === 'object') ? src.visible  : {},
+    defaults: (src.defaults && typeof src.defaults === 'object') ? src.defaults : {},
+  };
+}
 
 function readRaw() {
   try {
@@ -25,9 +37,7 @@ function readRaw() {
       parties:           Array.isArray(parsed.parties)      ? parsed.parties      : [],
       bossRuns:          Array.isArray(parsed.bossRuns)     ? parsed.bossRuns     : [],
       reservations:      Array.isArray(parsed.reservations) ? parsed.reservations : [],
-      crystalOverrides:  (parsed.crystalOverrides && typeof parsed.crystalOverrides === 'object')
-        ? parsed.crystalOverrides
-        : {},
+      bossSettings:      normalizeSettings(parsed.bossSettings),
     };
   } catch (e) {
     console.error('[storage] read failed:', e);
@@ -149,28 +159,25 @@ export function deleteReservation(resId) {
   writeRaw(data);
 }
 
-// ── 결정석 가격 override ─────────────────────────────
+// ── 보스 설정 (등장 유무 / 기본 난이도) ──────────────
 
 /**
- * { bossId: numberOfEok } 형태의 override 맵 반환.
- * 항목이 없으면 data.js의 BOSSES.crystal 기본값을 그대로 쓰면 됨.
+ * { visible: { [bossId]: false }, defaults: { [bossId]: difficultyKey } }
+ * 항목이 없으면 보스는 기본 노출, 기본 난이도는 data.js 첫 난이도.
  */
-export const getCrystalOverrides = () => readRaw().crystalOverrides;
+export const getBossSettings = () => readRaw().bossSettings;
 
 /**
- * 결정석 가격 일괄 저장. 빈 값/0/숫자 아닌 값은 자동으로 제거 (= 기본값으로 복귀).
- *
- * @param {Record<string, number|null>} map
+ * 보스 설정 일괄 저장. visible/defaults 중 넘긴 것만 교체.
+ * @param {{visible?: object, defaults?: object}} patch
  */
-export function setCrystalOverrides(map) {
+export function setBossSettings(patch) {
   const data = readRaw();
-  const cleaned = {};
-  for (const [bossId, val] of Object.entries(map)) {
-    const num = Number(val);
-    if (val === null || val === '' || !Number.isFinite(num)) continue;
-    cleaned[bossId] = num;
-  }
-  data.crystalOverrides = cleaned;
+  const cur = normalizeSettings(data.bossSettings);
+  data.bossSettings = {
+    visible:  (patch.visible  && typeof patch.visible  === 'object') ? patch.visible  : cur.visible,
+    defaults: (patch.defaults && typeof patch.defaults === 'object') ? patch.defaults : cur.defaults,
+  };
   writeRaw(data);
 }
 
@@ -186,9 +193,8 @@ export function importData(data) {
     parties:          data.parties,
     bossRuns:         data.bossRuns,
     reservations:     Array.isArray(data.reservations) ? data.reservations : [],
-    crystalOverrides: (data.crystalOverrides && typeof data.crystalOverrides === 'object')
-      ? data.crystalOverrides
-      : {},
+    // 구버전 백업의 crystalOverrides는 무시 (결정석은 이제 난이도별 고정값).
+    bossSettings:     normalizeSettings(data.bossSettings),
   });
 }
 
