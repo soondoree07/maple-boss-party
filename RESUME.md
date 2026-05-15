@@ -45,7 +45,7 @@
 > **이어할 첫 액션 = 사용자가 무드 1벌 고르기.** (그 한 마디 → 아래 "1단계 마무리" 자동 실행)
 
 ### 1단계 — 디자인 무드 개편 : 빌드 완료, 무드 선택 대기
-- 완료: `style.css` 완전 토큰화(하드코딩 색/블러 약16곳 → 의미 토큰, **값 1:1 동일·렌더 무변화** 검증). `css/themes/mood-1..8.css`(라이트4·다크4: 1 Midnight Slate·2 Pure Paper·3 Warm Sand·4 Forest Night·5 Mono Ink·6 Royal Plum·7 Nordic Frost·8 Carbon Amber). `js/theme-switch.js` + `index.html` 1줄(임시 전환기). 단색배경·블러제거·WCAG AA·기능색(JS 인라인) 유지. 구조/클래스/JS 무변경.
+- 완료: `style.css` 완전 토큰화(하드코딩 색/블러 약16곳 → 의미 토큰, **값 1:1 동일·렌더 무변화** 검증). `css/themes/mood-1..8.css` **전부 다크 8벌**: 1 Midnight Slate(블루)·2 Abyss Teal(청록)·3 Crimson Noir(레드)·4 Neon Synth(네온)·5 Graphite Mono(모노)·6 Royal Plum(보라골드)·7 Espresso Copper(코퍼)·8 Carbon Amber(앰버). `js/theme-switch.js` + `index.html` 1줄(임시 전환기). 단색배경·블러제거·WCAG AA·기능색(JS 인라인) 유지. 구조/클래스/JS 무변경. (구 라이트 무드 2/3/4/5/7은 사용자 요청으로 삭제)
 - **사용자 할 일:** GitHub Pages(`https://soondoree07.github.io/maple-boss-party/`)에서 우하단 "무드 미리보기" select로 8벌 비교 → **번호/이름으로 1벌 지정**.
 - **1단계 마무리(사용자 선택 즉시 실행):**
   1. 선택 무드의 `:root`를 `css/style.css`에 병합 확정(기존 `:root` 값 교체).
