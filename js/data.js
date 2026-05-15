@@ -112,7 +112,7 @@ export const BOSSES = [
       { key: 'easy',    crystal: 3.11, loot: [...COMMON] },
       { key: 'normal',  crystal: 5.61, loot: ['연마석', ...COMMON] },
       { key: 'chaos',   crystal: 13.4, loot: [...LEGACY_LOOT.kalos] },
-      { key: 'extreme', crystal: 43.2, loot: ['해머(눈장식)', '영달포', '연마석', ...COMMON] },
+      { key: 'extreme', crystal: 43.2, loot: ['해머(눈장식)', '에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
@@ -257,7 +257,7 @@ export const BOSSES = [
       { key: 'easy',    crystal: 4.19, loot: [] },
       { key: 'normal',  crystal: 7.14, loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
       { key: 'hard',    crystal: 18.3, loot: ['신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'extreme', crystal: 56.7, loot: ['해머(귀고리)', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
+      { key: 'extreme', crystal: 56.7, loot: ['해머(귀고리)', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
     ],
   },
   {
