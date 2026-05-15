@@ -80,8 +80,22 @@ export const LOOT_NAME_COLOR = {
 // jupiter/blackmage) — 기존에 기록된 BossRun이 그대로 해석되도록.
 
 const COMMON = ['리3', '리4', '컨3', '컨4'];
-// 표 표기 순서를 보존하고 싶을 땐 직접 배열로.
-const SEREN_LEGACY_LOOT = ['해머(얼굴장식)', '미트라의 분노', '영달포', '리4', '컨4', '리3', '컨3'];
+const PURPLE_CORE = ['거공', '몽벨', '마깃안', '루컨마', '고근', '마도서', '커포링'];
+
+// 기존(v0.4) 보스별 전리품 — 이름 매칭해서 그대로 가져옴.
+// boss_table.md에서 전리품 칸이 비어 있는 (기존 보스, 난이도)는 이 값으로 채운다.
+// (사용자 결정: 표에 적힌 난이도는 표 값 / 빈칸은 기존 보스 전리품 / 신규 18보스 빈칸은 결정석만)
+const LEGACY_LOOT = {
+  seren:     ['해머(얼굴장식)', '미트라의 분노', '영달포', ...COMMON],
+  kalos:     ['해머(눈장식)', '에테상자', '연마석', '영달포', ...COMMON],
+  adversary: ['해머(훈장)', '불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON],
+  kaling:    ['해머(귀고리)', '에테상자', '신마석', ...PURPLE_CORE, ...COMMON],
+  lotus:     ['황홀한 악몽', '에테상자', '신마석', ...PURPLE_CORE, ...COMMON],
+  limbo:     ['근원의 속삭임', '장신망상자', '신마석', ...PURPLE_CORE, ...COMMON],
+  baldrix:   ['죽음의 맹세', '장신망상자', '신마석', ...PURPLE_CORE, ...COMMON],
+  jupiter:   ['오만의 원죄', ...COMMON],
+  blackmage: ['해머(벨트)', '창세의 뱃지', ...COMMON],
+};
 
 export const BOSSES = [
   {
@@ -94,9 +108,9 @@ export const BOSSES = [
   {
     id: 'kalos', name: '감시자 칼로스', cycle: 'weekly', color: '#4ECDC4',
     difficulties: [
-      { key: 'easy',    crystal: 3.11, loot: [] },
+      { key: 'easy',    crystal: 3.11, loot: [...LEGACY_LOOT.kalos] },
       { key: 'normal',  crystal: 5.61, loot: ['연마석', ...COMMON] },
-      { key: 'chaos',   crystal: 13.4, loot: [] },
+      { key: 'chaos',   crystal: 13.4, loot: [...LEGACY_LOOT.kalos] },
       { key: 'extreme', crystal: 43.2, loot: ['해머(눈장식)', '영달포', '연마석', ...COMMON] },
     ],
   },
@@ -133,7 +147,7 @@ export const BOSSES = [
     id: 'limbo', name: '림보', cycle: 'weekly', color: '#60A5FA',
     difficulties: [
       { key: 'normal', crystal: 10.8, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '연마석', ...COMMON] },
-      { key: 'hard',   crystal: 25.1, loot: [] },
+      { key: 'hard',   crystal: 25.1, loot: [...LEGACY_LOOT.limbo] },
     ],
   },
   {
@@ -151,7 +165,7 @@ export const BOSSES = [
   {
     id: 'baldrix', name: '발드릭스', cycle: 'weekly', color: '#34D399',
     difficulties: [
-      { key: 'normal', crystal: 14.4, loot: [] },
+      { key: 'normal', crystal: 14.4, loot: [...LEGACY_LOOT.baldrix] },
       { key: 'hard',   crystal: 32.4, loot: ['죽음의 맹세', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
@@ -172,9 +186,9 @@ export const BOSSES = [
     // 사용자 결정에 따라 기존 세렌 전리품을 전 난이도에 채움.
     id: 'seren', name: '선택받은 세렌', cycle: 'weekly', color: '#FF6B9D',
     difficulties: [
-      { key: 'normal',  crystal: 2.66,  loot: [...SEREN_LEGACY_LOOT] },
-      { key: 'hard',    crystal: 3.96,  loot: [...SEREN_LEGACY_LOOT] },
-      { key: 'extreme', crystal: 31.5,  loot: [...SEREN_LEGACY_LOOT] },
+      { key: 'normal',  crystal: 2.66,  loot: [...LEGACY_LOOT.seren] },
+      { key: 'hard',    crystal: 3.96,  loot: [...LEGACY_LOOT.seren] },
+      { key: 'extreme', crystal: 31.5,  loot: [...LEGACY_LOOT.seren] },
     ],
   },
   {
@@ -203,7 +217,7 @@ export const BOSSES = [
   {
     id: 'jupiter', name: '유피테르', cycle: 'weekly', color: '#FB923C',
     difficulties: [
-      { key: 'normal', crystal: 17.0, loot: [] },
+      { key: 'normal', crystal: 17.0, loot: [...LEGACY_LOOT.jupiter] },
       { key: 'hard',   crystal: 51.0, loot: ['오만의 원죄', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
@@ -224,7 +238,7 @@ export const BOSSES = [
     id: 'lotus', name: '찬란한 흉성', cycle: 'weekly', color: '#F87171',
     difficulties: [
       { key: 'normal', crystal: 6.58,  loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',   crystal: 28.19, loot: [] },
+      { key: 'hard',   crystal: 28.19, loot: [...LEGACY_LOOT.lotus] },
     ],
   },
   {
@@ -232,14 +246,14 @@ export const BOSSES = [
     difficulties: [
       { key: 'easy',    crystal: 3.24, loot: ['연마석', ...COMMON] },
       { key: 'normal',  crystal: 5.89, loot: ['연마석', ...COMMON] },
-      { key: 'hard',    crystal: 15.1, loot: [] },
+      { key: 'hard',    crystal: 15.1, loot: [...LEGACY_LOOT.adversary] },
       { key: 'extreme', crystal: 49.6, loot: ['해머(훈장)', '불멸의 유산', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
     id: 'kaling', name: '카링', cycle: 'weekly', color: '#A78BFA',
     difficulties: [
-      { key: 'easy',    crystal: 4.19, loot: [] },
+      { key: 'easy',    crystal: 4.19, loot: [...LEGACY_LOOT.kaling] },
       { key: 'normal',  crystal: 7.14, loot: ['연마석', ...COMMON] },
       { key: 'hard',    crystal: 18.3, loot: ['신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
       { key: 'extreme', crystal: 56.7, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', '해머(귀고리)', '신마석', ...COMMON] },
@@ -273,7 +287,7 @@ export const BOSSES = [
     id: 'blackmage', name: '검은 마법사', cycle: 'monthly', color: '#C084FC',
     difficulties: [
       { key: 'hard',    crystal: 7.0,  loot: ['창세의 뱃지', ...COMMON] },
-      { key: 'extreme', crystal: 92.0, loot: [] },
+      { key: 'extreme', crystal: 92.0, loot: [...LEGACY_LOOT.blackmage] },
     ],
   },
 ];

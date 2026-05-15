@@ -14,7 +14,7 @@
 1. **결정석 = 보스×난이도별 고정값** — 사용자 자유 입력(`crystalOverrides`) 폐기. `boss_table.md`의 메소를 억 단위로 변환해 `data.js`에 고정. node 스크립트로 표와 전수 대조 통과
 2. **보스 27종** — 기존 9 + 미등록 18 전부 추가. 기존 9보스는 ID 보존(seren/kalos/lotus/baldrix/adversary/kaling/limbo/jupiter/blackmage → 풀네임 매핑)해 기존 BossRun 데이터 그대로 해석
 3. **`data.js` 모델 변경** — 보스에 `difficulties: [{ key, crystal, loot }]`. 난이도 키 easy/normal/hard/chaos/extreme + 라벨/정렬 헬퍼. `getEffectiveCrystal(bossId, difficultyKey)`, `getBossLoot(bossId, difficultyKey)`, `resolveDifficultyKey`, `getVisibleBosses`, `bossesByName`, `getLootGroup` 신설. 전리품 그룹은 아이템 이름 기반(`LOOT_GROUP`)으로 단순화 → `getLootDef`/`BOSS_LOOT`/`getEnabledBosses` 제거
-4. **전리품 병합 규칙** — 표에 전리품 적힌 (보스,난이도)는 표 값 / 빈칸은 결정석만(전리품 없음) / **단, '선택받은 세렌'은 표 전 난이도가 비어 기존 세렌 전리품(해머(얼굴장식)·미트라의 분노·영달포+공통)으로 채움** (사용자 결정)
+4. **전리품 병합 규칙** — 표에 전리품 적힌 (보스,난이도)는 표 값 / **빈칸이면 기존 9보스는 기존 보스별 전리품(v0.4 `BOSS_LOOT`)을 이름 매칭해 채움**(`LEGACY_LOOT` 맵: seren/kalos/adversary/kaling/lotus/limbo/baldrix/jupiter/blackmage) / 신규 18보스 빈칸만 결정석만 (사용자 결정·node로 9보스 전 난이도 loot 존재 검증)
 5. **커포 → 커포링 통일** — `LOOT_GROUP`/`LOOT_IMAGE` 키 변경. 이미지 파일은 `png/커포.png` 그대로, 레거시 기록의 `커포`도 같은 이미지/그룹으로 호환
 6. **`storage.js`** — `crystalOverrides` 폐기, `bossSettings: { visible, defaults }` 신규(getter/setter + readRaw/import 정규화). 구버전 백업의 crystalOverrides는 무시
 7. **결정석 페이지(`#/crystals`) → 보스 설정 페이지로 확장** — 보스마다 가로 행: `[☑ 보이기] [보스명] [기본 난이도 ▼]` + 난이도별 `[결정석 가격 · 전리품 종류]` 조회. 가나다순. 저장 시 bossSettings 반영. (정렬 커스텀용 자리만 비워둠 — 사용자가 순서 추후 지정 예정)
