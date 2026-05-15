@@ -1,0 +1,49 @@
+/* ============================================================
+   MOOD 4 — Forest Night (다크, 그린)
+   깊은 숲 그린-블랙 + 민트. 차분하고 집중되는 톤.
+   배경 단색 · 블러 제거 · WCAG AA · 보스/전리품 기능색은 JS 인라인이라 그대로.
+   클래스/구조는 절대 안 건드림 — :root 토큰만 덮어씀.
+   ============================================================ */
+:root {
+  --bg-base:        #0b1410;
+  --bg-elevated:    #142219;
+  --bg-card:        #0f1b15;
+  --bg-card-hover:  #1a2c21;
+  --bg-overlay:     rgba(3, 8, 5, 0.74);
+
+  --border-subtle:  #243a2c;
+  --border-strong:  #355141;
+
+  --text-primary:   #e6f2ea;
+  --text-secondary: #a8c4b4;
+  --text-tertiary:  #769684;
+  --text-muted:     #4b6457;
+
+  --accent-gold:    #34d399;
+  --accent-purple:  #c4b5fd;
+  --accent-rose:    #fb7185;
+  --accent-aqua:    #2dd4bf;
+  --danger:         #f87171;
+
+  --on-accent:      #04130d;
+  --on-boss:        #1a1102;
+  --accent-hover:   #5ee0ad;
+  --btn-grad-text:  #04130d;
+
+  --glow-rgb:        45, 212, 191;
+  --shade-rgb:       3, 9, 6;
+  --hairline-rgb:    255, 255, 255;
+  --ink-rgb:         0, 0, 0;
+  --danger-rgb:      248, 113, 113;
+  --ladder-grad-rgb: 196, 181, 253;
+
+  --card-filter:     none;
+  --overlay-filter:  none;
+
+  --page-bg:            #0b1410;
+  --page-bg-attachment: initial;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.60);
+}

@@ -1,0 +1,49 @@
+/* ============================================================
+   MOOD 5 — Mono Ink (라이트, 모노)
+   페이퍼 + 그레이스케일 UI에 단 하나의 크림슨 포인트. 에디토리얼/신문 톤.
+   배경 단색 · 블러 제거 · WCAG AA · 보스/전리품 기능색은 JS 인라인이라 그대로.
+   클래스/구조는 절대 안 건드림 — :root 토큰만 덮어씀.
+   ============================================================ */
+:root {
+  --bg-base:        #fbfbfa;
+  --bg-elevated:    #efefee;
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #f4f4f3;
+  --bg-overlay:     rgba(20, 20, 20, 0.45);
+
+  --border-subtle:  #e3e3e1;
+  --border-strong:  #c9c9c6;
+
+  --text-primary:   #141413;
+  --text-secondary: #45453f;
+  --text-tertiary:  #6b6b64;
+  --text-muted:     #9a9a92;
+
+  --accent-gold:    #b91c1c;
+  --accent-purple:  #57534e;
+  --accent-rose:    #b91c1c;
+  --accent-aqua:    #1f1f1d;
+  --danger:         #b91c1c;
+
+  --on-accent:      #fdf2f2;
+  --on-boss:        #1a1102;
+  --accent-hover:   #991b1b;
+  --btn-grad-text:  #fafafa;
+
+  --glow-rgb:        31, 31, 29;
+  --shade-rgb:       228, 228, 225;
+  --hairline-rgb:    20, 20, 19;
+  --ink-rgb:         0, 0, 0;
+  --danger-rgb:      185, 28, 28;
+  --ladder-grad-rgb: 87, 83, 78;
+
+  --card-filter:     none;
+  --overlay-filter:  none;
+
+  --page-bg:            #fbfbfa;
+  --page-bg-attachment: initial;
+
+  --shadow-sm: 0 1px 2px rgba(20, 20, 20, 0.06);
+  --shadow-md: 0 6px 16px rgba(20, 20, 20, 0.10);
+  --shadow-lg: 0 18px 40px rgba(20, 20, 20, 0.16);
+}
