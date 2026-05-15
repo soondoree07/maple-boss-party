@@ -139,7 +139,7 @@ export const BOSSES = [
     difficulties: [
       { key: 'easy',    crystal: 3.11, loot: [...COMMON] },
       { key: 'normal',  crystal: 5.61, loot: ['연마석', ...COMMON] },
-      { key: 'chaos',   crystal: 13.4, loot: [...LEGACY_LOOT.kalos] },
+      { key: 'chaos',   crystal: 13.4, loot: ['에테상자', '연마석', ...COMMON] },
       { key: 'extreme', crystal: 43.2, loot: ['해머(눈장식)', '에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
