@@ -186,6 +186,34 @@ export function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
 
+// ── 해시 ──────────────────────────────────────────────
+//
+// 파티 비밀번호 저장용. localStorage 기반이라 진짜 보안은 아니고
+// (개발자도구로 우회 가능) 평문 저장만 피하는 가벼운 게이트 용도.
+
+/**
+ * 문자열 → SHA-256 hex. crypto.subtle은 보안 컨텍스트(https/localhost)에서만
+ * 동작하므로, 없으면 단순 sync 해시(FNV-1a류)로 폴백.
+ * @returns {Promise<string>}
+ */
+export async function sha256Hex(str) {
+  const s = String(str);
+  try {
+    if (globalThis.crypto?.subtle) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch { /* fall through */ }
+  // 폴백 (비보안 컨텍스트) — 충돌 가능하나 게이트 용도엔 충분.
+  let h1 = 0x811c9dc5, h2 = 0x1000193;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0;
+    h2 = Math.imul(h2 ^ c, 0x85ebca6b) >>> 0;
+  }
+  return 'fb' + h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
+}
+
 /** HTML 이스케이프 (innerHTML이 꼭 필요할 때만). */
 export function escapeHtml(s) {
   return String(s)

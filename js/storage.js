@@ -61,7 +61,7 @@ export const getParties = () => readRaw().parties;
 export const getParty = (partyId) =>
   readRaw().parties.find(p => p.id === partyId) || null;
 
-export function createParty({ name, members }) {
+export function createParty({ name, members, pw }) {
   const data = readRaw();
   const party = {
     id: makeId(),
@@ -69,6 +69,8 @@ export function createParty({ name, members }) {
     members: members.map(m => String(m).trim()).filter(Boolean),
     createdAt: new Date().toISOString(),
   };
+  // pw: 해시 문자열(선택). 없으면 잠금 없는 파티.
+  if (pw) party.pw = String(pw);
   data.parties.push(party);
   writeRaw(data);
   return party;

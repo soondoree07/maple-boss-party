@@ -1,7 +1,7 @@
 // party.js — 메인 화면 (파티 카드 목록 + 새 파티 만들기 모달)
 
 import * as Storage from './storage.js';
-import { el, clear } from './utils.js';
+import { el, clear, sha256Hex } from './utils.js';
 import { exportToFile, importFromFile } from './backup.js';
 
 /**
@@ -102,6 +102,10 @@ function renderPartyCard(party, container) {
       el('span', null, `${party.members.length}인 파티`),
       el('span', { className: 'dot-sep' }, '·'),
       el('span', null, `기록 ${runCount}건`),
+      party.pw
+        ? [el('span', { className: 'dot-sep' }, '·'),
+           el('span', { className: 'party-card-lock' }, '비밀번호')]
+        : null,
     ),
   );
 }
@@ -142,6 +146,14 @@ function openCreatePartyModal(container) {
     lang: 'ko',
   });
 
+  const pwInput = el('input', {
+    type: 'password',
+    className: 'text-input',
+    placeholder: '비워두면 잠금 없음',
+    maxlength: '40',
+    autocomplete: 'new-password',
+  });
+
   modal.appendChild(el('div', { className: 'modal-header' },
     el('h2', { className: 'modal-title' }, '새 파티 만들기'),
     el('button', {
@@ -162,6 +174,13 @@ function openCreatePartyModal(container) {
     el('div', { className: 'member-input-grid' }, memberInputs),
   ));
 
+  modal.appendChild(el('div', { className: 'form-group' },
+    el('label', { className: 'form-label' }, '비밀번호 (선택)'),
+    pwInput,
+    el('div', { className: 'form-hint' },
+      '설정하면 이 파티에 들어올 때 비밀번호를 입력해야 해요'),
+  ));
+
   modal.appendChild(el('div', { className: 'modal-actions' },
     el('button', {
       className: 'btn btn-ghost',
@@ -171,7 +190,7 @@ function openCreatePartyModal(container) {
     el('button', {
       className: 'btn btn-primary',
       type: 'button',
-      onclick: () => {
+      onclick: async (e) => {
         const members = [];
         const seen = new Set();
         for (const input of memberInputs) {
@@ -186,7 +205,10 @@ function openCreatePartyModal(container) {
         if (!name) { alert('파티 이름을 입력해주세요'); nameInput.focus(); return; }
         if (members.length === 0) { alert('파티원을 1명 이상 입력해주세요'); return; }
 
-        Storage.createParty({ name, members });
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        const pw = pwInput.value ? await sha256Hex(pwInput.value) : null;
+        Storage.createParty({ name, members, pw });
         overlay.remove();
         renderPartyList(container);
       },

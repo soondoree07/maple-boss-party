@@ -14,13 +14,16 @@ import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
-import { el, clear } from './utils.js';
+import { el, clear, sha256Hex } from './utils.js';
 
 const root = document.getElementById('app');
 
 // 파티 상세에서 캘린더가 보고 있는 월 — 모달이 닫히고 재렌더돼도 보존.
 // key: partyId, value: Date (그 달의 1일)
 const calendarViewByParty = new Map();
+
+// 비밀번호 맞게 입력해 해제한 파티 — 메모리에만 유지(새로고침/재접속하면 다시 입력).
+const unlockedParties = new Set();
 
 function route() {
   const hash = location.hash || '#/';
@@ -37,6 +40,10 @@ function route() {
     if (!party) {
       // 없는 파티면 메인으로 되돌려보냄.
       location.hash = '#/';
+      return;
+    }
+    if (party.pw && !unlockedParties.has(party.id)) {
+      renderPartyGate(root, party);
       return;
     }
     renderPartyDetail(root, party);
@@ -68,6 +75,61 @@ window.addEventListener('DOMContentLoaded', () => {
   applyRandomBackground();
   route();
 });
+
+// ── 파티 비밀번호 게이트 ──────────────────────────────
+
+function renderPartyGate(container, party) {
+  clear(container);
+
+  const input = el('input', {
+    type: 'password',
+    className: 'text-input',
+    placeholder: '비밀번호',
+    autocomplete: 'current-password',
+  });
+  const errMsg = el('div', { className: 'gate-error' });
+
+  const submit = async (e) => {
+    const btn = e?.currentTarget;
+    if (btn) btn.disabled = true;
+    errMsg.textContent = '';
+    const ok = !!input.value && (await sha256Hex(input.value)) === party.pw;
+    if (ok) {
+      unlockedParties.add(party.id);
+      route();
+      return;
+    }
+    if (btn) btn.disabled = false;
+    errMsg.textContent = '비밀번호가 올바르지 않아요';
+    input.value = '';
+    input.focus();
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(e); }
+  });
+
+  container.appendChild(el('header', { className: 'page-header' },
+    el('a', { href: '#/', className: 'back-btn' }, '← 파티 목록'),
+    el('h1', { className: 'page-title' }, party.name),
+    el('div', { className: 'header-actions' }),
+  ));
+
+  container.appendChild(el('main', { className: 'gate-main' },
+    el('div', { className: 'gate-card' },
+      el('div', { className: 'gate-title' }, '비밀번호가 설정된 파티예요'),
+      el('div', { className: 'gate-sub' }, `"${party.name}"에 들어가려면 비밀번호를 입력하세요`),
+      input,
+      errMsg,
+      el('div', { className: 'gate-actions' },
+        el('a', { href: '#/', className: 'btn btn-ghost' }, '목록으로'),
+        el('button', { className: 'btn btn-primary', type: 'button', onclick: submit }, '입장'),
+      ),
+    ),
+  ));
+
+  setTimeout(() => input.focus(), 50);
+}
 
 // ── 파티 상세 ─────────────────────────────────────────
 
