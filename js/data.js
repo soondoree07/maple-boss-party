@@ -108,7 +108,7 @@ export const BOSSES = [
   {
     id: 'kalos', name: '감시자 칼로스', cycle: 'weekly', color: '#4ECDC4',
     difficulties: [
-      { key: 'easy',    crystal: 3.11, loot: [...LEGACY_LOOT.kalos] },
+      { key: 'easy',    crystal: 3.11, loot: [...COMMON] },
       { key: 'normal',  crystal: 5.61, loot: ['연마석', ...COMMON] },
       { key: 'chaos',   crystal: 13.4, loot: [...LEGACY_LOOT.kalos] },
       { key: 'extreme', crystal: 43.2, loot: ['해머(눈장식)', '영달포', '연마석', ...COMMON] },
@@ -146,7 +146,7 @@ export const BOSSES = [
   {
     id: 'limbo', name: '림보', cycle: 'weekly', color: '#60A5FA',
     difficulties: [
-      { key: 'normal', crystal: 10.8, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '연마석', ...COMMON] },
+      { key: 'normal', crystal: 10.8, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '신마석', ...COMMON] },
       { key: 'hard',   crystal: 25.1, loot: [...LEGACY_LOOT.limbo] },
     ],
   },
@@ -165,7 +165,7 @@ export const BOSSES = [
   {
     id: 'baldrix', name: '발드릭스', cycle: 'weekly', color: '#34D399',
     difficulties: [
-      { key: 'normal', crystal: 14.4, loot: [...LEGACY_LOOT.baldrix] },
+      { key: 'normal', crystal: 14.4, loot: ['신마석', ...PURPLE_CORE, ...COMMON] },
       { key: 'hard',   crystal: 32.4, loot: ['죽음의 맹세', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
@@ -186,8 +186,8 @@ export const BOSSES = [
     // 사용자 결정에 따라 기존 세렌 전리품을 전 난이도에 채움.
     id: 'seren', name: '선택받은 세렌', cycle: 'weekly', color: '#FF6B9D',
     difficulties: [
-      { key: 'normal',  crystal: 2.66,  loot: [...LEGACY_LOOT.seren] },
-      { key: 'hard',    crystal: 3.96,  loot: [...LEGACY_LOOT.seren] },
+      { key: 'normal',  crystal: 2.66,  loot: [...COMMON] },
+      { key: 'hard',    crystal: 3.96,  loot: ['미트라의 분노', ...COMMON] },
       { key: 'extreme', crystal: 31.5,  loot: [...LEGACY_LOOT.seren] },
     ],
   },
@@ -196,7 +196,7 @@ export const BOSSES = [
     difficulties: [
       { key: 'normal',  crystal: 0.176, loot: [] },
       { key: 'hard',    crystal: 0.542, loot: ['루컨마', ...COMMON] },
-      { key: 'extreme', crystal: 6.04,  loot: [] },
+      { key: 'extreme', crystal: 6.04,  loot: ['루컨마', ...COMMON] },
     ],
   },
   {
@@ -217,7 +217,7 @@ export const BOSSES = [
   {
     id: 'jupiter', name: '유피테르', cycle: 'weekly', color: '#FB923C',
     difficulties: [
-      { key: 'normal', crystal: 17.0, loot: [...LEGACY_LOOT.jupiter] },
+      { key: 'normal', crystal: 17.0, loot: ['신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
       { key: 'hard',   crystal: 51.0, loot: ['오만의 원죄', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
@@ -246,17 +246,17 @@ export const BOSSES = [
     difficulties: [
       { key: 'easy',    crystal: 3.24, loot: ['연마석', ...COMMON] },
       { key: 'normal',  crystal: 5.89, loot: ['연마석', ...COMMON] },
-      { key: 'hard',    crystal: 15.1, loot: [...LEGACY_LOOT.adversary] },
-      { key: 'extreme', crystal: 49.6, loot: ['해머(훈장)', '불멸의 유산', '영달포', '연마석', ...COMMON] },
+      { key: 'hard',    crystal: 15.1, loot: ['불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON] },
+      { key: 'extreme', crystal: 49.6, loot: ['해머(훈장)', '불멸의 유산', '에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
     id: 'kaling', name: '카링', cycle: 'weekly', color: '#A78BFA',
     difficulties: [
-      { key: 'easy',    crystal: 4.19, loot: [...LEGACY_LOOT.kaling] },
-      { key: 'normal',  crystal: 7.14, loot: ['연마석', ...COMMON] },
-      { key: 'hard',    crystal: 18.3, loot: ['신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'extreme', crystal: 56.7, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', '해머(귀고리)', '신마석', ...COMMON] },
+      { key: 'easy',    crystal: 4.19, loot: [] },
+      { key: 'normal',  crystal: 7.14, loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',    crystal: 18.3, loot: ['신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'extreme', crystal: 56.7, loot: ['해머(귀고리)', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
     ],
   },
   {
