@@ -5,7 +5,7 @@
 //   #/party/:id       파티 상세 (진행도 + 캘린더)
 
 import * as Storage from './storage.js';
-import { renderPartyList, openAddMemberModal } from './party.js';
+import { renderPartyList, openAddMemberModal, openChangePasswordModal } from './party.js';
 import { renderMonthlyHistory } from './monthly.js';
 import { renderChannelRoulette } from './roulette.js';
 import { renderLadder } from './ladder.js';
@@ -146,6 +146,16 @@ function renderPartyDetail(container, party) {
         className: 'icon-btn',
         title: '보스 등장/난이도 설정 · 결정석 표',
       }, '보스 설정'),
+      el('button', {
+        className: 'icon-btn',
+        type: 'button',
+        title: '파티 비밀번호 설정/변경/해제',
+        onclick: () => openChangePasswordModal(party, (updated) => {
+          if (updated.pw) unlockedParties.add(updated.id);
+          else unlockedParties.delete(updated.id);
+          renderPartyDetail(container, updated);
+        }),
+      }, '비밀번호'),
       el('button', {
         className: 'icon-btn',
         type: 'button',

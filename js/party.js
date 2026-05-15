@@ -295,6 +295,86 @@ export function openAddMemberModal(party, onSaved) {
   setTimeout(() => input.focus(), 50);
 }
 
+// ── 비밀번호 변경/설정 모달 (파티 상세에서 호출) ──────
+
+/**
+ * 파티 비밀번호 설정/변경/해제. 비우고 저장하면 잠금 해제.
+ * 저장 성공 시 onSaved(updatedParty) 호출. (이미 파티 안이므로 현재 비번 재확인은 생략)
+ */
+export function openChangePasswordModal(party, onSaved) {
+  const overlay = el('div', { className: 'modal-overlay' });
+  const modal   = el('div', { className: 'modal' });
+
+  const pwInput = el('input', {
+    type: 'password',
+    className: 'text-input',
+    placeholder: '새 비밀번호 (비우면 잠금 해제)',
+    maxlength: '40',
+    autocomplete: 'new-password',
+  });
+  const pwConfirm = el('input', {
+    type: 'password',
+    className: 'text-input',
+    placeholder: '새 비밀번호 확인',
+    maxlength: '40',
+    autocomplete: 'new-password',
+  });
+
+  const submit = async (e) => {
+    const v1 = pwInput.value;
+    const v2 = pwConfirm.value;
+    if (v1 !== v2) { alert('두 비밀번호가 일치하지 않아요'); pwConfirm.focus(); return; }
+    const btn = e?.currentTarget;
+    if (btn) btn.disabled = true;
+    const pw = v1 ? await sha256Hex(v1) : null;
+    const updated = Storage.updateParty(party.id, { pw });
+    if (!updated) { alert('파티를 찾을 수 없어요'); overlay.remove(); return; }
+    overlay.remove();
+    alert(pw ? '비밀번호가 설정됐어요' : '비밀번호가 해제됐어요');
+    onSaved?.(updated);
+  };
+
+  pwConfirm.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(e); }
+  });
+
+  modal.appendChild(el('div', { className: 'modal-header' },
+    el('h2', { className: 'modal-title' }, '비밀번호 변경'),
+    el('button', {
+      className: 'icon-btn-close',
+      type: 'button',
+      onclick: () => overlay.remove(),
+      'aria-label': '닫기',
+    }, '×'),
+  ));
+  modal.appendChild(el('div', { className: 'form-meta' },
+    `${party.name} · 현재 ${party.pw ? '비밀번호 설정됨' : '잠금 없음'}`,
+  ));
+  modal.appendChild(el('div', { className: 'form-group' },
+    el('label', { className: 'form-label' }, '새 비밀번호'),
+    pwInput,
+    pwConfirm,
+    el('div', { className: 'form-hint' }, '비워두고 저장하면 비밀번호가 해제돼요'),
+  ));
+  modal.appendChild(el('div', { className: 'modal-actions' },
+    el('button', {
+      className: 'btn btn-ghost',
+      type: 'button',
+      onclick: () => overlay.remove(),
+    }, '취소'),
+    el('button', {
+      className: 'btn btn-primary',
+      type: 'button',
+      onclick: submit,
+    }, '저장'),
+  ));
+
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  setTimeout(() => pwInput.focus(), 50);
+}
+
 // ── 백업/복원 ─────────────────────────────────────────
 
 function handleImport(file, container) {
