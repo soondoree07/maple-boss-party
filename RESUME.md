@@ -39,12 +39,26 @@
   - 기존(난이도 없는) 회차 데이터가 깨지지 않고 fallback 난이도로 표시되는지
 - **보스 표시 순서** — ✅ 사용자 지정 완료. `data.js`의 `BOSS_ORDER`(17종: 검마·스우·세렌·칼로스·카링·대적자·흉성·림보·발드릭스·유피테르·진힐라·듄켈·더스크·윌·루시드·가엔슬·데미안) + 나머지 10종 가나다. `bossesInOrder()`/`bossOrderIndex()`로 보스 설정 페이지·회차 드롭다운 정렬
 
-## 다음 액션 (이어할 작업)
+## 다음 액션 (이어할 작업) — ★ 여기부터 재개
 
-1. 배포 사이트에서 위 검증 항목 한 바퀴 — 특히 회차 입력 시 난이도 캐스케이드 + 보이기 필터 + 기존 데이터 호환
-2. ✅ 완료 — 보스 표시 순서 사용자 지정 반영(`BOSS_ORDER` 17종 + 나머지 가나다, `bossesInOrder()`/`bossOrderIndex()`). 순서 더 바꾸려면 `data.js`의 `BOSS_ORDER` 배열만 수정
-3. (선택) 보스 설정 페이지에 검색/필터(보이는 것만 보기) — 27보스라 길어짐
-4. (선택) 회차 카드/월별 사이드에도 난이도 표기 일관성 점검
+> **체크포인트(2026-05-16):** 전 작업 커밋·푸시 완료(tree clean, HEAD=f31c380 직후). CSS 원본 백업 = `css/style.pre-redesign.css` + git 태그 `pre-redesign-2026-05-16`. 되돌리기: `git checkout pre-redesign-2026-05-16 -- css/style.css` 또는 `cp css/style.pre-redesign.css css/style.css`. 사용자가 대화 compact 후 "1번 시작"/"메이플보스"로 재개 예정.
+
+### 1단계 — 디자인 무드 전면 개편 (지금 할 것, in-repo CSS-only)
+- **외부 도구·링크 없음.** 이 레포에서 직접. UI 틀(JS·DOM·클래스·라우트) 절대 변경 금지 → `css/style.css`만.
+- 절차:
+  1. 현재 `style.css` = "기존" 무드(백업본 `css/style.pre-redesign.css` 존재).
+  2. `css/themes/mood-1.css … mood-8.css` 8벌 생성 — 각각 현재 클래스명을 그대로 타겟하는 완성형 테마. 배경 = 단색(흰 or 검, 무드별 자유), 배경이미지·블러 제거, 이모지/장식 아이콘 금지, WCAG AA, 반응형(≤1080px) 유지, 보스/전리품 기능색은 식별성 유지·톤만 조정.
+  3. **임시 무드 전환기**(작은 fixed select, dev 전용) 주입 → 실제 사이트를 8무드로 직접 비교 가능하게.
+  4. 사용자가 1벌 선택 → 그 테마를 `css/style.css`로 확정 + `js/app.js` `applyRandomBackground()` 비활성(배경 단색) + `css/themes/`·전환기·`style.pre-redesign.css` 정리 → 커밋.
+- 라이트/다크 골고루 섞어 생성.
+
+### 2단계 — 공유 백엔드 전환 설계 (1단계 끝나면 바로)
+- 목적: 다인 공유(누가 수정하면 모두에게 보임). 현재 localStorage는 브라우저별 격리라 불가 → 백엔드 필요(프런트 구조는 재사용, `storage.js`만 async API로 교체 + DB + 기본 인증).
+- 1단계 완료 직후 산출: ① 스택 비교·추천(Supabase / Vercel Postgres+Neon / Firebase Firestore) ② 데이터모델(parties/bossRuns/reservations/bossSettings → 테이블) ③ `storage.js` async 전환 범위 + 호출부(전부 동기 가정이라 await 전파 지점) ④ localStorage→DB 1회 마이그레이션(기존 backup JSON import 활용) ⑤ 파티 비번을 서버 검증 인증으로 승격 ⑥ 단계별 작업 분해·예상 규모. → 사용자 결정 후 구현 착수.
+
+### (선택, 보류) 그 외
+- 배포 사이트 검증 한 바퀴(회차 난이도 캐스케이드·보이기 필터·기존 데이터 호환)
+- 보스 설정 페이지 검색/필터(27보스라 길어짐), 회차 카드/월별 난이도 표기 일관성
 
 ## 환경/구조 메모
 
