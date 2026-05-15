@@ -11,14 +11,14 @@
 
   var MOODS = [
     { id: '',  label: '기본 (원본 / 배경이미지)' },
-    { id: '1', label: '1 · Midnight Slate (다크)' },
-    { id: '2', label: '2 · Pure Paper (라이트)' },
-    { id: '3', label: '3 · Warm Sand (라이트·웜)' },
-    { id: '4', label: '4 · Forest Night (다크)' },
-    { id: '5', label: '5 · Mono Ink (라이트·모노)' },
-    { id: '6', label: '6 · Royal Plum (다크)' },
-    { id: '7', label: '7 · Nordic Frost (라이트)' },
-    { id: '8', label: '8 · Carbon Amber (다크)' },
+    { id: '1', label: '1 · Midnight Slate (다크·블루)' },
+    { id: '2', label: '2 · Abyss Teal (다크·청록)' },
+    { id: '3', label: '3 · Crimson Noir (다크·레드)' },
+    { id: '4', label: '4 · Neon Synth (다크·네온)' },
+    { id: '5', label: '5 · Graphite Mono (다크·모노)' },
+    { id: '6', label: '6 · Royal Plum (다크·보라골드)' },
+    { id: '7', label: '7 · Espresso Copper (다크·코퍼)' },
+    { id: '8', label: '8 · Carbon Amber (다크·앰버)' },
   ];
 
   // style.css 보다 뒤에 와야 :root 오버라이드가 이긴다 → <head> 끝에 append.

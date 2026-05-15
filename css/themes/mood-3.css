@@ -1,49 +1,49 @@
 /* ============================================================
-   MOOD 3 — Warm Sand (라이트, 웜)
-   따뜻한 크림 페이퍼 + 테라코타. 아늑한 종이 질감 톤.
+   MOOD 3 — Crimson Noir (다크)
+   차콜 블랙 + 크림슨 레드. 강렬한 누아르 톤.
    배경 단색 · 블러 제거 · WCAG AA · 보스/전리품 기능색은 JS 인라인이라 그대로.
    클래스/구조는 절대 안 건드림 — :root 토큰만 덮어씀.
    ============================================================ */
 :root {
-  --bg-base:        #faf6f0;
-  --bg-elevated:    #f1e9dd;
-  --bg-card:        #fffdf9;
-  --bg-card-hover:  #f5eee2;
-  --bg-overlay:     rgba(60, 42, 24, 0.40);
+  --bg-base:        #141112;
+  --bg-elevated:    #241a1c;
+  --bg-card:        #1c1517;
+  --bg-card-hover:  #2c1f22;
+  --bg-overlay:     rgba(8, 4, 5, 0.76);
 
-  --border-subtle:  #e7dccb;
-  --border-strong:  #d4c4ab;
+  --border-subtle:  #382a2d;
+  --border-strong:  #523a3f;
 
-  --text-primary:   #2c2418;
-  --text-secondary: #5b4f3c;
-  --text-tertiary:  #837456;
-  --text-muted:     #a99a7c;
+  --text-primary:   #f4ecee;
+  --text-secondary: #cdb3b8;
+  --text-tertiary:  #9c7f84;
+  --text-muted:     #6a4f54;
 
-  --accent-gold:    #c2410c;
-  --accent-purple:  #9333ea;
-  --accent-rose:    #be185d;
-  --accent-aqua:    #0f766e;
-  --danger:         #b91c1c;
+  --accent-gold:    #dc2626;
+  --accent-purple:  #fb7185;
+  --accent-rose:    #fb7185;
+  --accent-aqua:    #f87171;
+  --danger:         #f87171;
 
-  --on-accent:      #fff7ed;
+  --on-accent:      #fff1f1;
   --on-boss:        #1a1102;
-  --accent-hover:   #9a330a;
-  --btn-grad-text:  #fff7ed;
+  --accent-hover:   #b91c1c;
+  --btn-grad-text:  #fff1f1;
 
-  --glow-rgb:        15, 118, 110;
-  --shade-rgb:       232, 222, 205;
-  --hairline-rgb:    44, 36, 24;
+  --glow-rgb:        248, 113, 113;
+  --shade-rgb:       8, 4, 5;
+  --hairline-rgb:    255, 255, 255;
   --ink-rgb:         0, 0, 0;
-  --danger-rgb:      185, 28, 28;
-  --ladder-grad-rgb: 147, 51, 234;
+  --danger-rgb:      248, 113, 113;
+  --ladder-grad-rgb: 251, 113, 133;
 
   --card-filter:     none;
   --overlay-filter:  none;
 
-  --page-bg:            #faf6f0;
+  --page-bg:            #141112;
   --page-bg-attachment: initial;
 
-  --shadow-sm: 0 1px 2px rgba(60, 42, 24, 0.08);
-  --shadow-md: 0 6px 16px rgba(60, 42, 24, 0.12);
-  --shadow-lg: 0 18px 40px rgba(60, 42, 24, 0.18);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.60);
 }
