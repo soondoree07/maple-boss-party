@@ -28,7 +28,7 @@ export const difficultyRank  = (key) => DIFFICULTY_RANK[key] ?? 99;
 
 const HAMMER  = ['해머(얼굴장식)', '해머(눈장식)', '해머(훈장)', '해머(귀고리)', '해머(벨트)'];
 const PURPLE  = ['미트라의 분노', '거공', '몽벨', '마깃안', '루컨마', '고근', '마도서', '커포링'];
-const UNIQUE  = ['황홀한 악몽', '근원의 속삭임', '죽음의 맹세', '불멸의 유산', '창세의 뱃지', '오만의 원죄'];
+const UNIQUE  = ['황홀한 악몽', '근원의 속삭임', '죽음의 맹세', '불멸의 유산', '창세의 뱃지', '오만의 원죄', '언컨'];
 
 export const LOOT_GROUP = (() => {
   const m = {};
@@ -69,6 +69,7 @@ export const LOOT_NAME_COLOR = {
   '불멸의 유산':   '#FFA700',
   '창세의 뱃지':   '#FB0400',
   '오만의 원죄':   '#C9B58E',
+  '언컨':          '#D04040',
 };
 
 // ── 보스 ──────────────────────────────────────────────
@@ -196,7 +197,7 @@ export const BOSSES = [
     difficulties: [
       { key: 'normal',  crystal: 0.176, loot: [] },
       { key: 'hard',    crystal: 0.542, loot: ['루컨마', ...COMMON] },
-      { key: 'extreme', crystal: 6.04,  loot: ['루컨마', ...COMMON] },
+      { key: 'extreme', crystal: 6.04,  loot: ['루컨마', '언컨', ...COMMON] },
     ],
   },
   {
@@ -334,6 +335,7 @@ export const LOOT_IMAGE = {
   '불멸의 유산':    'png/불멸의 유산.png',
   '창세의 뱃지':    'png/창세의 뱃지.png',
   '오만의 원죄':    'png/오만의 원죄.png',
+  '언컨':           'png/언컨.png',
   // 박스 / 석재 / 영달포
   '에테상자':       'png/에테상자.png',
   '장신망상자':     'png/장신망상자.webp',
