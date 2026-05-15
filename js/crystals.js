@@ -11,14 +11,14 @@
 // 저장 시 localStorage(bossSettings)에 반영.
 
 import * as Storage from './storage.js';
-import { bossesByName, difficultyLabel, getLootImage, getDisplayLootColor } from './data.js';
+import { bossesInOrder, difficultyLabel, getLootImage, getDisplayLootColor } from './data.js';
 import { formatMeso, el, clear } from './utils.js';
 
 export function renderCrystalsPage(container) {
   clear(container);
 
   const settings = Storage.getBossSettings();
-  const bosses = bossesByName();
+  const bosses = bossesInOrder();
 
   // 드래프트 — 저장 버튼 누를 때까지 화면에만 반영.
   const draftVisible  = {};  // { [id]: boolean }

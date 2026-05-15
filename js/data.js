@@ -405,6 +405,31 @@ export const getVisibleBosses = (visible = {}) => BOSSES.filter(b => isBossVisib
 export const bossesByName = () =>
   [...BOSSES].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 
+// 보스 표시 순서 (사용자 지정). 이 목록에 없는 보스는 아래에 이름 가나다순.
+const BOSS_ORDER = [
+  'blackmage', 'suu', 'seren', 'kalos', 'kaling', 'adversary', 'lotus',
+  'limbo', 'baldrix', 'jupiter', 'jinhilla', 'dunkel', 'dusk', 'will',
+  'lucid', 'gas', 'damien',
+];
+
+/** 사용자 지정 순서 → 나머지 가나다순. 보스 목록 노출은 전부 이걸 사용. */
+export function bossesInOrder() {
+  const rank = new Map(BOSS_ORDER.map((id, i) => [id, i]));
+  const fixed = [];
+  const rest  = [];
+  for (const b of BOSSES) (rank.has(b.id) ? fixed : rest).push(b);
+  fixed.sort((a, b) => rank.get(a.id) - rank.get(b.id));
+  rest.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  return [...fixed, ...rest];
+}
+
+/** 표시 순서 인덱스 (목록에 없으면 큰 값). 회차 보스 select 정렬용. */
+export function bossOrderIndex(bossId) {
+  const ordered = bossesInOrder();
+  const i = ordered.findIndex(b => b.id === bossId);
+  return i < 0 ? 9999 : i;
+}
+
 export const getLootColor = (group) => LOOT_COLORS[group] || LOOT_COLORS.default;
 export const getLootImage = (itemName) => LOOT_IMAGE[itemName] || null;
 

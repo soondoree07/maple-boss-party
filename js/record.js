@@ -10,7 +10,7 @@
 
 import * as Storage from './storage.js';
 import {
-  getBoss, getVisibleBosses, getBossLoot, getBossDifficulties,
+  getBoss, getVisibleBosses, getBossLoot, getBossDifficulties, bossOrderIndex,
   difficultyLabel, getLootColor, getDisplayLootColor, getLootImage,
   CHANNELS, channelLabel,
 } from './data.js';
@@ -640,7 +640,7 @@ function buildBossSelect(visibleMap = {}, keepId = null) {
     const kept = getBoss(keepId);
     if (kept) available.push(kept);
   }
-  available.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  available.sort((a, b) => bossOrderIndex(a.id) - bossOrderIndex(b.id));
   return el('select', { className: 'select-input' },
     el('option', { value: '' }, '보스 선택...'),
     available.map(b => el('option', { value: b.id }, b.name)),
