@@ -9,6 +9,7 @@ import {
   getBoss,
   getEffectiveCrystal,
   resolveDifficultyKey,
+  sortLoot,
   getLootImage,
   getDisplayLootColor,
 } from './data.js';
@@ -64,7 +65,7 @@ function renderMonthCard(party, m) {
   const lootRows = [];
   for (const r of runs) {
     if (!Array.isArray(r.loot)) continue;
-    for (const entry of r.loot) {
+    for (const entry of sortLoot(r.loot)) {
       lootRows.push({ ...entry, _bossId: r.boss, _date: r.date });
     }
   }

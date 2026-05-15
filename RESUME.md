@@ -22,6 +22,7 @@
 9. **`earnings.js` / `monthly.js`** — 결정석 계산을 `resolveDifficultyKey(boss, run.difficulty, defaults)` 기준으로. 난이도 없는 legacy 회차는 기본설정 → 첫 난이도로 fallback
 10. **CSS** — 보스 설정 페이지 가로행 레이아웃(`.boss-setting-card`/`.bsd-row` 등), `.run-difficulty` 칩, `.form-hint`. 구 `.crystal-card*` 규칙 제거
 11. **검증** — 전 JS `node --check` 통과 / data.js 표 전수 대조 스크립트 ALL PASS(27보스) / 로컬 서버 주요 자산 200(한글 png 포함)
+12. **전리품 그룹·정렬 개편 (후속)** — `에픽` 그룹 신설(연마석·신마석·장신망상자·영달포, 색 `#22C55E`, 기존 default에서 분리). 전리품 표시 순서 = **유니크 → 해머 → 에픽 → 퍼플코어 → 기본**, 그룹 내 순서도 사용자 지정(`LOOT_GROUP_ORDER`/`GROUP_ARRAYS`/`sortLoot`/`lootSortKey`). `getBossLoot` 정렬 반환 → 회차 타일·보스 설정 페이지·회차 카드·월별 사이드 모두 동일 순서. 언컨(유니크) 추가, 익스 칼로스·카링 에테상자 추가 포함
 
 ## 현재 막힌 지점 / 결정 대기
 

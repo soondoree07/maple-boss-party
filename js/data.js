@@ -26,33 +26,61 @@ export const difficultyRank  = (key) => DIFFICULTY_RANK[key] ?? 99;
 //
 // 그룹은 아이템 고유 속성이라 보스/난이도와 무관하다.
 
-const HAMMER  = ['해머(얼굴장식)', '해머(눈장식)', '해머(훈장)', '해머(귀고리)', '해머(벨트)'];
-const PURPLE  = ['미트라의 분노', '거공', '몽벨', '마깃안', '루컨마', '고근', '마도서', '커포링'];
+// 각 배열의 순서 = 그룹 내 표시 순서 (사용자 지정).
 const UNIQUE  = ['황홀한 악몽', '근원의 속삭임', '죽음의 맹세', '불멸의 유산', '창세의 뱃지', '오만의 원죄', '언컨'];
+const HAMMER  = ['해머(얼굴장식)', '해머(눈장식)', '해머(훈장)', '해머(귀고리)', '해머(벨트)'];
+const EPIC    = ['연마석', '신마석', '장신망상자', '영달포'];
+const PURPLE  = ['루컨마', '마깃안', '몽벨', '마도서', '거공', '고근', '커포링', '미트라의 분노'];
+const DEFAULT = ['리3', '리4', '컨3', '컨4', '에테상자'];
+
+// 전리품 그룹 표시 순서: 유니크 → 해머 → 에픽 → 퍼플코어 → 기본
+const LOOT_GROUP_ORDER = ['unique', 'hammer', 'epic', 'purple', 'default'];
+const GROUP_ARRAYS = { unique: UNIQUE, hammer: HAMMER, epic: EPIC, purple: PURPLE, default: DEFAULT };
 
 export const LOOT_GROUP = (() => {
   const m = {};
-  HAMMER.forEach(n => (m[n] = 'hammer'));
-  PURPLE.forEach(n => (m[n] = 'purple'));
-  UNIQUE.forEach(n => (m[n] = 'unique'));
-  ['리4', '컨4', '리3', '컨3', '영달포', '에테상자', '연마석', '신마석', '장신망상자']
-    .forEach(n => (m[n] = 'default'));
+  for (const g of LOOT_GROUP_ORDER) GROUP_ARRAYS[g].forEach(n => (m[n] = g));
   // 레거시 호환: 기존 기록·백업의 '커포'를 '커포링'과 동일 취급.
   m['커포'] = 'purple';
   return m;
 })();
 
+// name → [그룹순위, 그룹내순위] (전리품 나열 정렬용)
+const LOOT_SORT_INDEX = (() => {
+  const m = {};
+  LOOT_GROUP_ORDER.forEach((g, gi) => {
+    GROUP_ARRAYS[g].forEach((n, i) => (m[n] = [gi, i]));
+  });
+  m['커포'] = m['커포링'];
+  return m;
+})();
+
 export const getLootGroup = (itemName) => LOOT_GROUP[itemName] || 'default';
+
+/** 전리품 정렬 키: [그룹순위, 그룹내순위]. 미등록 항목은 맨 뒤. */
+export const lootSortKey = (name) =>
+  LOOT_SORT_INDEX[name] || [LOOT_GROUP_ORDER.length, 999];
+
+/** 전리품 목록을 표시 순서로 정렬 (요소: string | {name} | {item}). */
+export function sortLoot(list) {
+  const nm = (x) => (typeof x === 'string' ? x : (x && (x.name ?? x.item)));
+  return [...list].sort((a, b) => {
+    const ka = lootSortKey(nm(a)), kb = lootSortKey(nm(b));
+    return ka[0] - kb[0] || ka[1] - kb[1];
+  });
+}
 
 /**
  * 전리품 색상 그룹.
- *  - hammer:  해머 5종
- *  - purple:  퍼플코어 8종
  *  - unique:  유니크 (각 항목별로 LOOT_NAME_COLOR에서 개별 지정 — 그룹 색은 fallback)
- *  - default: 그 외 — 검정
+ *  - hammer:  해머 5종
+ *  - epic:    에픽 — 연마석/신마석/장신망상자/영달포
+ *  - purple:  퍼플코어 8종
+ *  - default: 그 외 — 검정(글자색 미적용)
  */
 export const LOOT_COLORS = {
   hammer:  '#D4A056',
+  epic:    '#22C55E',
   purple:  '#9B5DE5',
   unique:  '#E0C9A6',
   default: '#1A1A1A',
@@ -390,11 +418,11 @@ export function getEffectiveCrystal(bossId, difficultyKey) {
   return Number(d.crystal) || 0;
 }
 
-/** 보스 × 난이도 전리품 목록 [{ name, group }]. */
+/** 보스 × 난이도 전리품 목록 [{ name, group }] — 표시 순서로 정렬. */
 export function getBossLoot(bossId, difficultyKey) {
   const d = getBossDifficulty(bossId, difficultyKey);
   if (!d || !Array.isArray(d.loot)) return [];
-  return d.loot.map(name => ({ name, group: getLootGroup(name) }));
+  return sortLoot(d.loot.map(name => ({ name, group: getLootGroup(name) })));
 }
 
 /** 보이는 보스만 (visible map: { [id]: false } 면 숨김, 그 외 전부 노출). */

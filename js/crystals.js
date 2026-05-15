@@ -11,7 +11,7 @@
 // 저장 시 localStorage(bossSettings)에 반영.
 
 import * as Storage from './storage.js';
-import { bossesInOrder, difficultyLabel, getLootImage, getDisplayLootColor } from './data.js';
+import { bossesInOrder, difficultyLabel, getBossLoot, getLootImage, getDisplayLootColor } from './data.js';
 import { formatMeso, el, clear } from './utils.js';
 
 export function renderCrystalsPage(container) {
@@ -89,10 +89,11 @@ function buildBossRow(boss, draftVisible, draftDefaults) {
 
   // 난이도별 결정석 + 전리품 행
   const diffRows = boss.difficulties.map(d => {
-    const lootNodes = d.loot && d.loot.length > 0
-      ? d.loot.map(name => {
+    const loot = getBossLoot(boss.id, d.key);
+    const lootNodes = loot.length > 0
+      ? loot.map(({ name, group }) => {
           const img   = getLootImage(name);
-          const color = getDisplayLootColor(name);
+          const color = getDisplayLootColor(name, group);
           return el('span', { className: 'bsd-loot', title: name },
             img
               ? el('img', { className: 'bsd-loot-img', src: img, alt: name, loading: 'lazy' })

@@ -11,7 +11,7 @@
 import * as Storage from './storage.js';
 import {
   getBoss, getVisibleBosses, getBossLoot, getBossDifficulties, bossOrderIndex,
-  difficultyLabel, getLootColor, getDisplayLootColor, getLootImage,
+  sortLoot, difficultyLabel, getLootColor, getDisplayLootColor, getLootImage,
   CHANNELS, channelLabel,
 } from './data.js';
 import {
@@ -273,7 +273,7 @@ function renderRunCard(run, refresh, onEdit) {
       ? el('div', { className: 'run-section' },
           el('div', { className: 'run-section-label' }, '전리품'),
           el('div', { className: 'loot-list' },
-            run.loot.map(lt => {
+            sortLoot(run.loot).map(lt => {
               const color = getDisplayLootColor(lt.item);
               const img   = getLootImage(lt.item);
               // shared가 명시적으로 true면 분배. 미정의(기존 데이터)는 단독(taker 전액)으로 해석.
