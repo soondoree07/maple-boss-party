@@ -126,7 +126,6 @@ export function renderLadder(party) {
     svgWrap.appendChild(svgBundle.svg);
     if (!revealed) {
       svgWrap.appendChild(el('div', { className: 'ladder-cover' },
-        el('div', { className: 'ladder-cover-icon' }, '🎴'),
         el('div', { className: 'ladder-cover-text' }, '사다리 숨김'),
         el('div', { className: 'ladder-cover-hint' }, '뽑기로 공개'),
       ));
@@ -161,7 +160,7 @@ export function renderLadder(party) {
     const btn = el('button', {
       className: 'ladder-btn',
       type: 'button',
-    }, revealed ? '🎲 다시 뽑기' : '🎲 뽑기');
+    }, revealed ? '다시 뽑기' : '뽑기');
 
     btn.addEventListener('click', () => {
       if (!revealed) {
@@ -189,10 +188,10 @@ export function renderLadder(party) {
     if (revealed) {
       const winnerName = (names[result.winnerIdx] || '').trim() || `참가자 ${result.winnerIdx + 1}`;
       card.appendChild(el('div', { className: 'ladder-winner' },
-        '🏆 ', el('strong', null, winnerName), ' 당첨!'));
+        el('strong', null, winnerName), ' 당첨!'));
       card.appendChild(el('div', { className: 'ladder-trace-hint' },
         result.focusedIdx == null
-          ? '👆 이름을 눌러서 사다리를 따라가보세요'
+          ? '이름을 눌러서 사다리를 따라가보세요'
           : '다른 이름을 눌러 다시 추적할 수 있어요'));
     }
 

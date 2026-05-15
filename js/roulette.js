@@ -16,7 +16,7 @@ export function renderChannelRoulette() {
     className: 'roulette-btn',
     type: 'button',
     onclick: () => spin(),
-  }, '🎰 뽑기');
+  }, '뽑기');
 
   let spinning = false;
 
