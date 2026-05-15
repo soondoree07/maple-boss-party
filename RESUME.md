@@ -41,20 +41,22 @@
 
 ## 다음 액션 (이어할 작업) — ★ 여기부터 재개
 
-> **체크포인트(2026-05-16):** 전 작업 커밋·푸시 완료(tree clean, HEAD=f31c380 직후). CSS 원본 백업 = `css/style.pre-redesign.css` + git 태그 `pre-redesign-2026-05-16`. 되돌리기: `git checkout pre-redesign-2026-05-16 -- css/style.css` 또는 `cp css/style.pre-redesign.css css/style.css`. 사용자가 대화 compact 후 "1번 시작"/"메이플보스"로 재개 예정.
+> **체크포인트(2026-05-16, compact 후):** 1단계 빌드 완료·푸시(`3386a9f`), 2단계 설계 문서 완료·푸시(`80b9582`). devlog `4283c50`. tree clean. CSS 원본 백업 = `css/style.pre-redesign.css` + git 태그 `pre-redesign-2026-05-16`. 되돌리기: `cp css/style.pre-redesign.css css/style.css`.
+> **이어할 첫 액션 = 사용자가 무드 1벌 고르기.** (그 한 마디 → 아래 "1단계 마무리" 자동 실행)
 
-### 1단계 — 디자인 무드 전면 개편 (지금 할 것, in-repo CSS-only)
-- **외부 도구·링크 없음.** 이 레포에서 직접. UI 틀(JS·DOM·클래스·라우트) 절대 변경 금지 → `css/style.css`만.
-- 절차:
-  1. 현재 `style.css` = "기존" 무드(백업본 `css/style.pre-redesign.css` 존재).
-  2. `css/themes/mood-1.css … mood-8.css` 8벌 생성 — 각각 현재 클래스명을 그대로 타겟하는 완성형 테마. 배경 = 단색(흰 or 검, 무드별 자유), 배경이미지·블러 제거, 이모지/장식 아이콘 금지, WCAG AA, 반응형(≤1080px) 유지, 보스/전리품 기능색은 식별성 유지·톤만 조정.
-  3. **임시 무드 전환기**(작은 fixed select, dev 전용) 주입 → 실제 사이트를 8무드로 직접 비교 가능하게.
-  4. 사용자가 1벌 선택 → 그 테마를 `css/style.css`로 확정 + `js/app.js` `applyRandomBackground()` 비활성(배경 단색) + `css/themes/`·전환기·`style.pre-redesign.css` 정리 → 커밋.
-- 라이트/다크 골고루 섞어 생성.
+### 1단계 — 디자인 무드 개편 : 빌드 완료, 무드 선택 대기
+- 완료: `style.css` 완전 토큰화(하드코딩 색/블러 약16곳 → 의미 토큰, **값 1:1 동일·렌더 무변화** 검증). `css/themes/mood-1..8.css`(라이트4·다크4: 1 Midnight Slate·2 Pure Paper·3 Warm Sand·4 Forest Night·5 Mono Ink·6 Royal Plum·7 Nordic Frost·8 Carbon Amber). `js/theme-switch.js` + `index.html` 1줄(임시 전환기). 단색배경·블러제거·WCAG AA·기능색(JS 인라인) 유지. 구조/클래스/JS 무변경.
+- **사용자 할 일:** GitHub Pages(`https://soondoree07.github.io/maple-boss-party/`)에서 우하단 "무드 미리보기" select로 8벌 비교 → **번호/이름으로 1벌 지정**.
+- **1단계 마무리(사용자 선택 즉시 실행):**
+  1. 선택 무드의 `:root`를 `css/style.css`에 병합 확정(기존 `:root` 값 교체).
+  2. `js/app.js` `applyRandomBackground()` 비활성(배경 단색 고정) + 미사용 `BACKGROUNDS`/`--bg-image` 정리.
+  3. 삭제: `js/theme-switch.js`, `index.html`의 임시 `<script>` 1줄·주석, `css/themes/`, `css/style.pre-redesign.css`(태그로 이력 보존).
+  4. `node --check`·로컬서버 200·잔여 var 점검 → 커밋·푸시 → devlog/기획서/메모리/RESUME 갱신.
 
-### 2단계 — 공유 백엔드 전환 설계 (1단계 끝나면 바로)
-- 목적: 다인 공유(누가 수정하면 모두에게 보임). 현재 localStorage는 브라우저별 격리라 불가 → 백엔드 필요(프런트 구조는 재사용, `storage.js`만 async API로 교체 + DB + 기본 인증).
-- 1단계 완료 직후 산출: ① 스택 비교·추천(Supabase / Vercel Postgres+Neon / Firebase Firestore) ② 데이터모델(parties/bossRuns/reservations/bossSettings → 테이블) ③ `storage.js` async 전환 범위 + 호출부(전부 동기 가정이라 await 전파 지점) ④ localStorage→DB 1회 마이그레이션(기존 backup JSON import 활용) ⑤ 파티 비번을 서버 검증 인증으로 승격 ⑥ 단계별 작업 분해·예상 규모. → 사용자 결정 후 구현 착수.
+### 2단계 — 공유 백엔드 전환 : 설계 완료(`BACKEND_PLAN.md`), 결정 대기
+- 산출 완료: `/mnt/c/Users/박정혁/Downloads/maple-boss/BACKEND_PLAN.md` — 스택비교(**Supabase 추천**)·Postgres 데이터모델·`storage.js` **인메모리캐시+Realtime(방식2)** 권장(읽기 동기 유지→화면코드 거의 그대로, app.js 2곳만)·1회 마이그레이션(backup JSON→upsert 멱등)·비번 서버 verify RPC+RLS 승격·작업분해 약3~4.5일.
+- **사용자 결정 4개(이거 답하면 P1 착수):** ① 스택=Supabase? ② 공개범위 (a)그냥공유 vs (b)멤버만(로그인) ③ `boss_settings` 전역1행 유지? ④ 호스팅 Pages 유지 vs Vercel 정적 이전.
+- 결정되면 BACKEND_PLAN.md §6 P1→P6 순으로 구현.
 
 ### (선택, 보류) 그 외
 - 배포 사이트 검증 한 바퀴(회차 난이도 캐스케이드·보이기 필터·기존 데이터 호환)
