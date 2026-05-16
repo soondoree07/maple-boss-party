@@ -57,17 +57,23 @@ const runFromRow = (r) => ({
   memberSnapshot: Array.isArray(r.member_snapshot) ? r.member_snapshot : [],
   loot: Array.isArray(r.loot) ? r.loot : [],
 });
+// '' / undefined / 비숫자 → null (base_reward 는 numeric 컬럼이라 ''를 거부함)
+const numOrNull = (v) => {
+  if (v === '' || v == null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
 const runToRow = (x) => ({
   id: x.id,
   party_id: x.partyId,
   date: x.date,
   boss: x.boss,
-  difficulty: x.difficulty ?? null,
-  channel: x.channel ?? null,
-  opener: x.opener ?? null,
-  base_reward: x.baseReward ?? null,
-  member_snapshot: x.memberSnapshot || [],
-  loot: x.loot || [],
+  difficulty: x.difficulty || null,
+  channel: x.channel || null,
+  opener: x.opener || null,
+  base_reward: numOrNull(x.baseReward),
+  member_snapshot: Array.isArray(x.memberSnapshot) ? x.memberSnapshot : [],
+  loot: Array.isArray(x.loot) ? x.loot : [],
 });
 
 const resFromRow = (r) => {
