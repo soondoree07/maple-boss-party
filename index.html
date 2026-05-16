@@ -10,11 +10,21 @@
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    // 방문(로드)마다 무드 6벌 중 1벌을 랜덤으로 적용한다.
+    // style.css 뒤에 :root 오버라이드 <link>를 얹어 색만 덮어쓴다(구조/클래스/JS 불변).
+    (function () {
+      var moods = [1, 2, 3, 4, 6, 8];
+      var pick = moods[Math.floor(Math.random() * moods.length)];
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'css/themes/mood-' + pick + '.css';
+      document.head.appendChild(link);
+    })();
+  </script>
 </head>
 <body>
   <div id="app" aria-live="polite"></div>
   <script type="module" src="js/app.js"></script>
-  <!-- 임시: 무드 미리보기 전환기. 무드 확정 후 이 줄 + js/theme-switch.js + css/themes/ 삭제. -->
-  <script src="js/theme-switch.js"></script>
 </body>
 </html>

@@ -54,27 +54,10 @@ function route() {
   renderPartyList(root);
 }
 
-// 배경 — 6장 중 1장을 페이지 로드마다 랜덤으로.
-// CSS variable의 url()은 사용되는 stylesheet 위치(/css/)를 base로 풀린다.
-// 그래서 ../background/ 로 prefix해야 /background/ 로 풀림.
-const BACKGROUNDS = [
-  '리버스시티.png',
-  '별이삼켜지는심해.png',
-  '빛이마지막으로닿는곳.png',
-  '산호숲가는길.png',
-  '생명의동굴.png',
-  '정령의나무가있는곳.png',
-];
-function applyRandomBackground() {
-  const pick = BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)];
-  document.documentElement.style.setProperty('--bg-image', `url("../background/${pick}")`);
-}
-
+// 배경/색은 index.html <head>의 인라인 스크립트가 무드 6벌 중 1벌을
+// 방문(로드)마다 랜덤으로 얹어 처리한다 (css/themes/mood-N.css :root 오버라이드).
 window.addEventListener('hashchange', route);
-window.addEventListener('DOMContentLoaded', () => {
-  applyRandomBackground();
-  route();
-});
+window.addEventListener('DOMContentLoaded', route);
 
 // ── 파티 비밀번호 게이트 ──────────────────────────────
 
