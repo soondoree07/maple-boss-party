@@ -10,7 +10,15 @@
 ## ★ 2026-05-17 (후속) — 파티원 추가 일원화 + 새 파티 모달 순서 입력 (배포 완료)
 - 파티 선택 카드/파티 상세 strip의 `+ 추가` 칩 제거 → 파티원 추가·삭제는 **파티 설정 페이지(`#/party/:id/settings`)에서만**. `openAddMemberModal` dead code 삭제.
 - 새 파티 모달: 파티원 칸 순서 입력 강제 — 직전 칸 비면 다음 칸 잠금(`refreshLocks`), 중간 비우면 뒤 값 자동 위로 당김(`compactSlots`, blur), Enter는 다음 활성 칸으로만.
-- 커밋 `788a41a`, Vercel 라이브 `compactSlots` 마커 2회 확인. **다음 세션 첫 액션 = 사용자 새 지시 대기**(진행 중 작업 없음).
+- 커밋 `788a41a`, Vercel 라이브 `compactSlots` 마커 2회 확인.
+
+## ★ 2026-05-17 (후속2) — 네이티브 알림 → 무드 다이얼로그/인라인 메시지 (배포 완료)
+- `utils.confirmDialog()` 신설 — 무드 토큰 확인 모달(메시지·선택 PIN칸·위험버튼·async onConfirm 인라인 오류). 네이티브 confirm/prompt/alert 대체.
+- 파티 삭제: prompt+confirm+alert 3단 → confirmDialog 한 화면(비번 파티는 PIN칸, 틀리면 모달 안 `--danger` 글자). 두 진입점 공용.
+- 파티 설정 비번: alert 제거 → 저장 버튼 위 인라인(`--accent-gold` 성공 "비밀번호가 변경되었습니다." / `--danger` "비밀번호를 확인하세요"). 멤버 삭제 confirm→confirmDialog, 검증 alert→인라인. dead `openChangePasswordModal` 제거. CSS `.modal-confirm/.dialog-*/.btn-danger/.inline-msg*` 전부 무드 토큰.
+- 커밋 `99dae81`, Vercel 라이브 confirmDialog·inline-msg 서빙 확인.
+- **범위 외 잔존 네이티브**: 새 파티 모달 입력검증 4건 / 백업 복원 confirm+결과 alert / app.js Storage.init 실패 alert. (사용자에 확장 여부 질문함)
+- **다음 세션 첫 액션 = 사용자 새 지시 대기**(진행 중 작업 없음).
 
 ## ⛔ 작업 규칙 (사용자 지정 — 반드시 준수)
 - **이모지/장식 아이콘을 임의로 쓰지 말 것.** 버튼·라벨·헤더·안내 문구 등에 🎰🎲🎴🏆👆✨🔨 같은 이모지를 내 판단으로 추가하지 않는다. 텍스트만 사용. 아이콘이 꼭 필요하면 먼저 사용자에게 묻는다. (이미 제거: 룰렛 '뽑기', 사다리 '뽑기/다시 뽑기', '사다리 숨김' 커버)
