@@ -41,19 +41,16 @@
 
 ## 다음 액션 (이어할 작업) — ★ 여기부터 재개
 
-> **체크포인트(2026-05-16, compact 후):** 1단계 빌드 완료·푸시(`3386a9f`), 2단계 설계 문서 완료·푸시(`80b9582`). devlog `4283c50`. tree clean. CSS 원본 백업 = `css/style.pre-redesign.css` + git 태그 `pre-redesign-2026-05-16`. 되돌리기: `cp css/style.pre-redesign.css css/style.css`.
-> **이어할 첫 액션 = 사용자가 무드 1벌 고르기.** (그 한 마디 → 아래 "1단계 마무리" 자동 실행)
+> **체크포인트(2026-05-16):** **1단계 종료·푸시 `449dd44`** (방문마다 무드 6벌 랜덤). devlog 푸시 완료. tree clean. CSS 토큰화 이전 되돌리기 = git 태그 `pre-redesign-2026-05-16` (백업 파일은 삭제됨).
+> **이어할 첫 액션 = 2단계 결정 4개 받기 → BACKEND_PLAN.md §6 P1 착수.** (아래 2단계 섹션)
 
-### 1단계 — 디자인 무드 개편 : 빌드 완료, 무드 선택 대기
-- 완료: `style.css` 완전 토큰화(하드코딩 색/블러 약16곳 → 의미 토큰, **값 1:1 동일·렌더 무변화** 검증). `css/themes/mood-1..8.css` **전부 다크 8벌**: 1 Midnight Slate(블루)·2 Abyss Teal(청록)·3 Crimson Noir(레드)·4 Neon Synth(네온)·5 Graphite Mono(모노)·6 Royal Plum(보라골드)·7 Espresso Copper(코퍼)·8 Carbon Amber(앰버). `js/theme-switch.js` + `index.html` 1줄(임시 전환기). 단색배경·블러제거·WCAG AA·기능색(JS 인라인) 유지. 구조/클래스/JS 무변경. (구 라이트 무드 2/3/4/5/7은 사용자 요청으로 삭제)
-- **사용자 할 일:** GitHub Pages(`https://soondoree07.github.io/maple-boss-party/`)에서 우하단 "무드 미리보기" select로 8벌 비교 → **번호/이름으로 1벌 지정**.
-- **1단계 마무리(사용자 선택 즉시 실행):**
-  1. 선택 무드의 `:root`를 `css/style.css`에 병합 확정(기존 `:root` 값 교체).
-  2. `js/app.js` `applyRandomBackground()` 비활성(배경 단색 고정) + 미사용 `BACKGROUNDS`/`--bg-image` 정리.
-  3. 삭제: `js/theme-switch.js`, `index.html`의 임시 `<script>` 1줄·주석, `css/themes/`, `css/style.pre-redesign.css`(태그로 이력 보존).
-  4. `node --check`·로컬서버 200·잔여 var 점검 → 커밋·푸시 → devlog/기획서/메모리/RESUME 갱신.
+### 1단계 — 디자인 무드 개편 : ✅ 종료 (방문마다 6벌 랜덤 확정)
+- `style.css` 완전 토큰화(값 1:1 동일·렌더 무변화) 완료.
+- **확정 방식 = 단일 무드 고정이 아니라 방문(로드)마다 6벌 중 1벌 랜덤** (사용자 결정). `index.html <head>` 인라인 스크립트(`moods=[1,2,3,4,6,8]` 중 1벌 → `style.css` 뒤 `css/themes/mood-N.css <link>` 동기 append, FOUC 없음). 운영 무드 6벌(전부 다크) = 1 Midnight Slate·2 Abyss Teal·3 Crimson Noir·4 Neon Synth·6 Royal Plum·8 Carbon Amber.
+- 정리 완료: app.js `applyRandomBackground`/`BACKGROUNDS` 제거, 임시 전환기 `js/theme-switch.js`·index 임시 script 삭제, 미사용 무드 5(Graphite Mono)·7(Espresso Copper) + `css/style.pre-redesign.css` 백업 삭제. 검증: 로컬서버 자산 전부 200·댕글링 참조 0. 커밋 `449dd44` 푸시.
+- (추가 무드 조정이 필요하면 `index.html`의 `moods=[…]` 배열만 바꾸면 됨)
 
-### 2단계 — 공유 백엔드 전환 : 설계 완료(`BACKEND_PLAN.md`), 결정 대기
+### 2단계 — 공유 백엔드 전환 : 설계 완료(`BACKEND_PLAN.md`), 결정 대기 ← ★ 지금 여기
 - 산출 완료: `/mnt/c/Users/박정혁/Downloads/maple-boss/BACKEND_PLAN.md` — 스택비교(**Supabase 추천**)·Postgres 데이터모델·`storage.js` **인메모리캐시+Realtime(방식2)** 권장(읽기 동기 유지→화면코드 거의 그대로, app.js 2곳만)·1회 마이그레이션(backup JSON→upsert 멱등)·비번 서버 verify RPC+RLS 승격·작업분해 약3~4.5일.
 - **사용자 결정 4개(이거 답하면 P1 착수):** ① 스택=Supabase? ② 공개범위 (a)그냥공유 vs (b)멤버만(로그인) ③ `boss_settings` 전역1행 유지? ④ 호스팅 Pages 유지 vs Vercel 정적 이전.
 - 결정되면 BACKEND_PLAN.md §6 P1→P6 순으로 구현.
