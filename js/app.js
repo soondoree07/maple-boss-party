@@ -32,8 +32,11 @@ function route() {
   // 무드: 파티 선택 화면만 랜덤, 그 외(파티/게이트/보스 설정)는 유저 선택값.
   applyRouteMood(hash);
 
-  if (hash === '#/crystals') {
-    renderCrystalsPage(root);
+  const crystalsMatch = hash.match(/^#\/crystals\/([A-Za-z0-9_-]+)$/);
+  if (crystalsMatch) {
+    const cParty = Storage.getParty(crystalsMatch[1]);
+    if (!cParty) { location.hash = '#/'; return; }
+    renderCrystalsPage(root, cParty);
     return;
   }
 
@@ -58,16 +61,22 @@ function route() {
   renderPartyList(root);
 }
 
-// 배경/색은 index.html <head>의 인라인 스크립트가 무드 6벌 중 1벌을
-// 방문(로드)마다 랜덤으로 얹어 처리한다 (css/themes/mood-N.css :root 오버라이드).
 window.addEventListener('hashchange', route);
-window.addEventListener('DOMContentLoaded', () => {
-  // 공유된 딥링크(#/party/:id, #/crystals 등)로 들어와도 항상 파티 선택
-  // 페이지에서 시작한다. 비밀번호 게이트 우회·파티 존재 노출 방지.
-  // 앱 내 이동(파티 클릭)은 hashchange 경로라 새 로드가 아니므로 영향 없음.
+window.addEventListener('DOMContentLoaded', async () => {
+  // 공유된 딥링크로 들어와도 항상 파티 선택 페이지에서 시작
+  // (비밀번호 게이트 우회·파티 존재 노출 방지). 앱 내 이동은 hashchange라 영향 없음.
   if (location.hash && location.hash !== '#/' && location.hash !== '#') {
     history.replaceState(null, '', location.pathname + location.search + '#/');
   }
+  // 공유 백엔드: Supabase에서 전체 1회 로드 후 렌더. 실패해도 빈 화면으로라도 뜨게.
+  try {
+    await Storage.init();
+  } catch (e) {
+    console.error('[app] Storage.init 실패:', e);
+    alert('서버 연결에 실패했어요. 네트워크를 확인하고 새로고침해주세요.');
+  }
+  // 다른 사람이 수정 → Realtime → 현재 화면 자동 재렌더.
+  Storage.onRemoteChange(route);
   route();
 });
 
@@ -138,7 +147,7 @@ function renderPartyDetail(container, party) {
         onclick: () => openMoodModal(),
       }, '무드 설정'),
       el('a', {
-        href: '#/crystals',
+        href: `#/crystals/${party.id}`,
         className: 'icon-btn',
         title: '보스 등장/난이도 설정 · 결정석 표',
       }, '보스 설정'),

@@ -323,7 +323,7 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
   const existingRuns = Storage.getRunsByPartyAndDate(party.id, dateStr);
   const prevRun = isEdit ? null : (existingRuns[existingRuns.length - 1] || null);
 
-  const bossSettings = Storage.getBossSettings();
+  const bossSettings = Storage.getBossSettings(party.id);
 
   /**
    * 회차 폼 난이도 초기값.

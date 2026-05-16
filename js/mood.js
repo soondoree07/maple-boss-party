@@ -51,7 +51,7 @@ export function setSavedMood(id) {
  */
 export function applyRouteMood(hash) {
   const h = hash || location.hash || '#/';
-  const inParty = h === '#/crystals' || /^#\/party\//.test(h);
+  const inParty = h.startsWith('#/crystals') || h.startsWith('#/party/');
   const id = inParty
     ? (getSavedMood() || DEFAULT_ID)
     : (window.__moodRandomId || DEFAULT_ID);

@@ -46,7 +46,7 @@ export function renderMonthlyEarnings(party) {
  * }} opts
  */
 function renderEarningsCard({ party, runs, title, rangeLabel, emptyText, showGrandTotal = false }) {
-  const defaults = Storage.getBossSettings().defaults;
+  const defaults = Storage.getBossSettings(party.id).defaults;
   const earnings = new Map(party.members.map(m => [m, { crystal: 0, loot: 0 }]));
 
   for (const r of runs) {

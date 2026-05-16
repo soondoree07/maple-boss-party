@@ -14,10 +14,10 @@ import * as Storage from './storage.js';
 import { bossesInOrder, difficultyLabel, getBossLoot, getLootImage, getDisplayLootColor } from './data.js';
 import { formatMeso, el, clear } from './utils.js';
 
-export function renderCrystalsPage(container) {
+export function renderCrystalsPage(container, party) {
   clear(container);
 
-  const settings = Storage.getBossSettings();
+  const settings = Storage.getBossSettings(party.id);
   const bosses = bossesInOrder();
 
   // 드래프트 — 저장 버튼 누를 때까지 화면에만 반영.
@@ -33,8 +33,8 @@ export function renderCrystalsPage(container) {
 
   // ── 헤더 ──
   container.appendChild(el('header', { className: 'page-header' },
-    el('a', { href: 'javascript:history.back()', className: 'back-btn' }, '← 뒤로'),
-    el('h1', { className: 'page-title' }, '보스 설정 · 결정석'),
+    el('a', { href: `#/party/${party.id}`, className: 'back-btn' }, '← 뒤로'),
+    el('h1', { className: 'page-title' }, `보스 설정 · 결정석 — ${party.name}`),
     el('div', { className: 'header-actions' }),
   ));
 
@@ -55,8 +55,8 @@ export function renderCrystalsPage(container) {
       className: 'btn btn-primary',
       type: 'button',
       onclick: () => {
-        Storage.setBossSettings({ visible: { ...draftVisible }, defaults: { ...draftDefaults } });
-        history.back();
+        Storage.setBossSettings(party.id, { visible: { ...draftVisible }, defaults: { ...draftDefaults } });
+        location.hash = `#/party/${party.id}`;
       },
     }, '저장'),
   ));

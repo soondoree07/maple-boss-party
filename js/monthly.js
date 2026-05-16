@@ -49,7 +49,7 @@ function renderMonthCard(party, m) {
   const runs = Storage.getRunsByPartyInRange(party.id, m.startStr, m.endStr)
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const defaults = Storage.getBossSettings().defaults;
+  const defaults = Storage.getBossSettings(party.id).defaults;
   const partyCount = Math.max(party.members.length, 1);
 
   // 인당 결정석 = Σ(회차 결정석 / 회차 참여자 수). 한 사람이 모든 회차 참여 시 받는 금액.
