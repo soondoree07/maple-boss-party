@@ -33,7 +33,12 @@
 - 3-에이전트(reuse/quality/efficiency) 병렬 리뷰 후 실제 이슈만 수정. 커밋 `0a04153`, 라이브 확인.
 - `inlineMsg()` 헬퍼(utils)로 인라인 메시지 중복 6곳 통합, storage `onPushError` 추출. mood-3 `.btn-danger` 대비 실패 → `--on-danger:#2a0606` 토큰 도입. `confirmDialog` 견고화(isTopmost 키 가드/inFlight 닫기 차단/throw 로깅/message 배열) + `openDateModal` ESC 최상단 가드(회귀 방지). `toast` 최대 3개, `compactSlots` no-op 스킵(IME).
 - **보류**: 5개 모달 공용 셸 `createModal` 추출(reuse MEDIUM) — 세션 외 기존 중복까지 건드리는 큰 리팩터라 별도 작업으로 미룸. 다음에 모달 UI 손볼 때 같이.
-- **다음 세션 첫 액션 = 사용자 새 지시 대기**(진행 중 작업 없음).
+
+## ★ 2026-05-17 (후속6) — 종합 정적 검증 + dead progress.js 삭제 (배포 완료)
+- 세션 산출물 전체 정적 검증 통과: 16 JS `node --check`, git clean, 네이티브 알림 0, 제거 식별자 잔존 0, CSS 균형/토큰 OK, 라이브=최신. **오류 없음 확인.**
+- 교차검증이 잡은 유일 항목 = `js/progress.js`가 data.js v0.5에서 사라진 함수 import(깨짐). progress.js는 v0.5부터 **어디서도 import 안 되는 dead 파일**(런타임 무영향). 사용자 승인 후 **삭제** → 15 JS, import/export 교차검증 **0건 완전 정합**. 커밋 `08aa2a9`.
+- **모듈 14→13개** (progress.js 제거). dead code 메모는 더 이상 유효 안 함.
+- **다음 세션 첫 액션 = 사용자 새 지시 대기**(진행 중 작업 없음, tree clean).
 
 ## ⛔ 작업 규칙 (사용자 지정 — 반드시 준수)
 - **이모지/장식 아이콘을 임의로 쓰지 말 것.** 버튼·라벨·헤더·안내 문구 등에 🎰🎲🎴🏆👆✨🔨 같은 이모지를 내 판단으로 추가하지 않는다. 텍스트만 사용. 아이콘이 꼭 필요하면 먼저 사용자에게 묻는다. (이미 제거: 룰렛 '뽑기', 사다리 '뽑기/다시 뽑기', '사다리 숨김' 커버)
