@@ -17,7 +17,12 @@
 - 파티 삭제: prompt+confirm+alert 3단 → confirmDialog 한 화면(비번 파티는 PIN칸, 틀리면 모달 안 `--danger` 글자). 두 진입점 공용.
 - 파티 설정 비번: alert 제거 → 저장 버튼 위 인라인(`--accent-gold` 성공 "비밀번호가 변경되었습니다." / `--danger` "비밀번호를 확인하세요"). 멤버 삭제 confirm→confirmDialog, 검증 alert→인라인. dead `openChangePasswordModal` 제거. CSS `.modal-confirm/.dialog-*/.btn-danger/.inline-msg*` 전부 무드 토큰.
 - 커밋 `99dae81`, Vercel 라이브 confirmDialog·inline-msg 서빙 확인.
-- **범위 외 잔존 네이티브**: 새 파티 모달 입력검증 4건 / 백업 복원 confirm+결과 alert / app.js Storage.init 실패 alert. (사용자에 확장 여부 질문함)
+
+## ★ 2026-05-17 (후속3) — 남은 네이티브 알림 → 토스트/인라인/다이얼로그 (배포 완료)
+- 사용자 확장 요청 수락(3건 모두). `utils.toast()` 신설 — 하단 중앙 무드 일시 알림(성공 `--accent-gold`/오류 `--danger`, 클릭·자동 닫힘).
+- 새 파티 모달 입력검증 alert 4건 → '만들기' 버튼 위 인라인(`showCreateMsg`) + file input value 초기화(같은 파일 재선택). 백업 복원 confirm → confirmDialog, 결과 alert → toast. app.js Storage.init 실패 + storage.js push/delete/import 실패 alert → toast(일관성, storage→utils import 추가·순환 없음). CSS `.toast-*` 무드 토큰.
+- 커밋 `b96f216`, 라이브 toast/toast-wrap 서빙 확인.
+- **여전히 잔존(미요청·범위 외)**: `record.js` 회차 기록 폼 alert(시간/보스/난이도/참여자/상자/가격/분배)·회차 삭제 confirm. 별도 흐름 — 추후 요청 시 동일 패턴 확장 가능.
 - **다음 세션 첫 액션 = 사용자 새 지시 대기**(진행 중 작업 없음).
 
 ## ⛔ 작업 규칙 (사용자 지정 — 반드시 준수)
