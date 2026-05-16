@@ -42,7 +42,7 @@
 ## 다음 액션 (이어할 작업) — ★ 여기부터 재개
 
 > **체크포인트(2026-05-16):** **1단계 종료·푸시 `449dd44`** (방문마다 무드 6벌 랜덤). devlog 푸시 완료. tree clean. CSS 토큰화 이전 되돌리기 = git 태그 `pre-redesign-2026-05-16` (백업 파일은 삭제됨).
-> **이어할 첫 액션 = 2단계 결정 4개 받기 → BACKEND_PLAN.md §6 P1 착수.** (아래 2단계 섹션)
+> **이어할 첫 액션 = 사용자가 Supabase 프로젝트 생성 → URL/키 전달 (또는 "가이드 해줘") → P1 착수.** (2단계 결정 4개 확정 완료, 아래)
 
 ### 1단계 — 디자인 무드 개편 : ✅ 종료 (방문마다 6벌 랜덤 확정)
 - `style.css` 완전 토큰화(값 1:1 동일·렌더 무변화) 완료.
@@ -50,10 +50,11 @@
 - 정리 완료: app.js `applyRandomBackground`/`BACKGROUNDS` 제거, 임시 전환기 `js/theme-switch.js`·index 임시 script 삭제, 미사용 무드 5(Graphite Mono)·7(Espresso Copper) + `css/style.pre-redesign.css` 백업 삭제. 검증: 로컬서버 자산 전부 200·댕글링 참조 0. 커밋 `449dd44` 푸시.
 - (추가 무드 조정이 필요하면 `index.html`의 `moods=[…]` 배열만 바꾸면 됨)
 
-### 2단계 — 공유 백엔드 전환 : 설계 완료(`BACKEND_PLAN.md`), 결정 대기 ← ★ 지금 여기
-- 산출 완료: `/mnt/c/Users/박정혁/Downloads/maple-boss/BACKEND_PLAN.md` — 스택비교(**Supabase 추천**)·Postgres 데이터모델·`storage.js` **인메모리캐시+Realtime(방식2)** 권장(읽기 동기 유지→화면코드 거의 그대로, app.js 2곳만)·1회 마이그레이션(backup JSON→upsert 멱등)·비번 서버 verify RPC+RLS 승격·작업분해 약3~4.5일.
-- **사용자 결정 4개(이거 답하면 P1 착수):** ① 스택=Supabase? ② 공개범위 (a)그냥공유 vs (b)멤버만(로그인) ③ `boss_settings` 전역1행 유지? ④ 호스팅 Pages 유지 vs Vercel 정적 이전.
-- 결정되면 BACKEND_PLAN.md §6 P1→P6 순으로 구현.
+### 2단계 — 공유 백엔드 전환 : 설계+결정 완료, **P1 착수 대기** ← ★ 지금 여기
+- 산출: `/mnt/c/Users/박정혁/Downloads/maple-boss/BACKEND_PLAN.md` — `storage.js` **인메모리캐시+Realtime(방식2)**(읽기 동기 유지→화면코드 거의 그대로, app.js 2곳만)·1회 마이그레이션(backup JSON→upsert 멱등)·비번 서버 verify RPC+RLS 승격.
+- **결정 4개 확정(2026-05-16):** ① 스택=**Supabase** ② 공개범위=**(a) 그냥 공유**(링크만 알면 누구나 조회·수정, 로그인X) ③ `boss_settings`=**파티별 분리**(party_id PK, 호출부 수정 +0.5~1일) ④ 호스팅=**GitHub Pages 유지**(추후 Vercel 전환 가능·되돌릴 수 있음). 공수 약 3.5~5.5일.
+- **다음 = P1: 사용자 Supabase 프로젝트 생성** → Project URL·anon key·service_role key 확보 → 내가 §2 스키마(party 스코프 boss_settings)+§5 verify RPC+§8 RLS SQL 일괄 제공 → P2(storage.js 방식2)→P3(app.js)→P4(마이그레이션, 기존 전역 boss_settings를 모든 파티에 시드)→P5(비번 RPC)→P6(배포·Pages 유지).
+- 사용자가 Supabase 프로젝트 만들고 URL/키 주면(또는 "가이드 해줘") P1 착수. ⚠️ "그냥 공유"는 RLS가 유일 방어선 — delete 차단·pw_hash RLS 숨김·backup 유도(§8).
 
 ### (선택, 보류) 그 외
 - 배포 사이트 검증 한 바퀴(회차 난이도 캐스케이드·보이기 필터·기존 데이터 호환)

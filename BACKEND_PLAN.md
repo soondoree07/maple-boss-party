@@ -80,16 +80,18 @@ create table reservations (
 );
 create index on reservations (party_id);
 
--- 보스 설정 (현재 앱 전역 1개. 파티별 아님) — 싱글턴 행
+-- 보스 설정 — ★결정 ③ = 파티별 분리 (party_id PK)
 create table boss_settings (
-  id        int primary key default 1 check (id = 1),
+  party_id  text primary key references parties(id) on delete cascade,
   visible   jsonb not null default '{}',
   defaults  jsonb not null default '{}'
 );
 ```
 
-> **결정 필요 ①** `boss_settings`는 지금 "앱 전역 설정"(파티 무관)이다. 공유 시에도 전역 1행으로 둘지,
-> 아니면 파티별로 분리할지 정해야 함. (현 동작 유지 = 전역 1행 권장)
+> **✅ 결정 ① = 파티별 분리.** `boss_settings`는 `party_id` PK. 코드 영향(+0.5~1일):
+> `storage.js`의 `getBossSettings()/setBossSettings()`가 **partyId 인자**를 받도록 바꾸고,
+> 호출부 `crystals.js`(보스 설정 페이지)·`record.js`(난이도 기본값 캐스케이드)·관련 렌더가
+> 현재 파티 컨텍스트를 넘기도록 수정. 마이그레이션 시 기존 전역 1행을 모든 기존 파티에 복제(시드).
 
 ---
 
@@ -132,9 +134,10 @@ create table boss_settings (
 
 현재(클라 SHA-256)는 우회 가능. 데이터 공개 범위를 먼저 정해야 함:
 
-> **결정 필요 ②** 데이터 모델
-> - (a) **준공개 동기화**: 누구나 보고 수정 가능, 비번은 "실수 방지용 약한 잠금" — 작업 최소
-> - (b) **접근 제어**: 멤버만 해당 파티 열람/수정 — 실제 인증 필요(작업 큼)
+> **✅ 결정 ② = (a) 그냥 공유.** 누구나 링크로 조회·수정. 비번은 "실수 방지용 약한 잠금"으로
+> 유지하되 `pw_hash`는 RLS로 클라 SELECT 차단 + `verify_party_pw` RPC 서버검증으로 승격.
+> 인증(로그인) 없음. anon key 공개 + 느슨한 RLS = 앱 UI 우회 대량변조 이론상 가능 →
+> 완화책은 §8 운영 가드 참조.
 
 - (a)면: `pw_hash`를 RLS로 **클라가 SELECT 못 하게 숨기고**, Postgres 함수
   `verify_party_pw(party_id, candidate)`(SECURITY DEFINER)로 **서버에서만 비교**해 boolean 반환.
@@ -153,22 +156,38 @@ create table boss_settings (
 
 | 단계 | 내용 | 규모 |
 |---|---|---|
-| P0 | 결정: 스택(Supabase 추천) / 공개범위 (a)vs(b) / boss_settings 전역유지 | 사용자 |
+| P0 | ✅ 결정 완료: Supabase / (a)그냥공유 / boss_settings 파티별 / Pages 유지 | 완료 |
 | P1 | Supabase 프로젝트 + 위 스키마 + RLS + verify RPC | ½일 |
 | P2 | `storage.js` 방식 2 재작성(init 로드·인메모리·write-through·realtime) | 1일 |
 | P3 | `app.js` init/await + realtime 재렌더 배선, 쓰기 경로 오류처리 점검 | ½일 |
 | P4 | 1회성 마이그레이션 스크립트 작성·실행 | ½일 |
 | P5 | 비번 서버 verify RPC + 해시 가리는 RLS  (또는 P5' 풀 인증 = +1~2일) | ½일 |
 | P6 | 배포(Pages 유지 또는 Vercel 정적) + anon key 설정 + 다기기 스모크 | ½일 |
-| | **합계(추천 경로: 방식2+Supabase+RPC)** | **약 3~4.5일** |
+| | **합계(방식2+Supabase+RPC, boss_settings 파티별 +0.5~1일 포함)** | **약 3.5~5.5일** |
 
 ---
 
-## 7. 사용자가 정해줄 것 (구현 착수 전)
+## 7. 결정 완료 (2026-05-16) — 다음 = P1
 
-1. 스택: **Supabase**로 갈까? (추천) / Vercel+Postgres / Firebase
-2. 공개 범위: **(a) 그냥 공유** / (b) 멤버만 접근(로그인 도입)
-3. `boss_settings`: 전역 1개 유지(현 동작) / 파티별 분리
-4. 호스팅: GitHub Pages 유지 / Vercel 정적 이전
+| # | 항목 | 결정 |
+|---|---|---|
+| ① 스택 | **Supabase** (Postgres + Realtime + RLS, 서버 불필요) |
+| ② 공개범위 | **(a) 그냥 공유** — 링크만 알면 누구나 조회·수정, 로그인 없음 |
+| ③ boss_settings | **파티별 분리** (party_id PK, 호출부 수정 +0.5~1일) |
+| ④ 호스팅 | **GitHub Pages 유지** — Supabase는 서버 불필요. 추후 Vercel 전환 = `config.js`→env 소규모 리팩터, 데이터/스키마 무변경·되돌리기 가능 |
 
-→ 위 4개만 답해주면 P1부터 바로 착수 가능. (이 문서 = 설계 산출물, 구현은 결정 후)
+**즉시 다음 단계 = P1 (Supabase 프로젝트 생성).** 사용자 Supabase 계정 필요:
+1. supabase.com 에서 프로젝트 1개 생성(무료 티어) → **Project URL · anon key · service_role key** 확보
+2. SQL editor에 §2 스키마(party 스코프 boss_settings 포함) + §5 `verify_party_pw` RPC + §8 RLS 붙여넣기 (이 문서대로 내가 SQL 일괄 제공)
+3. 이후 P2(`storage.js` 방식2) → P3(`app.js`) → P4(마이그레이션) → P5(비번 RPC) → P6(배포) 순으로 내가 구현
+
+→ 사용자가 Supabase 프로젝트를 만들고 URL/키를 주면(또는 "가이드 해줘" 하면 단계별 안내) 그때 P1부터 착수.
+
+---
+
+## 8. "그냥 공유" 운영 가드 (RLS가 유일한 방어선)
+
+- RLS: select/insert/update 허용, **delete는 차단**(또는 service_role만) — 실수·악의 대량삭제 방지
+- `parties.pw_hash`는 RLS로 클라 SELECT 불가, `verify_party_pw(party_id, candidate)` SECURITY DEFINER로만 검증
+- 정기 backup export 유도(기존 `backup.js`) + abuse 감지 시 anon key 회전
+- 정직한 한 줄: 완전 인증 아님. "남이 못 보게"가 필요해지면 (b) Supabase Auth로 단계 확장(+1~2일)
