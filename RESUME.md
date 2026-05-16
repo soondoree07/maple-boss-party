@@ -44,7 +44,7 @@
 > **체크포인트(2026-05-16):** **1단계 종료·푸시 `449dd44`** (방문마다 무드 6벌 랜덤) + **진입 가드 `c0f781a`** (모든 진입을 파티 선택 페이지로 강제 — 공유 딥링크로 게이트 우회·파티 노출 차단, `app.js` DOMContentLoaded에서 hash≠`#/`면 `history.replaceState`로 `#/` 재작성 후 route) + **삭제 가드 `4358853`** (`party.js` `confirmAndDeleteParty()` — 비번 있으면 입력·sha256 검증 → 2차 "정말 삭제?" 경고 → 삭제. 메인 카드·상세 헤더 공용) + **비번=숫자 4자리 PIN `d1dc891`** (`utils.js` `pinInput()`/`isPin()`, 4곳 적용) + **무드 정책 분리 `d72e4b1`** (`js/mood.js` — 파티 선택만 랜덤·파티 안은 유저 선택 무드 `localStorage 'maple-mood'`, 헤더 "보스 설정" 왼쪽 "무드 설정" 버튼=미리보기→적용 / 비번모달 입력칸 간격). devlog 푸시 완료. tree clean. CSS 토큰화 이전 되돌리기 = git 태그 `pre-redesign-2026-05-16` (백업 파일은 삭제됨).
 > **2단계 P1·P2 푸시 완료 `1363b70`** (Supabase 연결 + storage.js 방식2 + boss_settings 파티별). 롤백 태그 `pre-supabase-2026-05-16`.
 > **2단계 P2 검증 통과(2026-05-16):** delete RLS 추가 SQL 실행 완료, 콘솔 스니펫 백업 → "↑ 복원"으로 Supabase 업로드 성공, 새로고침 유지·다른 기기 동일 데이터·다른 기기 추가분 Realtime 반영 모두 확인. **공유 백엔드 핵심 목표 달성.**
-> **진행 중 — 재복원 대기:** Publishable 키 교체 `5abc320` + P5 SQL 적용됨. **버그픽스 `734b323`**: boss_runs `base_reward` ''→null (numeric 거부로 복원 시 회차/예약 누락하던 버그). 원본 localStorage 무손실(파티1·회차21·예약2). **다음: 사용자가 새 코드 배포 후 "↑ 복원" 재실행 → boss_runs 21·reservations 2 적재 확인 → 그 뒤 Disable legacy API keys + P5 비번 검증.**
+> **데이터 이전 완료(2026-05-16):** 재복원 성공 — boss_runs 21·reservations 2 Supabase 적재, 파티 상세 회차 표시 확인. Publishable 키(`5abc320`) + P5 SQL + base_reward 픽스(`734b323`) 적용. **남은 단계 2개: ① Supabase "Disable legacy API keys"(이제 안전) ② P5 비번 검증(게이트 서버검증·틀린 PIN 거부·삭제 PIN 검증·DevTools에 pw_hash 안 보임).** 그 후 2단계 완전 종료.
 > **P5 코드 푸시 완료 `07dfb3f`** (비번·삭제 서버 강제). **이어할 첫 액션 = 사용자가 P5 SQL 실행 + 검증** (비번 설정→재입장 시 게이트 서버검증, 틀린 PIN 거부, 삭제 시 PIN 서버검증, 개발자도구로 pw_hash 안 보임). + service_role 키 재발급 확인(anon 바뀌면 config.js 갱신).
 
 ### 1단계 — 디자인 무드 개편 : ✅ 종료 (정책 분리 + 무드 설정 모달)
