@@ -51,6 +51,7 @@
 
   /* 강조색 위에 올라가는 텍스트 */
   --on-accent:       #1a1102;   /* btn-primary·채널 active·오늘 날짜 (테마 강조색 위 글자) */
+  --on-danger:       #2a0606;   /* btn-danger 글자 — danger는 모든 무드에서 밝은 빨강이라 항상 어둡게(대비 보장) */
   --on-boss:         #1a1102;   /* run-boss-badge — 배경이 JS 보스색이라 항상 어둡게 유지 */
   --accent-hover:    #e0ad62;   /* btn-primary hover 배경 */
   --btn-grad-text:   #0b1626;   /* 룰렛/사다리 그라디언트 버튼 글자 */
@@ -2164,7 +2165,7 @@ a { color: inherit; text-decoration: none; }
 
 .btn-danger {
   background: var(--danger);
-  color: var(--on-accent);
+  color: var(--on-danger);
   font-weight: 600;
 }
 .btn-danger:hover  { filter: brightness(1.08); transform: translateY(-1px); }

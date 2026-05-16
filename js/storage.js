@@ -142,28 +142,25 @@ export async function init() {
 
 export const isReady = () => ready;
 
-// 쓰기 백그라운드 반영 공용 — 실패 시 재동기 + 알림.
+// 쓰기 실패 공용 처리 — 로그 + 알림 + 캐시 재동기.
+async function onPushError(e, label) {
+  console.error(`[storage] ${label} 저장 실패:`, e);
+  toast(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`, 'err');
+  try { await loadAll(); if (remoteCb) remoteCb(); } catch (_) { /* noop */ }
+}
+
+// 쓰기 백그라운드 반영 공용.
 function push(promise, label) {
   Promise.resolve(promise)
     .then(({ error } = {}) => { if (error) throw error; })
-    .catch(async (e) => {
-      console.error(`[storage] ${label} 저장 실패:`, e);
-      toast(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`, 'err');
-      try { await loadAll(); if (remoteCb) remoteCb(); } catch (_) { /* noop */ }
-    });
+    .catch(e => onPushError(e, label));
 }
 
 // push 의 직렬화 버전 — 여러 서버 작업의 순서가 중요한 경우(예: 파티 INSERT 가
 // 끝난 뒤에야 set_party_pw RPC 가 그 row 를 UPDATE 할 수 있음) 사용한다.
-// fn 은 await 로 순서를 직접 보장하는 async 함수. 실패 시 재동기 + 알림.
+// fn 은 await 로 순서를 직접 보장하는 async 함수.
 function pushSerial(fn, label) {
-  Promise.resolve()
-    .then(fn)
-    .catch(async (e) => {
-      console.error(`[storage] ${label} 저장 실패:`, e);
-      toast(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`, 'err');
-      try { await loadAll(); if (remoteCb) remoteCb(); } catch (_) { /* noop */ }
-    });
+  Promise.resolve().then(fn).catch(e => onPushError(e, label));
 }
 
 // ── 파티 ─────────────────────────────────────────────

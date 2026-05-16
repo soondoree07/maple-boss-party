@@ -277,8 +277,9 @@ export function confirmDialog(opts = {}) {
     const pinField = pin ? pinInput(pinPlaceholder, 'current-password') : null;
 
     let done = false;
+    let inFlight = false; // onConfirm 처리 중 — 닫기(취소/ESC/바깥클릭) 차단
     const close = (val) => {
-      if (done) return;
+      if (done || inFlight) return;
       done = true;
       document.removeEventListener('keydown', onKey);
       overlay.remove();
@@ -291,10 +292,12 @@ export function confirmDialog(opts = {}) {
       onclick: async () => {
         errEl.textContent = '';
         if (!onConfirm) { close(pin ? pinField.value : true); return; }
+        inFlight = true;
         confirmBtn.disabled = true;
         let res;
         try { res = await onConfirm(pin ? pinField.value : true); }
-        catch { res = '처리 중 오류가 발생했어요'; }
+        catch (e) { console.error('[confirmDialog] onConfirm 실패:', e); res = '처리 중 오류가 발생했어요'; }
+        inFlight = false;
         if (res === true) { close(true); return; }
         errEl.textContent = typeof res === 'string' ? res : '다시 시도해주세요';
         confirmBtn.disabled = false;
@@ -306,7 +309,13 @@ export function confirmDialog(opts = {}) {
       className: 'btn btn-ghost', type: 'button', onclick: () => close(false),
     }, cancelText);
 
+    // 다이얼로그가 겹쳐 있어도 최상단 것만 키를 처리(stale 리스너 차단).
+    const isTopmost = () => {
+      const all = document.querySelectorAll('.modal-overlay');
+      return all[all.length - 1] === overlay;
+    };
     const onKey = (e) => {
+      if (done || !isTopmost()) return;
       if (e.key === 'Escape') { e.preventDefault(); close(false); }
       else if (e.key === 'Enter' && document.activeElement !== cancelBtn) {
         e.preventDefault(); confirmBtn.click();
@@ -314,7 +323,8 @@ export function confirmDialog(opts = {}) {
     };
     document.addEventListener('keydown', onKey);
 
-    const msgLines = String(message).split('\n').filter(Boolean)
+    const lines = Array.isArray(message) ? message : String(message).split('\n');
+    const msgLines = lines.filter(Boolean)
       .map(line => el('p', { className: 'dialog-line' }, line));
 
     modal.appendChild(el('div', { className: 'modal-header' },
@@ -351,6 +361,7 @@ export function toast(message, kind = 'err', ms = 3500) {
     _toastWrap = el('div', { className: 'toast-wrap' });
     document.body.appendChild(_toastWrap);
   }
+  while (_toastWrap.childElementCount >= 3) _toastWrap.firstChild.remove();
   const t = el('div', { className: 'toast toast-' + (kind === 'ok' ? 'ok' : 'err') }, message);
   _toastWrap.appendChild(t);
   const kill = () => {
@@ -360,6 +371,23 @@ export function toast(message, kind = 'err', ms = 3500) {
   const timer = setTimeout(kill, ms);
   t.addEventListener('click', () => { clearTimeout(timer); kill(); });
   return t;
+}
+
+// ── 인라인 폼 안내 (저장 버튼 위 한 줄) ───────────────
+
+/**
+ * 폼 인라인 안내 한 줄. node + show 클로저 반환.
+ * @returns {{ node: HTMLElement,
+ *             show(text:string, ok?:boolean, focusEl?:HTMLElement):void }}
+ */
+export function inlineMsg() {
+  const node = el('div', { className: 'inline-msg' });
+  const show = (text, ok = false, focusEl = null) => {
+    node.textContent = text;
+    node.className = 'inline-msg inline-msg-' + (ok ? 'ok' : 'err');
+    focusEl?.focus();
+  };
+  return { node, show };
 }
 
 // ── 해시 ──────────────────────────────────────────────

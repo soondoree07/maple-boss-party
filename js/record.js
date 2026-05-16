@@ -15,7 +15,7 @@ import {
   CHANNELS, channelLabel,
 } from './data.js';
 import {
-  todayStr, longDateLabel, formatMeso, el, clear, confirmDialog,
+  todayStr, longDateLabel, formatMeso, el, clear, confirmDialog, inlineMsg,
 } from './utils.js';
 
 /**
@@ -130,8 +130,14 @@ export function openDateModal({ party, dateStr, onChanged }) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   document.body.appendChild(overlay);
 
-  // ESC로 닫기
-  const onKey = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
+  // ESC로 닫기 — 위에 다른 모달(확인 다이얼로그 등)이 겹쳐 있으면 그게 먼저.
+  const onKey = (e) => {
+    if (e.key !== 'Escape') return;
+    const all = document.querySelectorAll('.modal-overlay');
+    if (all[all.length - 1] !== overlay) return;
+    close();
+    document.removeEventListener('keydown', onKey);
+  };
   document.addEventListener('keydown', onKey);
 }
 
@@ -184,16 +190,11 @@ function buildReservationForm({ onAdd }) {
     step: '60',
   });
 
-  const msg = el('div', { className: 'inline-msg' });
+  const msg = inlineMsg();
 
   const submit = () => {
     const time = input.value;
-    if (!time) {
-      msg.textContent = '시간을 입력해주세요';
-      msg.className = 'inline-msg inline-msg-err';
-      input.focus();
-      return;
-    }
+    if (!time) { msg.show('시간을 입력해주세요', false, input); return; }
     onAdd(time);
     input.value = '';
   };
@@ -212,7 +213,7 @@ function buildReservationForm({ onAdd }) {
         onclick: submit,
       }, '+ 추가'),
     ),
-    msg,
+    msg.node,
   );
 }
 
@@ -569,12 +570,8 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
     lootRowList,
   ));
 
-  const formMsg = el('div', { className: 'inline-msg' });
-  const showFormMsg = (text) => {
-    formMsg.textContent = text;
-    formMsg.className = 'inline-msg inline-msg-err';
-  };
-  modal.appendChild(formMsg);
+  const formMsg = inlineMsg();
+  modal.appendChild(formMsg.node);
 
   modal.appendChild(el('div', { className: 'modal-actions' },
     el('button', {
@@ -594,13 +591,13 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
     const opener     = openerSlot.firstElementChild?.value || '';
     const baseReward = rewardSlot.firstElementChild?.value || '';
 
-    if (!bossId) { showFormMsg('보스를 선택해주세요'); return; }
+    if (!bossId) { formMsg.show('보스를 선택해주세요'); return; }
     const difficulty = selectedDifficulty;
     if (!difficulty || !getBossDifficulties(bossId).some(d => d.key === difficulty)) {
-      showFormMsg('난이도를 선택해주세요'); return;
+      formMsg.show('난이도를 선택해주세요'); return;
     }
-    if (selectedMembers.size === 0) { showFormMsg('회차 참여자를 1명 이상 선택해주세요'); return; }
-    if (!opener) { showFormMsg('상자 연 사람을 선택해주세요'); return; }
+    if (selectedMembers.size === 0) { formMsg.show('회차 참여자를 1명 이상 선택해주세요'); return; }
+    if (!opener) { formMsg.show('상자 연 사람을 선택해주세요'); return; }
 
     // 전리품 검증 — 분배 OFF인 경우만 taker 필요.
     const validLoot = [];
@@ -609,12 +606,12 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
       const priceTrim = (e.price ?? '').toString().trim();
       const priceNum  = priceTrim === '' ? null : Number(priceTrim);
       if (priceNum != null && Number.isNaN(priceNum)) {
-        showFormMsg(`"${e.item}" 가격이 숫자가 아니에요`);
+        formMsg.show(`"${e.item}" 가격이 숫자가 아니에요`);
         return;
       }
       const shared = !!e.shared;
       if (!shared && !e.taker) {
-        showFormMsg(`"${e.item}" — 분배 안 함이면 먹은 사람을 선택해주세요`);
+        formMsg.show(`"${e.item}" — 분배 안 함이면 먹은 사람을 선택해주세요`);
         return;
       }
       validLoot.push({
