@@ -1,7 +1,7 @@
 // party.js — 메인 화면 (파티 카드 목록 + 새 파티 만들기 모달)
 
 import * as Storage from './storage.js';
-import { el, clear, sha256Hex, pinInput, isPin } from './utils.js';
+import { el, clear, pinInput, isPin } from './utils.js';
 import { exportToFile, importFromFile } from './backup.js';
 
 /**
@@ -67,20 +67,27 @@ function buildHeader(container) {
  * @returns {Promise<boolean>} 실제로 삭제됐으면 true
  */
 export async function confirmAndDeleteParty(party) {
+  let pin = null;
   if (party.pw) {
     const entered = prompt(`"${party.name}" 삭제 — 비밀번호(숫자 4자리)를 입력하세요`);
     if (entered == null || entered === '') return false;            // 취소/빈값
-    if (!isPin(entered) || (await sha256Hex(entered)) !== party.pw) {
-      alert('비밀번호가 올바르지 않아요. 삭제가 취소됐어요.');
+    if (!isPin(entered)) {
+      alert('비밀번호는 숫자 4자리예요. 삭제가 취소됐어요.');
       return false;
     }
+    pin = entered;
   }
   const runCount = Storage.getRunsByParty(party.id).length;
   const warn = runCount > 0
     ? `정말 "${party.name}" 파티를 삭제하시겠습니까?\n기록 ${runCount}건도 함께 영구 삭제되며 되돌릴 수 없습니다.`
     : `정말 "${party.name}" 파티를 삭제하시겠습니까?\n되돌릴 수 없습니다.`;
   if (!confirm(warn)) return false;
-  Storage.deleteParty(party.id);
+  // 서버에서 PIN 검증 후 삭제(비번 없으면 pin 무시). 틀리면 false.
+  const ok = await Storage.deletePartyWithPin(party.id, pin);
+  if (!ok) {
+    alert('비밀번호가 올바르지 않아 삭제가 취소됐어요.');
+    return false;
+  }
   return true;
 }
 
@@ -228,8 +235,8 @@ function openCreatePartyModal(container) {
 
         const btn = e.currentTarget;
         btn.disabled = true;
-        const pw = pwRaw ? await sha256Hex(pwRaw) : null;
-        Storage.createParty({ name, members, pw });
+        // 평문 PIN 전달 — 서버(set_party_pw RPC)가 해시.
+        Storage.createParty({ name, members, pw: pwRaw || null });
         overlay.remove();
         renderPartyList(container);
       },
@@ -337,11 +344,11 @@ export function openChangePasswordModal(party, onSaved) {
     if (v1 !== v2) { alert('두 비밀번호가 일치하지 않아요'); pwConfirm.focus(); return; }
     const btn = e?.currentTarget;
     if (btn) btn.disabled = true;
-    const pw = v1 ? await sha256Hex(v1) : null;
-    const updated = Storage.updateParty(party.id, { pw });
+    // 평문 PIN(빈문자열="" = 해제) 전달 — 서버(set_party_pw RPC)가 해시.
+    const updated = Storage.updateParty(party.id, { pw: v1 || '' });
     if (!updated) { alert('파티를 찾을 수 없어요'); overlay.remove(); return; }
     overlay.remove();
-    alert(pw ? '비밀번호가 설정됐어요' : '비밀번호가 해제됐어요');
+    alert(v1 ? '비밀번호가 설정됐어요' : '비밀번호가 해제됐어요');
     onSaved?.(updated);
   };
 

@@ -29,19 +29,20 @@ export function onRemoteChange(cb) { remoteCb = cb; }
 
 // ── row ↔ 앱 객체 매핑 (snake_case ↔ camelCase) ──────────
 
+// pw_hash 는 RLS로 클라가 못 읽음. has_pw(불리언)만 받아 party.pw=true 센티넬로.
+// 비번 설정/검증/삭제는 전부 서버 RPC(set_party_pw / verify_party_pw / delete_party).
 const partyFromRow = (r) => ({
   id: r.id,
   name: r.name,
   members: Array.isArray(r.members) ? r.members : [],
   createdAt: r.created_at,
-  ...(r.pw_hash ? { pw: r.pw_hash } : {}),
+  ...(r.has_pw ? { pw: true } : {}),
 });
 const partyToRow = (p) => ({
   id: p.id,
   name: p.name,
   members: p.members || [],
   created_at: p.createdAt,
-  pw_hash: p.pw ?? null,
 });
 
 const runFromRow = (r) => ({
@@ -92,7 +93,7 @@ function normalizeSettings(s) {
 
 async function loadAll() {
   const [p, b, r, s] = await Promise.all([
-    supabase.from('parties').select('*'),
+    supabase.from('parties').select('id,name,members,created_at,has_pw'),
     supabase.from('boss_runs').select('*'),
     supabase.from('reservations').select('*'),
     supabase.from('boss_settings').select('*'),
@@ -152,6 +153,7 @@ export const getParties = () => cache.parties;
 export const getParty = (partyId) =>
   cache.parties.find(p => p.id === partyId) || null;
 
+// pw 인자는 ★평문 PIN★ (또는 falsy). 서버 set_party_pw RPC가 해시.
 export function createParty({ name, members, pw }) {
   const party = {
     id: makeId(),
@@ -159,30 +161,72 @@ export function createParty({ name, members, pw }) {
     members: members.map(m => String(m).trim()).filter(Boolean),
     createdAt: new Date().toISOString(),
   };
-  if (pw) party.pw = String(pw);
+  if (pw) party.pw = true; // 센티넬(불리언) — 실제 해시는 서버만 보유
   cache.parties.push(party);
   push(supabase.from('parties').insert(partyToRow(party)), '파티 생성');
+  if (pw) push(supabase.rpc('set_party_pw', { p_party_id: party.id, p_pin: String(pw) }), '비번 설정');
   return party;
 }
 
+/**
+ * patch.pw 가 있으면 ★평문 PIN★(빈문자열="" = 잠금 해제) → set_party_pw RPC.
+ * 그 외 필드(name/members)는 테이블 update.
+ */
 export function updateParty(partyId, patch) {
   const idx = cache.parties.findIndex(p => p.id === partyId);
   if (idx < 0) return null;
-  const next = { ...cache.parties[idx], ...patch };
-  // pw 를 빈값으로 보내면 잠금 해제 — pw 키 제거.
-  if (patch && 'pw' in patch && !patch.pw) delete next.pw;
+
+  const hasPw = patch && 'pw' in patch;
+  const rest = { ...patch };
+  delete rest.pw;
+
+  const next = { ...cache.parties[idx], ...rest };
+  if (hasPw) {
+    if (patch.pw) next.pw = true; else delete next.pw;
+  }
   cache.parties[idx] = next;
-  push(supabase.from('parties').update(partyToRow(next)).eq('id', partyId), '파티 수정');
+
+  if (Object.keys(rest).length > 0) {
+    push(supabase.from('parties').update(partyToRow(next)).eq('id', partyId), '파티 수정');
+  }
+  if (hasPw) {
+    push(
+      supabase.rpc('set_party_pw', { p_party_id: partyId, p_pin: patch.pw ? String(patch.pw) : null }),
+      '비번 변경',
+    );
+  }
   return next;
 }
 
-/** 파티 삭제 — 관련 보스런·예약·보스설정은 DB FK on delete cascade 로 함께 제거. */
-export function deleteParty(partyId) {
+/** 입장 비번 서버 검증. @returns {Promise<boolean>} */
+export async function verifyPartyPw(partyId, pin) {
+  const { data, error } = await supabase.rpc('verify_party_pw', {
+    p_party_id: partyId, p_candidate: String(pin ?? ''),
+  });
+  if (error) { console.error('[storage] verify_party_pw 실패:', error); return false; }
+  return data === true;
+}
+
+/**
+ * 파티 삭제 — 서버 delete_party RPC가 PIN 검증(비번 없으면 pin 무시) 후 삭제.
+ * 자식(보스런/예약/보스설정)은 DB FK on delete cascade.
+ * @returns {Promise<boolean>} 삭제됐으면 true, 비번 틀리면 false.
+ */
+export async function deletePartyWithPin(partyId, pin) {
+  const { data, error } = await supabase.rpc('delete_party', {
+    p_party_id: partyId, p_pin: pin == null ? null : String(pin),
+  });
+  if (error) {
+    console.error('[storage] delete_party 실패:', error);
+    alert('서버 삭제에 실패했어요. 잠시 후 다시 시도해주세요.');
+    return false;
+  }
+  if (data !== true) return false; // 비번 불일치
   cache.parties      = cache.parties.filter(p => p.id !== partyId);
   cache.bossRuns     = cache.bossRuns.filter(r => r.partyId !== partyId);
   cache.reservations = cache.reservations.filter(r => r.partyId !== partyId);
   delete cache.bossSettings[partyId];
-  push(supabase.from('parties').delete().eq('id', partyId), '파티 삭제');
+  return true;
 }
 
 // ── 보스런 ────────────────────────────────────────────

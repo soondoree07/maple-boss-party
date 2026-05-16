@@ -14,7 +14,7 @@ import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
-import { el, clear, sha256Hex, pinInput } from './utils.js';
+import { el, clear, pinInput } from './utils.js';
 import { applyRouteMood, openMoodModal } from './mood.js';
 
 const root = document.getElementById('app');
@@ -92,7 +92,7 @@ function renderPartyGate(container, party) {
     const btn = e?.currentTarget;
     if (btn) btn.disabled = true;
     errMsg.textContent = '';
-    const ok = !!input.value && (await sha256Hex(input.value)) === party.pw;
+    const ok = !!input.value && await Storage.verifyPartyPw(party.id, input.value);
     if (ok) {
       unlockedParties.add(party.id);
       route();
