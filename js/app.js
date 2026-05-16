@@ -5,7 +5,7 @@
 //   #/party/:id       파티 상세 (진행도 + 캘린더)
 
 import * as Storage from './storage.js';
-import { renderPartyList, openAddMemberModal, openChangePasswordModal, confirmAndDeleteParty } from './party.js';
+import { renderPartyList, openAddMemberModal, confirmAndDeleteParty, renderPartySettingsPage } from './party.js';
 import { renderMonthlyHistory } from './monthly.js';
 import { renderChannelRoulette } from './roulette.js';
 import { renderLadder } from './ladder.js';
@@ -37,6 +37,26 @@ function route() {
     const cParty = Storage.getParty(crystalsMatch[1]);
     if (!cParty) { location.hash = '#/'; return; }
     renderCrystalsPage(root, cParty);
+    return;
+  }
+
+  // 파티 하위 페이지: 설정 / 룰렛 / 사다리 (게이트 동일 적용)
+  const subMatch = hash.match(/^#\/party\/([A-Za-z0-9_-]+)\/(settings|roulette|ladder)$/);
+  if (subMatch) {
+    const p = Storage.getParty(subMatch[1]);
+    if (!p) { location.hash = '#/'; return; }
+    if (p.pw && !unlockedParties.has(p.id)) { renderPartyGate(root, p); return; }
+    const sub = subMatch[2];
+    if (sub === 'settings') {
+      renderPartySettingsPage(root, p, (updated) => {
+        if (updated.pw) unlockedParties.add(updated.id);
+        else unlockedParties.delete(updated.id);
+      });
+    } else if (sub === 'roulette') {
+      renderWidgetPage(root, p, '채널 룰렛', renderChannelRoulette());
+    } else {
+      renderWidgetPage(root, p, '사다리타기', renderLadder(p));
+    }
     return;
   }
 
@@ -132,6 +152,18 @@ function renderPartyGate(container, party) {
   setTimeout(() => input.focus(), 50);
 }
 
+// ── 위젯 단독 페이지 (모바일: 채널 룰렛 / 사다리타기) ──
+
+function renderWidgetPage(container, party, title, widgetEl) {
+  clear(container);
+  container.appendChild(el('header', { className: 'page-header' },
+    el('a', { href: `#/party/${party.id}`, className: 'back-btn' }, '← 뒤로'),
+    el('h1', { className: 'page-title' }, `${title} — ${party.name}`),
+    el('div', { className: 'header-actions' }),
+  ));
+  container.appendChild(el('main', { className: 'widget-page-main' }, widgetEl));
+}
+
 // ── 파티 상세 ─────────────────────────────────────────
 
 function renderPartyDetail(container, party) {
@@ -150,16 +182,11 @@ function renderPartyDetail(container, party) {
       className: 'icon-btn',
       title: '보스 등장/난이도 설정 · 결정석 표',
     }, '보스 설정'),
-    el('button', {
+    el('a', {
+      href: `#/party/${party.id}/settings`,
       className: 'icon-btn',
-      type: 'button',
-      title: '파티 비밀번호 설정/변경/해제',
-      onclick: () => openChangePasswordModal(party, (updated) => {
-        if (updated.pw) unlockedParties.add(updated.id);
-        else unlockedParties.delete(updated.id);
-        renderPartyDetail(container, updated);
-      }),
-    }, '비밀번호'),
+      title: '파티원 관리 · 비밀번호 설정',
+    }, '파티 설정'),
     el('button', {
       className: 'icon-btn',
       type: 'button',
@@ -179,21 +206,30 @@ function renderPartyDetail(container, party) {
     }, '삭제'),
   ];
 
-  // 룰렛/사다리 — 데스크톱=좌측 사이드 / 모바일=햄버거 드로어 (같은 노드, 한 곳만 사용)
-  const roulette = renderChannelRoulette();
-  const ladder   = renderLadder(party);
-
   const header = el('header', { className: 'page-header' },
     el('a', { href: '#/', className: 'back-btn' }, '← 파티 목록'),
     el('h1', { className: 'page-title' }, party.name),
   );
 
   const mobile = isMobile();
+  let roulette = null, ladder = null;
   if (mobile) {
+    // 모바일: 룰렛/사다리는 위젯 임베드가 아니라 별도 페이지로 가는 버튼.
+    const drawerNodes = [
+      ...actionNodes,
+      el('a', {
+        href: `#/party/${party.id}/roulette`,
+        className: 'icon-btn',
+        title: '채널 룰렛',
+      }, '채널 룰렛'),
+      el('a', {
+        href: `#/party/${party.id}/ladder`,
+        className: 'icon-btn',
+        title: '사다리타기',
+      }, '사다리타기'),
+    ];
     const { toggle, drawer } = buildMobileMenu([
-      el('div', { className: 'drawer-actions' }, actionNodes),
-      roulette,
-      ladder,
+      el('div', { className: 'drawer-actions' }, drawerNodes),
     ]);
     header.appendChild(toggle);
     container.appendChild(header);
@@ -201,6 +237,8 @@ function renderPartyDetail(container, party) {
   } else {
     header.appendChild(el('div', { className: 'header-actions' }, actionNodes));
     container.appendChild(header);
+    roulette = renderChannelRoulette();
+    ladder   = renderLadder(party);
   }
 
   // 본문 — 파티원 strip은 grid 양쪽에 걸침, 그 아래로 좌(메인)/우(월별 사이드바) 2컬럼

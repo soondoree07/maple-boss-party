@@ -406,6 +406,121 @@ export function openChangePasswordModal(party, onSaved) {
   setTimeout(() => pwInput.focus(), 50);
 }
 
+// ── 파티 설정 페이지 (#/party/:id/settings) — 멤버 관리 + 비밀번호 ──
+
+/**
+ * 웹·모바일 공통 파티 설정 페이지. 파티원 추가/삭제 + 비밀번호 설정/해제.
+ * @param {HTMLElement} container
+ * @param {object} party
+ * @param {(updated:object)=>void} [onUnlockChange] - 비번 변경 시 app.js의 unlockedParties 동기화용
+ */
+export function renderPartySettingsPage(container, party, onUnlockChange) {
+  const paint = (p) => {
+    clear(container);
+
+    container.appendChild(el('header', { className: 'page-header' },
+      el('a', { href: `#/party/${p.id}`, className: 'back-btn' }, '← 뒤로'),
+      el('h1', { className: 'page-title' }, `파티 설정 — ${p.name}`),
+      el('div', { className: 'header-actions' }),
+    ));
+
+    const main = el('main', { className: 'widget-page-main' });
+
+    // ── 파티원 ──
+    const memberRows = p.members.map(name =>
+      el('div', { className: 'member-manage-row' },
+        el('span', { className: 'member-manage-name' }, name),
+        el('button', {
+          className: 'icon-btn-sm',
+          type: 'button',
+          title: '삭제',
+          'aria-label': `${name} 삭제`,
+          onclick: () => {
+            if (p.members.length <= 1) {
+              alert('파티원은 최소 1명이어야 해요');
+              return;
+            }
+            if (!confirm(`"${name}"을(를) 파티원에서 삭제할까요?\n(기존 회차 기록은 그대로 유지돼요)`)) return;
+            const updated = Storage.updateParty(p.id, {
+              members: p.members.filter(m => m !== name),
+            });
+            if (!updated) { location.hash = '#/'; return; }
+            paint(updated);
+          },
+        }, '×'),
+      ),
+    );
+
+    const addInput = el('input', {
+      type: 'text',
+      className: 'text-input',
+      placeholder: '닉네임',
+      maxlength: '20',
+      lang: 'ko',
+    });
+    const addMember = () => {
+      const name = addInput.value.trim();
+      if (!name) { alert('닉네임을 입력해주세요'); addInput.focus(); return; }
+      if (p.members.includes(name)) {
+        alert(`"${name}"은(는) 이미 파티에 있어요`);
+        addInput.focus();
+        return;
+      }
+      const updated = Storage.updateParty(p.id, { members: [...p.members, name] });
+      if (!updated) { location.hash = '#/'; return; }
+      paint(updated);
+    };
+    addInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); addMember(); }
+    });
+
+    main.appendChild(el('section', { className: 'settings-section' },
+      el('h2', { className: 'settings-title' }, `파티원 (${p.members.length}명)`),
+      ...memberRows,
+      el('div', { className: 'member-add-row' },
+        addInput,
+        el('button', { className: 'btn btn-ghost', type: 'button', onclick: addMember }, '추가'),
+      ),
+    ));
+
+    // ── 비밀번호 ──
+    const pwInput   = pinInput('새 비밀번호 · 숫자 4자리 (비우면 잠금 해제)', 'new-password');
+    const pwConfirm = pinInput('숫자 4자리 확인', 'new-password');
+    pwConfirm.style.marginTop = '10px';
+    const savePw = () => {
+      const v1 = pwInput.value;
+      const v2 = pwConfirm.value;
+      if (v1 && !isPin(v1)) { alert('비밀번호는 숫자 4자리로 입력해주세요'); pwInput.focus(); return; }
+      if (v1 !== v2) { alert('두 비밀번호가 일치하지 않아요'); pwConfirm.focus(); return; }
+      const updated = Storage.updateParty(p.id, { pw: v1 || '' });
+      if (!updated) { location.hash = '#/'; return; }
+      onUnlockChange?.(updated);
+      alert(v1 ? '비밀번호가 설정됐어요' : '비밀번호가 해제됐어요');
+      paint(updated);
+    };
+    pwConfirm.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); savePw(); }
+    });
+
+    main.appendChild(el('section', { className: 'settings-section' },
+      el('h2', { className: 'settings-title' }, '비밀번호'),
+      el('div', { className: 'form-meta' },
+        `현재 ${p.pw ? '비밀번호 설정됨' : '잠금 없음'}`),
+      el('div', { className: 'form-group' },
+        el('label', { className: 'form-label' }, '새 비밀번호 (숫자 4자리)'),
+        pwInput,
+        pwConfirm,
+        el('div', { className: 'form-hint' }, '숫자 4자리. 비워두고 저장하면 비밀번호가 해제돼요'),
+      ),
+      el('button', { className: 'btn btn-primary', type: 'button', onclick: savePw }, '비밀번호 저장'),
+    ));
+
+    container.appendChild(main);
+  };
+
+  paint(party);
+}
+
 // ── 백업/복원 ─────────────────────────────────────────
 
 function handleImport(file, container) {
