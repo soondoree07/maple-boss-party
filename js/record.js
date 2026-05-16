@@ -15,7 +15,7 @@ import {
   CHANNELS, channelLabel,
 } from './data.js';
 import {
-  todayStr, longDateLabel, formatMeso, el, clear,
+  todayStr, longDateLabel, formatMeso, el, clear, confirmDialog,
 } from './utils.js';
 
 /**
@@ -184,9 +184,16 @@ function buildReservationForm({ onAdd }) {
     step: '60',
   });
 
+  const msg = el('div', { className: 'inline-msg' });
+
   const submit = () => {
     const time = input.value;
-    if (!time) { alert('시간을 입력해주세요'); return; }
+    if (!time) {
+      msg.textContent = '시간을 입력해주세요';
+      msg.className = 'inline-msg inline-msg-err';
+      input.focus();
+      return;
+    }
     onAdd(time);
     input.value = '';
   };
@@ -205,6 +212,7 @@ function buildReservationForm({ onAdd }) {
         onclick: submit,
       }, '+ 추가'),
     ),
+    msg,
   );
 }
 
@@ -240,11 +248,16 @@ function renderRunCard(run, refresh, onEdit) {
           className: 'icon-btn-sm',
           type: 'button',
           title: '회차 삭제',
-          onclick: () => {
-            if (confirm('이 회차 기록을 삭제할까요?')) {
-              Storage.deleteRun(run.id);
-              refresh();
-            }
+          onclick: async () => {
+            const ok = await confirmDialog({
+              title: '회차 삭제',
+              message: `${bossName} 회차 기록을 삭제할까요?\n되돌릴 수 없습니다.`,
+              confirmText: '삭제',
+              danger: true,
+            });
+            if (ok !== true) return;
+            Storage.deleteRun(run.id);
+            refresh();
           },
         }, '×'),
       ),
@@ -556,6 +569,13 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
     lootRowList,
   ));
 
+  const formMsg = el('div', { className: 'inline-msg' });
+  const showFormMsg = (text) => {
+    formMsg.textContent = text;
+    formMsg.className = 'inline-msg inline-msg-err';
+  };
+  modal.appendChild(formMsg);
+
   modal.appendChild(el('div', { className: 'modal-actions' },
     el('button', {
       className: 'btn btn-ghost',
@@ -574,13 +594,13 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
     const opener     = openerSlot.firstElementChild?.value || '';
     const baseReward = rewardSlot.firstElementChild?.value || '';
 
-    if (!bossId) { alert('보스를 선택해주세요'); return; }
+    if (!bossId) { showFormMsg('보스를 선택해주세요'); return; }
     const difficulty = selectedDifficulty;
     if (!difficulty || !getBossDifficulties(bossId).some(d => d.key === difficulty)) {
-      alert('난이도를 선택해주세요'); return;
+      showFormMsg('난이도를 선택해주세요'); return;
     }
-    if (selectedMembers.size === 0) { alert('회차 참여자를 1명 이상 선택해주세요'); return; }
-    if (!opener) { alert('상자 연 사람을 선택해주세요'); return; }
+    if (selectedMembers.size === 0) { showFormMsg('회차 참여자를 1명 이상 선택해주세요'); return; }
+    if (!opener) { showFormMsg('상자 연 사람을 선택해주세요'); return; }
 
     // 전리품 검증 — 분배 OFF인 경우만 taker 필요.
     const validLoot = [];
@@ -589,12 +609,12 @@ function openRecordForm({ party, dateStr, channel, onSaved, existingRun }) {
       const priceTrim = (e.price ?? '').toString().trim();
       const priceNum  = priceTrim === '' ? null : Number(priceTrim);
       if (priceNum != null && Number.isNaN(priceNum)) {
-        alert(`"${e.item}" 가격이 숫자가 아니에요`);
+        showFormMsg(`"${e.item}" 가격이 숫자가 아니에요`);
         return;
       }
       const shared = !!e.shared;
       if (!shared && !e.taker) {
-        alert(`"${e.item}" — 분배 안 함이면 먹은 사람을 선택해주세요`);
+        showFormMsg(`"${e.item}" — 분배 안 함이면 먹은 사람을 선택해주세요`);
         return;
       }
       validLoot.push({
