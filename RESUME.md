@@ -45,7 +45,7 @@
 > **이어할 첫 액션 = 사용자가 Supabase 프로젝트 생성 → URL/키 전달 (또는 "가이드 해줘") → P1 착수.** (2단계 결정 4개 확정 완료, 아래)
 
 ### 1단계 — 디자인 무드 개편 : ✅ 종료 (정책 분리 + 무드 설정 모달)
-- `style.css` 완전 토큰화(값 1:1 동일·렌더 무변화) 완료. 운영 무드 6벌(전부 다크) = 1 Midnight Slate·2 Abyss Teal·3 Crimson Noir·4 Neon Synth·6 Royal Plum·8 Carbon Amber.
+- `style.css` 완전 토큰화(값 1:1 동일·렌더 무변화) 완료. 운영 무드 6벌(전부 다크, 번호 1~6 연속, `d5a6281`) = 1 Midnight Slate·2 Abyss Teal·3 Crimson Noir·4 Neon Synth·5 Royal Plum·6 Carbon Amber.
 - **무드 정책(`d72e4b1`):** `js/mood.js`가 라우트별로 `<link id="mood-theme-link">` href만 교체. **파티 선택 화면(메인 목록)만 방문마다 랜덤**(head 인라인 스크립트 픽 = `window.__moodRandomId`). **파티 상세/게이트/보스 설정은 유저 선택 무드**(`localStorage 'maple-mood'`, 없으면 기본 1). `app.js route()` 시작에 `applyRouteMood(hash)`. 파티 상세 헤더 "보스 설정" **왼쪽 "무드 설정"** 버튼 → `openMoodModal()`(클릭=즉시 미리보기, "적용"=저장, 취소/닫기/바깥=원복).
 - 정리 완료: app.js `applyRandomBackground`/`BACKGROUNDS` 제거, 임시 전환기 `js/theme-switch.js`·index 임시 script 삭제, 미사용 무드 5(Graphite Mono)·7(Espresso Copper) + `css/style.pre-redesign.css` 백업 삭제. 검증: 로컬서버 자산 전부 200·댕글링 0. 커밋 `449dd44`(랜덤 1단계)→`d72e4b1`(정책 분리) 푸시.
 - (무드 6벌 목록 변경은 `index.html`의 `moods=[…]` + `js/mood.js`의 `MOOD_IDS`/`MOOD_LABELS` 동기 수정)
