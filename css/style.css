@@ -87,6 +87,8 @@ html, body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  /* 모바일 더블탭 확대 제거 (핀치 줌·스크롤은 유지). */
+  touch-action: manipulation;
 }
 
 /* 배경 — html에 직접 fixed로 깔기. body는 transparent. */
