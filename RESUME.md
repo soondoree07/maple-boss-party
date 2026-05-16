@@ -5,7 +5,12 @@
 - **원인**: `storage.js createParty`가 `parties` INSERT와 `set_party_pw` RPC를 둘 다 fire-and-forget `push()`로 병렬 발사 → RPC가 INSERT보다 먼저 도착하면 `pw_hash` NULL race. (claude.ai 진단 md = `c:/Users/박정혁/Downloads/maple-boss-party-pw-bug-fix.md`, 코드 독립 분석 일치)
 - **코드 수정 = 완료·배포됨** (`a6790d9`, Vercel 라이브 `pushSerial` 마커 3회 확인): `pushSerial()` 헬퍼로 `createParty`/`updateParty`를 INSERT→RPC 직렬화. 낙관적 캐시 동기 반환 구조 유지(호출부 무변경). **새로 만드는 비번 파티는 이제 정상.**
 - **✅ Supabase SQL 정리 완료 (2026-05-17)** — 사용자가 SQL Editor 실행: `set_party_pw` 원본 복구 + 디버깅 객체(`trg_debug_parties`/`debug_parties_change()`/`debug_log`) 제거 + 테스트 파티 8개 삭제. claude 독립 확인: `parties`=밈곰잉(`0f265ffa5d80`) 1개만·`has_pw=true`·회차21 보존, `debug_log` PGRST205(제거됨).
-- **다음 세션 첫 액션 = 최종 사용자 검증만 남음**: 사이트에서 ① 새 비번 파티 생성 → 다른 기기/시크릿창에서 정답 PIN 입장 정상 ② 비번 없는 파티 생성 → 다른 기기서도 비번 없이 입장 ③ 기존 파티 PIN 변경/해제 정상. 캐시 때문에 첫 진입은 시크릿창/캐시비우기 1회 필요(이후 no-store 자동). 검증 통과면 비번 이슈 종결.
+- **사용자 비번 검증 = 통과 (잘 된다 확인됨, 비번 이슈 종결).**
+
+## ★ 2026-05-17 (후속) — 파티원 추가 일원화 + 새 파티 모달 순서 입력 (배포 완료)
+- 파티 선택 카드/파티 상세 strip의 `+ 추가` 칩 제거 → 파티원 추가·삭제는 **파티 설정 페이지(`#/party/:id/settings`)에서만**. `openAddMemberModal` dead code 삭제.
+- 새 파티 모달: 파티원 칸 순서 입력 강제 — 직전 칸 비면 다음 칸 잠금(`refreshLocks`), 중간 비우면 뒤 값 자동 위로 당김(`compactSlots`, blur), Enter는 다음 활성 칸으로만.
+- 커밋 `788a41a`, Vercel 라이브 `compactSlots` 마커 2회 확인. **다음 세션 첫 액션 = 사용자 새 지시 대기**(진행 중 작업 없음).
 
 ## ⛔ 작업 규칙 (사용자 지정 — 반드시 준수)
 - **이모지/장식 아이콘을 임의로 쓰지 말 것.** 버튼·라벨·헤더·안내 문구 등에 🎰🎲🎴🏆👆✨🔨 같은 이모지를 내 판단으로 추가하지 않는다. 텍스트만 사용. 아이콘이 꼭 필요하면 먼저 사용자에게 묻는다. (이미 제거: 룰렛 '뽑기', 사다리 '뽑기/다시 뽑기', '사다리 숨김' 커버)
