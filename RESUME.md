@@ -44,7 +44,7 @@
 > **체크포인트(2026-05-16):** **1단계 종료·푸시 `449dd44`** (방문마다 무드 6벌 랜덤) + **진입 가드 `c0f781a`** (모든 진입을 파티 선택 페이지로 강제 — 공유 딥링크로 게이트 우회·파티 노출 차단, `app.js` DOMContentLoaded에서 hash≠`#/`면 `history.replaceState`로 `#/` 재작성 후 route) + **삭제 가드 `4358853`** (`party.js` `confirmAndDeleteParty()` — 비번 있으면 입력·sha256 검증 → 2차 "정말 삭제?" 경고 → 삭제. 메인 카드·상세 헤더 공용) + **비번=숫자 4자리 PIN `d1dc891`** (`utils.js` `pinInput()`/`isPin()`, 4곳 적용) + **무드 정책 분리 `d72e4b1`** (`js/mood.js` — 파티 선택만 랜덤·파티 안은 유저 선택 무드 `localStorage 'maple-mood'`, 헤더 "보스 설정" 왼쪽 "무드 설정" 버튼=미리보기→적용 / 비번모달 입력칸 간격). devlog 푸시 완료. tree clean. CSS 토큰화 이전 되돌리기 = git 태그 `pre-redesign-2026-05-16` (백업 파일은 삭제됨).
 > **2단계 P1·P2 푸시 완료 `1363b70`** (Supabase 연결 + storage.js 방식2 + boss_settings 파티별). 롤백 태그 `pre-supabase-2026-05-16`.
 > **2단계 P2 검증 통과(2026-05-16):** delete RLS 추가 SQL 실행 완료, 콘솔 스니펫 백업 → "↑ 복원"으로 Supabase 업로드 성공, 새로고침 유지·다른 기기 동일 데이터·다른 기기 추가분 Realtime 반영 모두 확인. **공유 백엔드 핵심 목표 달성.**
-> **이어할 첫 액션 = P5(비번·삭제 서버 강제) 진행 여부 확인 + service_role 키 재발급 안내.** (P2까지 라이브 정상 동작 중)
+> **P5 코드 푸시 완료 `07dfb3f`** (비번·삭제 서버 강제). **이어할 첫 액션 = 사용자가 P5 SQL 실행 + 검증** (비번 설정→재입장 시 게이트 서버검증, 틀린 PIN 거부, 삭제 시 PIN 서버검증, 개발자도구로 pw_hash 안 보임). + service_role 키 재발급 확인(anon 바뀌면 config.js 갱신).
 
 ### 1단계 — 디자인 무드 개편 : ✅ 종료 (정책 분리 + 무드 설정 모달)
 - `style.css` 완전 토큰화(값 1:1 동일·렌더 무변화) 완료. 운영 무드 6벌(전부 다크, 번호 1~6 연속, `d5a6281`) = 1 Midnight Slate·2 Abyss Teal·3 Crimson Noir·4 Neon Synth·5 Royal Plum·6 Carbon Amber.
@@ -52,15 +52,17 @@
 - 정리 완료: app.js `applyRandomBackground`/`BACKGROUNDS` 제거, 임시 전환기 `js/theme-switch.js`·index 임시 script 삭제, 미사용 무드 5(Graphite Mono)·7(Espresso Copper) + `css/style.pre-redesign.css` 백업 삭제. 검증: 로컬서버 자산 전부 200·댕글링 0. 커밋 `449dd44`(랜덤 1단계)→`d72e4b1`(정책 분리) 푸시.
 - (무드 6벌 목록 변경은 `index.html`의 `moods=[…]` + `js/mood.js`의 `MOOD_IDS`/`MOOD_LABELS` 동기 수정)
 
-### 2단계 — 공유 백엔드 전환 : P1·P2 완료·**검증 통과**, P5만 남음 ← ★ 지금 여기
+### 2단계 — 공유 백엔드 전환 : P1·P2 검증 통과 + P5 푸시, **사용자 P5 SQL·검증만** ← ★ 지금 여기
 - ✅ **P2 검증 통과(2026-05-16):** 복원→Supabase 업로드, 새로고침 유지·다기기 동일 데이터·Realtime 실시간 반영 확인. 공유 백엔드 핵심 목표 달성, 라이브 정상.
 - **결정 4개 확정:** ① Supabase ② (a) 그냥 공유 ③ boss_settings 파티별(party_id PK) ④ GitHub Pages 유지.
 - **P1 완료:** Supabase 프로젝트 `plunswlhklpbyihrnxwo` (URL `https://plunswlhklpbyihrnxwo.supabase.co`). 스키마 4테이블+RLS(select/insert/update)+`verify_party_pw` RPC 적용. anon 키는 `js/config.js`에 (공개 OK). **service_role 키는 채팅 노출됨 → 사용자가 재발급 권장(P4 불필요해져서 안 써도 됨).**
 - **P2 완료(`1363b70`):** `js/config.js`(supabase-js v2 ESM). `storage.js` 전면 재작성 = 인메모리 캐시 + `init()` 1회 로드 + Realtime 구독 + 낙관적 write-through. 읽기 API 동기 유지(화면 코드 거의 불변). row↔앱 매핑(snake/camel), reservation `payload jsonb`. `boss_settings` 파티별: `getBossSettings(partyId)`/`setBossSettings(partyId,patch)`, 라우트 `#/crystals/:partyId`, crystals/earnings/monthly/record + 헤더 링크/뒤로/저장 갱신. `app.js` `await Storage.init()` + `onRemoteChange(route)`. `mood.js` `#/crystals/:id` 파티 안 인식. P3는 P2에 포함됨.
 - **마이그레이션(P4 대체):** service_role 스크립트 불필요 — 기존 localStorage JSON을 콘솔 스니펫(`localStorage.getItem('maple-boss-v1')`)으로 받아 사이트 "↑ 복원" → `importData`가 Supabase upsert. 구버전 전역 bossSettings는 importData가 전 파티에 복제.
 - **사용자가 지금 해야 할 것:** ① delete RLS 추가 SQL(`grant delete ...` + 4개 `create policy "delete" ... using(true)`) 실행 ② 콘솔 스니펫으로 백업 ③ "↑ 복원" 업로드 ④ 새로고침/다기기/Realtime 검증.
-- **남은 = P5:** 비번·삭제 서버 강제(`pw_hash` RLS 숨김 + `verify_party_pw`/`delete_party` RPC로 승격). 현재는 클라이언트 판정(약한 잠금). + P6 = 다기기 스모크·마무리.
-- ⚠️ "그냥 공유"는 RLS가 유일 방어선. 현재 delete도 anon 허용(기능 유지 위해). Realtime unhealthy면 새로고침해야 반영(기능은 동작).
+- ✅ **P5 코드 푸시(`07dfb3f`):** 비번·삭제 서버 강제. `has_pw` 파생컬럼+트리거, `pw_hash` anon select 차단(컬럼권한), `set_party_pw`/`delete_party` SECURITY DEFINER RPC, parties delete 정책 제거. 클라: parties select pw_hash 제외·`has_pw`→`party.pw` 불리언, 생성/변경=`set_party_pw` RPC, 입장=`verify_party_pw` RPC, 삭제=`deletePartyWithPin`(delete_party RPC). 클라 sha256 판정 제거 → 비번 실제 보안.
+- **사용자 할 일:** ① P5 SQL(has_pw·컬럼권한·set_party_pw·delete_party·parties delete 정책 제거) 실행 ② 새 코드 배포 후 새로고침 ③ 검증: 비번 설정→재입장 게이트 서버검증·틀린 PIN 거부·삭제 시 PIN 검증·DevTools에서 pw_hash 안 보임. ⚠️ SQL과 새 코드 둘 다 있어야 정상 — 배포~SQL 사이 1~2분 일시 에러 가능(새로고침으로 해소, 데이터 안전).
+- service_role 재발급 확인(anon 바뀌었으면 새 anon → `js/config.js` 갱신 필요).
+- 남은 = P6(다기기 스모크·마무리)뿐. ⚠️ run/reservation/boss_settings delete는 anon 허용 유지(비번 대상 아님). parties delete만 RPC 경유.
 
 ### (선택, 보류) 그 외
 - 배포 사이트 검증 한 바퀴(회차 난이도 캐스케이드·보이기 필터·기존 데이터 호환)
