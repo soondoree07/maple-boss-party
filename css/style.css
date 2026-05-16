@@ -255,6 +255,34 @@ a { color: inherit; text-decoration: none; }
 }
 .member-add-row .text-input { flex: 1; }
 
+/* 모바일 룰렛 단독 페이지 — 세로로 길게(슬롯머신 느낌) */
+.widget-page-main .roulette-card {
+  gap: 14px;
+  padding: 20px 14px 22px;
+}
+.widget-page-main .roulette-window {
+  min-height: 360px;
+}
+.widget-page-main .roulette-display {
+  font-size: 44px;
+}
+
+/* 모바일 사다리 단독 페이지 — 한 화면에 다 보이게.
+   svg는 preserveAspectRatio="none"이라 높이만 줄여도 컬럼 정렬 유지(가로 100%). */
+.widget-page-main .ladder-card {
+  gap: 8px;
+  padding: 12px 10px 14px;
+}
+.widget-page-main .ladder-board {
+  padding: 6px 5px;
+  gap: 3px;
+}
+.widget-page-main .ladder-svg {
+  aspect-ratio: auto;
+  height: 38vh;
+  min-height: 200px;
+}
+
 /* ── 버튼 ────────────────────────────────────────────── */
 
 .btn {
