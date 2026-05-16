@@ -24,7 +24,7 @@ export function renderPartyList(container) {
     ));
   } else {
     const grid = el('div', { className: 'party-grid' },
-      parties.map(p => renderPartyCard(p, container))
+      parties.map(p => renderPartyCard(p))
     );
     main.appendChild(grid);
   }
@@ -104,7 +104,7 @@ export async function confirmAndDeleteParty(party) {
   return true;
 }
 
-function renderPartyCard(party, container) {
+function renderPartyCard(party) {
   const runCount = Storage.getRunsByParty(party.id).length;
 
   return el('a', {
@@ -127,16 +127,6 @@ function renderPartyCard(party, container) {
     el('div', { className: 'party-card-name' }, party.name),
     el('div', { className: 'party-card-members' },
       party.members.map(m => el('span', { className: 'member-chip' }, m)),
-      el('button', {
-        className: 'member-chip member-chip-add',
-        type: 'button',
-        title: '파티원 추가',
-        onclick: (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          openAddMemberModal(party, () => renderPartyList(container));
-        },
-      }, '+ 추가'),
     ),
     el('div', { className: 'party-card-meta' },
       el('span', null, `${party.members.length}인 파티`),
@@ -158,7 +148,8 @@ function openCreatePartyModal(container) {
   const overlay = el('div', { className: 'modal-overlay' });
   const modal   = el('div', { className: 'modal' });
 
-  // 6칸 고정 슬롯. 비어있는 칸은 저장 시 무시.
+  // 6칸 고정 슬롯. 순서대로만 입력 가능 — 직전 칸이 비어 있으면 다음 칸은 잠금.
+  // 중간 칸을 비우면 뒤 값이 자동으로 위로 당겨져 빈칸 없이 채워진다.
   const memberInputs = Array.from({ length: MAX_MEMBERS }, (_, i) => el('input', {
     type: 'text',
     className: 'text-input',
@@ -167,16 +158,35 @@ function openCreatePartyModal(container) {
     lang: 'ko',
   }));
 
-  // Enter로 다음 칸 이동.
+  // 슬롯 i 는 i===0 이거나 직전 슬롯이 채워졌을 때만 활성화.
+  const refreshLocks = () => {
+    memberInputs.forEach((input, i) => {
+      input.disabled = i > 0 && memberInputs[i - 1].value.trim() === '';
+    });
+  };
+
+  // 채워진 값만 모아 위에서부터 다시 배치(빈칸 제거) — 포커스 떠날 때 실행.
+  const compactSlots = () => {
+    const filled = memberInputs.map(v => v.value).filter(v => v.trim() !== '');
+    memberInputs.forEach((input, i) => { input.value = filled[i] ?? ''; });
+    refreshLocks();
+  };
+
   memberInputs.forEach((input, i) => {
+    input.addEventListener('input', refreshLocks);
+    input.addEventListener('blur', compactSlots);
+    // Enter로 다음(활성) 칸 이동.
     input.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
+      refreshLocks();
       const next = memberInputs[i + 1];
-      if (next) next.focus();
+      if (next && !next.disabled) next.focus();
       else input.blur();
     });
   });
+
+  refreshLocks(); // 초기: 파티원 1만 활성, 나머지 잠금
 
   const nameInput = el('input', {
     type: 'text',
@@ -261,79 +271,6 @@ function openCreatePartyModal(container) {
   document.body.appendChild(overlay);
 
   setTimeout(() => nameInput.focus(), 50);
-}
-
-// ── 파티원 추가 모달 (파티 상세에서 호출) ──────────────
-
-/**
- * 기존 파티에 멤버 1명 추가하는 가벼운 모달.
- * 저장 성공 시 onSaved(updatedParty)가 호출된다. 호출부가 화면 재렌더 담당.
- */
-export function openAddMemberModal(party, onSaved) {
-  const overlay = el('div', { className: 'modal-overlay' });
-  const modal   = el('div', { className: 'modal' });
-
-  const input = el('input', {
-    type: 'text',
-    className: 'text-input',
-    placeholder: '닉네임',
-    maxlength: '20',
-    lang: 'ko',
-  });
-
-  const submit = () => {
-    const name = input.value.trim();
-    if (!name) { alert('닉네임을 입력해주세요'); input.focus(); return; }
-    if (party.members.includes(name)) {
-      alert(`"${name}"은(는) 이미 파티에 있어요`);
-      input.focus();
-      return;
-    }
-    const updated = Storage.updateParty(party.id, {
-      members: [...party.members, name],
-    });
-    if (!updated) { alert('파티를 찾을 수 없어요'); overlay.remove(); return; }
-    overlay.remove();
-    onSaved?.(updated);
-  };
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); submit(); }
-  });
-
-  modal.appendChild(el('div', { className: 'modal-header' },
-    el('h2', { className: 'modal-title' }, '파티원 추가'),
-    el('button', {
-      className: 'icon-btn-close',
-      type: 'button',
-      onclick: () => overlay.remove(),
-      'aria-label': '닫기',
-    }, '×'),
-  ));
-  modal.appendChild(el('div', { className: 'form-meta' },
-    `${party.name} · 현재 ${party.members.length}명`,
-  ));
-  modal.appendChild(el('div', { className: 'form-group' },
-    el('label', { className: 'form-label' }, '닉네임'),
-    input,
-  ));
-  modal.appendChild(el('div', { className: 'modal-actions' },
-    el('button', {
-      className: 'btn btn-ghost',
-      type: 'button',
-      onclick: () => overlay.remove(),
-    }, '취소'),
-    el('button', {
-      className: 'btn btn-primary',
-      type: 'button',
-      onclick: submit,
-    }, '추가'),
-  ));
-
-  overlay.appendChild(modal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-  document.body.appendChild(overlay);
-  setTimeout(() => input.focus(), 50);
 }
 
 // ── 비밀번호 변경/설정 모달 (파티 상세에서 호출) ──────
