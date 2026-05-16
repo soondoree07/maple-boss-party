@@ -42,7 +42,7 @@
 ## 다음 액션 (이어할 작업) — ★ 여기부터 재개
 
 > **✅ 1단계(디자인 무드)·2단계(공유 백엔드) 모두 완전 종료 + 호스팅 Vercel 이전 + 모바일 햄버거 최적화 (2026-05-16).** 진행 중 작업 없음 — 다음 세션은 사용자 새 지시 대기.
-> 모바일(≤720px): 헤더 액션·룰렛·사다리타기 → 햄버거 드로어(`utils.js isMobile()/buildMobileMenu()`, 렌더 분기·중복 없음·데스크톱 불변, `matchMedia change` 재렌더) `5e23a27`. + input 16px(자동확대 차단)·캘린더 셀 확대·≤480 패딩 축소 `13e3624` + **모바일 캘린더 주 단위 뷰**(목→수 한 주, "N월 N주차"=그 주 일요일 기준, calendar.js `paintWeek()`) `e61c125` + 더블탭 확대 제거(`touch-action: manipulation`) `3410082`.
+> 모바일(≤720px): 헤더 액션·룰렛·사다리타기 → 햄버거 드로어(`utils.js isMobile()/buildMobileMenu()`, 렌더 분기·중복 없음·데스크톱 불변, `matchMedia change` 재렌더) `5e23a27`. + input 16px(자동확대 차단)·캘린더 셀 확대·≤480 패딩 축소 `13e3624` + **모바일 캘린더 주 단위 뷰**(목→수 한 주, "N월 N주차"=그 주 일요일 기준, calendar.js `paintWeek()`) `e61c125` + 더블탭 확대 제거(`touch-action: manipulation`) `3410082` + **파티 설정 페이지**(`#/party/:id/settings` 멤버 추가/삭제+비번, party.js `renderPartySettingsPage`, 헤더 "비밀번호"→"파티 설정") + **모바일 룰렛/사다리 별도 페이지**(`#/party/:id/roulette·/ladder`, 햄버거는 이동 버튼, 데스크톱 side-left 유지) `140b88a`.
 > 롤백 태그: `pre-redesign-2026-05-16`(CSS 토큰화 이전) / `pre-supabase-2026-05-16`(localStorage 버전).
 
 ### ✅ 1단계 — 디자인 무드 개편 : 종료
@@ -68,7 +68,7 @@
 - 로컬 서버: `cd "/mnt/c/Users/박정혁/Downloads/maple-boss" && python3 -m http.server 8000`
 - localStorage 키: `maple-boss-v1` → `{ parties, bossRuns, reservations, bossSettings:{visible,defaults} }`
 - 이미지 sync: `cp /home/soondoree07/maple-boss/png/*.{png,webp} "/mnt/c/Users/박정혁/Downloads/maple-boss/png/"`
-- 라우트: `#/` / `#/party/:id` / `#/crystals`(보스 설정·결정석)
+- 라우트: `#/` / `#/party/:id` / `#/crystals/:partyId`(보스 설정) / `#/party/:id/settings`(파티 설정=멤버+비번) / `#/party/:id/roulette` / `#/party/:id/ladder`(모바일 위젯 페이지). 하위 페이지도 비번 게이트 동일 적용. 진입 가드로 새 로드 시 항상 `#/`
 - 데이터 모델 v0.5:
   - `BOSSES[].difficulties = [{ key, crystal(억), loot:[이름...] }]` (난이도 오름차순)
   - `BossRun.difficulty` = 그 회차 난이도 key (legacy 미정의 → resolveDifficultyKey fallback)
