@@ -186,6 +186,34 @@ export function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
 
+// ── 파티 비밀번호 = 숫자 4자리 PIN ─────────────────────
+
+/** 값이 정확히 숫자 4자리인지. */
+export function isPin(v) {
+  return /^\d{4}$/.test(String(v ?? ''));
+}
+
+/**
+ * 숫자 4자리 PIN 입력 칸. 마스킹(password) + 모바일 숫자 키패드 +
+ * 입력 즉시 숫자 외 문자 제거·4자리 컷.
+ */
+export function pinInput(placeholder, autocomplete = 'off') {
+  const node = el('input', {
+    type: 'password',
+    className: 'text-input',
+    placeholder,
+    inputmode: 'numeric',
+    pattern: '\\d{4}',
+    maxlength: '4',
+    autocomplete,
+  });
+  node.addEventListener('input', () => {
+    const cleaned = node.value.replace(/\D/g, '').slice(0, 4);
+    if (node.value !== cleaned) node.value = cleaned;
+  });
+  return node;
+}
+
 // ── 해시 ──────────────────────────────────────────────
 //
 // 파티 비밀번호 저장용. localStorage 기반이라 진짜 보안은 아니고

@@ -1,7 +1,7 @@
 // party.js — 메인 화면 (파티 카드 목록 + 새 파티 만들기 모달)
 
 import * as Storage from './storage.js';
-import { el, clear, sha256Hex } from './utils.js';
+import { el, clear, sha256Hex, pinInput, isPin } from './utils.js';
 import { exportToFile, importFromFile } from './backup.js';
 
 /**
@@ -68,9 +68,9 @@ function buildHeader(container) {
  */
 export async function confirmAndDeleteParty(party) {
   if (party.pw) {
-    const entered = prompt(`"${party.name}" 삭제 — 비밀번호를 입력하세요`);
+    const entered = prompt(`"${party.name}" 삭제 — 비밀번호(숫자 4자리)를 입력하세요`);
     if (entered == null || entered === '') return false;            // 취소/빈값
-    if ((await sha256Hex(entered)) !== party.pw) {
+    if (!isPin(entered) || (await sha256Hex(entered)) !== party.pw) {
       alert('비밀번호가 올바르지 않아요. 삭제가 취소됐어요.');
       return false;
     }
@@ -166,13 +166,7 @@ function openCreatePartyModal(container) {
     lang: 'ko',
   });
 
-  const pwInput = el('input', {
-    type: 'password',
-    className: 'text-input',
-    placeholder: '비워두면 잠금 없음',
-    maxlength: '40',
-    autocomplete: 'new-password',
-  });
+  const pwInput = pinInput('숫자 4자리 (비워두면 잠금 없음)', 'new-password');
 
   modal.appendChild(el('div', { className: 'modal-header' },
     el('h2', { className: 'modal-title' }, '새 파티 만들기'),
@@ -195,10 +189,10 @@ function openCreatePartyModal(container) {
   ));
 
   modal.appendChild(el('div', { className: 'form-group' },
-    el('label', { className: 'form-label' }, '비밀번호 (선택)'),
+    el('label', { className: 'form-label' }, '비밀번호 (선택 · 숫자 4자리)'),
     pwInput,
     el('div', { className: 'form-hint' },
-      '설정하면 이 파티에 들어올 때 비밀번호를 입력해야 해요'),
+      '설정하면 이 파티에 들어올 때 숫자 4자리를 입력해야 해요'),
   ));
 
   modal.appendChild(el('div', { className: 'modal-actions' },
@@ -225,9 +219,16 @@ function openCreatePartyModal(container) {
         if (!name) { alert('파티 이름을 입력해주세요'); nameInput.focus(); return; }
         if (members.length === 0) { alert('파티원을 1명 이상 입력해주세요'); return; }
 
+        const pwRaw = pwInput.value;
+        if (pwRaw && !isPin(pwRaw)) {
+          alert('비밀번호는 숫자 4자리로 입력해주세요');
+          pwInput.focus();
+          return;
+        }
+
         const btn = e.currentTarget;
         btn.disabled = true;
-        const pw = pwInput.value ? await sha256Hex(pwInput.value) : null;
+        const pw = pwRaw ? await sha256Hex(pwRaw) : null;
         Storage.createParty({ name, members, pw });
         overlay.remove();
         renderPartyList(container);
@@ -325,24 +326,13 @@ export function openChangePasswordModal(party, onSaved) {
   const overlay = el('div', { className: 'modal-overlay' });
   const modal   = el('div', { className: 'modal' });
 
-  const pwInput = el('input', {
-    type: 'password',
-    className: 'text-input',
-    placeholder: '새 비밀번호 (비우면 잠금 해제)',
-    maxlength: '40',
-    autocomplete: 'new-password',
-  });
-  const pwConfirm = el('input', {
-    type: 'password',
-    className: 'text-input',
-    placeholder: '새 비밀번호 확인',
-    maxlength: '40',
-    autocomplete: 'new-password',
-  });
+  const pwInput = pinInput('새 비밀번호 · 숫자 4자리 (비우면 잠금 해제)', 'new-password');
+  const pwConfirm = pinInput('숫자 4자리 확인', 'new-password');
 
   const submit = async (e) => {
     const v1 = pwInput.value;
     const v2 = pwConfirm.value;
+    if (v1 && !isPin(v1)) { alert('비밀번호는 숫자 4자리로 입력해주세요'); pwInput.focus(); return; }
     if (v1 !== v2) { alert('두 비밀번호가 일치하지 않아요'); pwConfirm.focus(); return; }
     const btn = e?.currentTarget;
     if (btn) btn.disabled = true;
@@ -371,10 +361,10 @@ export function openChangePasswordModal(party, onSaved) {
     `${party.name} · 현재 ${party.pw ? '비밀번호 설정됨' : '잠금 없음'}`,
   ));
   modal.appendChild(el('div', { className: 'form-group' },
-    el('label', { className: 'form-label' }, '새 비밀번호'),
+    el('label', { className: 'form-label' }, '새 비밀번호 (숫자 4자리)'),
     pwInput,
     pwConfirm,
-    el('div', { className: 'form-hint' }, '비워두고 저장하면 비밀번호가 해제돼요'),
+    el('div', { className: 'form-hint' }, '숫자 4자리. 비워두고 저장하면 비밀번호가 해제돼요'),
   ));
   modal.appendChild(el('div', { className: 'modal-actions' },
     el('button', {

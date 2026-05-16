@@ -14,7 +14,7 @@ import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
-import { el, clear, sha256Hex } from './utils.js';
+import { el, clear, sha256Hex, pinInput } from './utils.js';
 
 const root = document.getElementById('app');
 
@@ -72,12 +72,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function renderPartyGate(container, party) {
   clear(container);
 
-  const input = el('input', {
-    type: 'password',
-    className: 'text-input',
-    placeholder: '비밀번호',
-    autocomplete: 'current-password',
-  });
+  const input = pinInput('비밀번호 (숫자 4자리)', 'current-password');
   const errMsg = el('div', { className: 'gate-error' });
 
   const submit = async (e) => {
@@ -109,7 +104,7 @@ function renderPartyGate(container, party) {
   container.appendChild(el('main', { className: 'gate-main' },
     el('div', { className: 'gate-card' },
       el('div', { className: 'gate-title' }, '비밀번호가 설정된 파티예요'),
-      el('div', { className: 'gate-sub' }, `"${party.name}"에 들어가려면 비밀번호를 입력하세요`),
+      el('div', { className: 'gate-sub' }, `"${party.name}"에 들어가려면 숫자 4자리 비밀번호를 입력하세요`),
       input,
       errMsg,
       el('div', { className: 'gate-actions' },
