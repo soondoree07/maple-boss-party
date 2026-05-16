@@ -12,14 +12,14 @@ import { el } from './utils.js';
 const KEY = 'maple-mood';
 const DEFAULT_ID = 1;
 
-export const MOOD_IDS = [1, 2, 3, 4, 6, 8];
+export const MOOD_IDS = [1, 2, 3, 4, 5, 6];
 export const MOOD_LABELS = {
   1: 'Midnight Slate · 다크 블루',
   2: 'Abyss Teal · 다크 청록',
   3: 'Crimson Noir · 다크 레드',
   4: 'Neon Synth · 다크 네온',
-  6: 'Royal Plum · 다크 보라골드',
-  8: 'Carbon Amber · 다크 앰버',
+  5: 'Royal Plum · 다크 보라골드',
+  6: 'Carbon Amber · 다크 앰버',
 };
 
 function moodLink() {

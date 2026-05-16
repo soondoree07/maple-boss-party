@@ -15,7 +15,7 @@
     // 첫 페인트는 항상 파티 선택 화면(진입 가드가 #/ 로 강제)이라 랜덤 픽으로 시작.
     // 파티 안에서는 app.js가 유저 선택 무드로 href만 교체한다(js/mood.js).
     (function () {
-      var moods = [1, 2, 3, 4, 6, 8];
+      var moods = [1, 2, 3, 4, 5, 6];
       var pick = moods[Math.floor(Math.random() * moods.length)];
       window.__moodRandomId = pick;
       var link = document.createElement('link');

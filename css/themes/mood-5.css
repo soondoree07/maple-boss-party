@@ -1,0 +1,49 @@
+/* ============================================================
+   MOOD 5 — Royal Plum (다크, 보라+골드)
+   딥 오버진 + 라벤더 & 골드. 기존 무드와 가장 가깝되 배경 단색.
+   배경 단색 · 블러 제거 · WCAG AA · 보스/전리품 기능색은 JS 인라인이라 그대로.
+   클래스/구조는 절대 안 건드림 — :root 토큰만 덮어씀.
+   ============================================================ */
+:root {
+  --bg-base:        #150f1f;
+  --bg-elevated:    #241a33;
+  --bg-card:        #1d142b;
+  --bg-card-hover:  #2c2040;
+  --bg-overlay:     rgba(8, 5, 14, 0.74);
+
+  --border-subtle:  #382a4d;
+  --border-strong:  #4f3c6b;
+
+  --text-primary:   #f0eaf8;
+  --text-secondary: #c2b3d8;
+  --text-tertiary:  #968aac;
+  --text-muted:     #6a5b82;
+
+  --accent-gold:    #fbbf24;
+  --accent-purple:  #c4b5fd;
+  --accent-rose:    #f472b6;
+  --accent-aqua:    #c084fc;
+  --danger:         #fb7185;
+
+  --on-accent:      #2a1c00;
+  --on-boss:        #1a1102;
+  --accent-hover:   #fcd34d;
+  --btn-grad-text:  #1a0f2b;
+
+  --glow-rgb:        192, 132, 252;
+  --shade-rgb:       7, 4, 12;
+  --hairline-rgb:    255, 255, 255;
+  --ink-rgb:         0, 0, 0;
+  --danger-rgb:      251, 113, 133;
+  --ladder-grad-rgb: 196, 181, 253;
+
+  --card-filter:     none;
+  --overlay-filter:  none;
+
+  --page-bg:            #150f1f;
+  --page-bg-attachment: initial;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.60);
+}
