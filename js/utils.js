@@ -186,6 +186,37 @@ export function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
 
+// ── 모바일 햄버거 메뉴 ────────────────────────────────
+
+/** 모바일 폭 여부 (헤더 액션·룰렛·사다리를 햄버거로 접는 기준). */
+export const isMobile = () => window.matchMedia('(max-width: 720px)').matches;
+
+/**
+ * 모바일 햄버거 토글 + 드로어. nodes 를 드로어에 담아 반환.
+ * 데스크톱에선 호출 안 함(렌더 분기) — 순수 모바일 전용.
+ * 아이콘은 이모지 없이 CSS 3선(span) 으로 그린다.
+ * @returns {{toggle: HTMLElement, drawer: HTMLElement}}
+ */
+export function buildMobileMenu(nodes, label = '메뉴') {
+  const drawer = el('div', { className: 'mobile-drawer' }, nodes);
+  const toggle = el('button', {
+    className: 'nav-toggle',
+    type: 'button',
+    'aria-label': label,
+    'aria-expanded': 'false',
+    onclick: () => {
+      const open = drawer.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    },
+  },
+    el('span', { className: 'nav-toggle-bar' }),
+    el('span', { className: 'nav-toggle-bar' }),
+    el('span', { className: 'nav-toggle-bar' }),
+  );
+  return { toggle, drawer };
+}
+
 // ── 파티 비밀번호 = 숫자 4자리 PIN ─────────────────────
 
 /** 값이 정확히 숫자 4자리인지. */

@@ -160,6 +160,66 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
 }
 
+/* ── 모바일 햄버거 (toggle + drawer) ─────────────────── */
+/* nav-toggle / mobile-drawer 는 모바일에서만 렌더됨(JS 분기). */
+
+.nav-toggle {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 36px;
+  padding: 0 9px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.nav-toggle-bar {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--text-secondary);
+  border-radius: 2px;
+  transition: transform 0.18s, opacity 0.18s;
+}
+.nav-toggle.open { border-color: var(--border-strong); }
+.nav-toggle.open .nav-toggle-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-toggle.open .nav-toggle-bar:nth-child(2) { opacity: 0; }
+.nav-toggle.open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.mobile-drawer {
+  display: none;
+  margin: 0 0 24px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.mobile-drawer.open {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.drawer-actions .icon-btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.mobile-drawer .roulette-side,
+.mobile-drawer .ladder-side {
+  width: 100%;
+}
+
 /* ── 버튼 ────────────────────────────────────────────── */
 
 .btn {

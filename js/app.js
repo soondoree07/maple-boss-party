@@ -14,7 +14,7 @@ import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
-import { el, clear, pinInput } from './utils.js';
+import { el, clear, pinInput, isMobile, buildMobileMenu } from './utils.js';
 import { applyRouteMood, openMoodModal } from './mood.js';
 
 const root = document.getElementById('app');
@@ -62,6 +62,8 @@ function route() {
 }
 
 window.addEventListener('hashchange', route);
+// 모바일↔데스크톱 폭 경계를 넘으면 레이아웃(햄버거↔사이드) 재구성.
+window.matchMedia('(max-width: 720px)').addEventListener('change', route);
 window.addEventListener('DOMContentLoaded', async () => {
   // 공유된 딥링크로 들어와도 항상 파티 선택 페이지에서 시작
   // (비밀번호 게이트 우회·파티 존재 노출 방지). 앱 내 이동은 hashchange라 영향 없음.
@@ -135,51 +137,71 @@ function renderPartyGate(container, party) {
 function renderPartyDetail(container, party) {
   clear(container);
 
-  // 헤더
-  container.appendChild(el('header', { className: 'page-header' },
+  // 헤더 액션 — 데스크톱=헤더 우측 / 모바일=햄버거 드로어
+  const actionNodes = [
+    el('button', {
+      className: 'icon-btn',
+      type: 'button',
+      title: '무드(테마) 설정 — 미리보기 후 적용',
+      onclick: () => openMoodModal(),
+    }, '무드 설정'),
+    el('a', {
+      href: `#/crystals/${party.id}`,
+      className: 'icon-btn',
+      title: '보스 등장/난이도 설정 · 결정석 표',
+    }, '보스 설정'),
+    el('button', {
+      className: 'icon-btn',
+      type: 'button',
+      title: '파티 비밀번호 설정/변경/해제',
+      onclick: () => openChangePasswordModal(party, (updated) => {
+        if (updated.pw) unlockedParties.add(updated.id);
+        else unlockedParties.delete(updated.id);
+        renderPartyDetail(container, updated);
+      }),
+    }, '비밀번호'),
+    el('button', {
+      className: 'icon-btn',
+      type: 'button',
+      title: '백업',
+      onclick: () => exportToFile(),
+    }, '↓ 백업'),
+    el('button', {
+      className: 'icon-btn icon-btn-danger',
+      type: 'button',
+      title: '파티 삭제',
+      onclick: async () => {
+        if (await confirmAndDeleteParty(party)) {
+          calendarViewByParty.delete(party.id);
+          location.hash = '#/';
+        }
+      },
+    }, '삭제'),
+  ];
+
+  // 룰렛/사다리 — 데스크톱=좌측 사이드 / 모바일=햄버거 드로어 (같은 노드, 한 곳만 사용)
+  const roulette = renderChannelRoulette();
+  const ladder   = renderLadder(party);
+
+  const header = el('header', { className: 'page-header' },
     el('a', { href: '#/', className: 'back-btn' }, '← 파티 목록'),
     el('h1', { className: 'page-title' }, party.name),
-    el('div', { className: 'header-actions' },
-      el('button', {
-        className: 'icon-btn',
-        type: 'button',
-        title: '무드(테마) 설정 — 미리보기 후 적용',
-        onclick: () => openMoodModal(),
-      }, '무드 설정'),
-      el('a', {
-        href: `#/crystals/${party.id}`,
-        className: 'icon-btn',
-        title: '보스 등장/난이도 설정 · 결정석 표',
-      }, '보스 설정'),
-      el('button', {
-        className: 'icon-btn',
-        type: 'button',
-        title: '파티 비밀번호 설정/변경/해제',
-        onclick: () => openChangePasswordModal(party, (updated) => {
-          if (updated.pw) unlockedParties.add(updated.id);
-          else unlockedParties.delete(updated.id);
-          renderPartyDetail(container, updated);
-        }),
-      }, '비밀번호'),
-      el('button', {
-        className: 'icon-btn',
-        type: 'button',
-        title: '백업',
-        onclick: () => exportToFile(),
-      }, '↓ 백업'),
-      el('button', {
-        className: 'icon-btn icon-btn-danger',
-        type: 'button',
-        title: '파티 삭제',
-        onclick: async () => {
-          if (await confirmAndDeleteParty(party)) {
-            calendarViewByParty.delete(party.id);
-            location.hash = '#/';
-          }
-        },
-      }, '삭제'),
-    ),
-  ));
+  );
+
+  const mobile = isMobile();
+  if (mobile) {
+    const { toggle, drawer } = buildMobileMenu([
+      el('div', { className: 'drawer-actions' }, actionNodes),
+      roulette,
+      ladder,
+    ]);
+    header.appendChild(toggle);
+    container.appendChild(header);
+    container.appendChild(drawer);
+  } else {
+    header.appendChild(el('div', { className: 'header-actions' }, actionNodes));
+    container.appendChild(header);
+  }
 
   // 본문 — 파티원 strip은 grid 양쪽에 걸침, 그 아래로 좌(메인)/우(월별 사이드바) 2컬럼
   const main = el('main', { className: 'party-detail-main' });
@@ -226,13 +248,10 @@ function renderPartyDetail(container, party) {
 
   mainCol.appendChild(renderCalendar(party, initialDate, handleDateClick, handleMonthChange));
 
-  // 좌측 사이드: 룰렛 + 사다리타기
-  const sideLeft = el('aside', { className: 'side-left' },
-    renderChannelRoulette(),
-    renderLadder(party),
-  );
-
-  main.appendChild(sideLeft);
+  // 좌측 사이드(룰렛+사다리)는 데스크톱만 — 모바일은 위 햄버거 드로어로 이동.
+  if (!mobile) {
+    main.appendChild(el('aside', { className: 'side-left' }, roulette, ladder));
+  }
   main.appendChild(mainCol);
   main.appendChild(renderMonthlyHistory(party));
 

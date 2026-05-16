@@ -1,7 +1,7 @@
 // party.js — 메인 화면 (파티 카드 목록 + 새 파티 만들기 모달)
 
 import * as Storage from './storage.js';
-import { el, clear, pinInput, isPin } from './utils.js';
+import { el, clear, pinInput, isPin, isMobile, buildMobileMenu } from './utils.js';
 import { exportToFile, importFromFile } from './backup.js';
 
 /**
@@ -13,7 +13,7 @@ export function renderPartyList(container) {
 
   const parties = Storage.getParties();
 
-  container.appendChild(buildHeader(container));
+  buildHeader(container);
 
   const main = el('main', { className: 'party-list-main' });
 
@@ -45,20 +45,33 @@ function buildHeader(container) {
     onchange: (e) => handleImport(e.target.files[0], container),
   });
 
-  return el('header', { className: 'page-header' },
-    el('h1', { className: 'page-title' }, '메이플 보스 파티'),
-    el('div', { className: 'header-actions' },
-      el('button', {
-        className: 'icon-btn',
-        title: 'JSON으로 내보내기',
-        onclick: () => exportToFile(),
-      }, '↓ 백업'),
-      el('label', { className: 'icon-btn', title: 'JSON 불러오기' },
-        '↑ 복원',
-        fileInput,
-      ),
+  const actionNodes = [
+    el('button', {
+      className: 'icon-btn',
+      title: 'JSON으로 내보내기',
+      onclick: () => exportToFile(),
+    }, '↓ 백업'),
+    el('label', { className: 'icon-btn', title: 'JSON 불러오기' },
+      '↑ 복원',
+      fileInput,
     ),
+  ];
+
+  const header = el('header', { className: 'page-header' },
+    el('h1', { className: 'page-title' }, '메이플 보스 파티'),
   );
+
+  if (isMobile()) {
+    const { toggle, drawer } = buildMobileMenu([
+      el('div', { className: 'drawer-actions' }, actionNodes),
+    ]);
+    header.appendChild(toggle);
+    container.appendChild(header);
+    container.appendChild(drawer);
+  } else {
+    header.appendChild(el('div', { className: 'header-actions' }, actionNodes));
+    container.appendChild(header);
+  }
 }
 
 /**
