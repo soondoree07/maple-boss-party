@@ -245,6 +245,97 @@ export function pinInput(placeholder, autocomplete = 'off') {
   return node;
 }
 
+// ── 확인 다이얼로그 (네이티브 confirm/prompt/alert 대체) ──
+
+/**
+ * 무드에 맞는 커스텀 확인 모달. 네이티브 confirm/prompt 대체.
+ * @param {object} opts
+ * @param {string} opts.title
+ * @param {string} opts.message            \n 으로 줄바꿈
+ * @param {string} [opts.confirmText='확인']
+ * @param {string} [opts.cancelText='취소']
+ * @param {boolean} [opts.danger=false]     확인 버튼을 위험(빨강) 스타일로
+ * @param {boolean} [opts.pin=false]        4자리 PIN 입력칸 노출
+ * @param {string} [opts.pinPlaceholder]
+ * @param {(value:string|boolean)=>(true|string|Promise<true|string>)} [opts.onConfirm]
+ *        true 반환 → 닫고 resolve(true). 문자열 반환 → 그 문자열을 모달 안
+ *        오류 글자로 표시하고 열어둠. 없으면 곧장 resolve(pin? PIN값 : true).
+ * @returns {Promise<string|boolean>} 확인 시 true(또는 PIN값), 취소/닫기 시 false
+ */
+export function confirmDialog(opts = {}) {
+  const {
+    title = '확인', message = '', confirmText = '확인', cancelText = '취소',
+    danger = false, pin = false,
+    pinPlaceholder = '비밀번호 (숫자 4자리)', onConfirm,
+  } = opts;
+
+  return new Promise((resolve) => {
+    const overlay = el('div', { className: 'modal-overlay' });
+    const modal   = el('div', { className: 'modal modal-confirm' });
+
+    const errEl    = el('div', { className: 'dialog-error' });
+    const pinField = pin ? pinInput(pinPlaceholder, 'current-password') : null;
+
+    let done = false;
+    const close = (val) => {
+      if (done) return;
+      done = true;
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
+      resolve(val);
+    };
+
+    const confirmBtn = el('button', {
+      className: 'btn ' + (danger ? 'btn-danger' : 'btn-primary'),
+      type: 'button',
+      onclick: async () => {
+        errEl.textContent = '';
+        if (!onConfirm) { close(pin ? pinField.value : true); return; }
+        confirmBtn.disabled = true;
+        let res;
+        try { res = await onConfirm(pin ? pinField.value : true); }
+        catch { res = '처리 중 오류가 발생했어요'; }
+        if (res === true) { close(true); return; }
+        errEl.textContent = typeof res === 'string' ? res : '다시 시도해주세요';
+        confirmBtn.disabled = false;
+        if (pinField) { pinField.value = ''; pinField.focus(); }
+      },
+    }, confirmText);
+
+    const cancelBtn = el('button', {
+      className: 'btn btn-ghost', type: 'button', onclick: () => close(false),
+    }, cancelText);
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); close(false); }
+      else if (e.key === 'Enter' && document.activeElement !== cancelBtn) {
+        e.preventDefault(); confirmBtn.click();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+
+    const msgLines = String(message).split('\n').filter(Boolean)
+      .map(line => el('p', { className: 'dialog-line' }, line));
+
+    modal.appendChild(el('div', { className: 'modal-header' },
+      el('h2', { className: 'modal-title' }, title),
+      el('button', {
+        className: 'icon-btn-close', type: 'button',
+        onclick: () => close(false), 'aria-label': '닫기',
+      }, '×'),
+    ));
+    modal.appendChild(el('div', { className: 'dialog-body' }, ...msgLines));
+    if (pinField) modal.appendChild(el('div', { className: 'form-group' }, pinField));
+    modal.appendChild(errEl);
+    modal.appendChild(el('div', { className: 'modal-actions' }, cancelBtn, confirmBtn));
+
+    overlay.appendChild(modal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
+    document.body.appendChild(overlay);
+    setTimeout(() => (pinField || confirmBtn).focus(), 50);
+  });
+}
+
 // ── 해시 ──────────────────────────────────────────────
 //
 // 파티 비밀번호 저장용. localStorage 기반이라 진짜 보안은 아니고

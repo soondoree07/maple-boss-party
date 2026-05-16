@@ -1,7 +1,7 @@
 // party.js — 메인 화면 (파티 카드 목록 + 새 파티 만들기 모달)
 
 import * as Storage from './storage.js';
-import { el, clear, pinInput, isPin, isMobile, buildMobileMenu } from './utils.js';
+import { el, clear, pinInput, isPin, isMobile, buildMobileMenu, confirmDialog } from './utils.js';
 import { exportToFile, importFromFile } from './backup.js';
 
 /**
@@ -80,28 +80,32 @@ function buildHeader(container) {
  * @returns {Promise<boolean>} 실제로 삭제됐으면 true
  */
 export async function confirmAndDeleteParty(party) {
-  let pin = null;
-  if (party.pw) {
-    const entered = prompt(`"${party.name}" 삭제 — 비밀번호(숫자 4자리)를 입력하세요`);
-    if (entered == null || entered === '') return false;            // 취소/빈값
-    if (!isPin(entered)) {
-      alert('비밀번호는 숫자 4자리예요. 삭제가 취소됐어요.');
-      return false;
-    }
-    pin = entered;
-  }
   const runCount = Storage.getRunsByParty(party.id).length;
-  const warn = runCount > 0
-    ? `정말 "${party.name}" 파티를 삭제하시겠습니까?\n기록 ${runCount}건도 함께 영구 삭제되며 되돌릴 수 없습니다.`
-    : `정말 "${party.name}" 파티를 삭제하시겠습니까?\n되돌릴 수 없습니다.`;
-  if (!confirm(warn)) return false;
-  // 서버에서 PIN 검증 후 삭제(비번 없으면 pin 무시). 틀리면 false.
-  const ok = await Storage.deletePartyWithPin(party.id, pin);
-  if (!ok) {
-    alert('비밀번호가 올바르지 않아 삭제가 취소됐어요.');
-    return false;
-  }
-  return true;
+  const lines = [
+    `정말 "${party.name}" 파티를 삭제할까요?`,
+    runCount > 0
+      ? `기록 ${runCount}건도 함께 영구 삭제되며 되돌릴 수 없습니다.`
+      : '되돌릴 수 없습니다.',
+  ];
+  if (party.pw) lines.push('계속하려면 비밀번호를 입력하세요.');
+
+  const ok = await confirmDialog({
+    title: '파티 삭제',
+    message: lines.join('\n'),
+    confirmText: '삭제',
+    cancelText: '취소',
+    danger: true,
+    pin: !!party.pw,
+    pinPlaceholder: '비밀번호 (숫자 4자리)',
+    onConfirm: async (pinVal) => {
+      if (party.pw && !isPin(pinVal)) return '비밀번호는 숫자 4자리예요';
+      // 서버에서 PIN 검증 후 삭제(비번 없으면 pin 무시). 틀리면 false.
+      const deleted = await Storage.deletePartyWithPin(party.id, party.pw ? pinVal : null);
+      if (!deleted) return '비밀번호가 올바르지 않아요';
+      return true;
+    },
+  });
+  return ok === true;
 }
 
 function renderPartyCard(party) {
@@ -273,76 +277,6 @@ function openCreatePartyModal(container) {
   setTimeout(() => nameInput.focus(), 50);
 }
 
-// ── 비밀번호 변경/설정 모달 (파티 상세에서 호출) ──────
-
-/**
- * 파티 비밀번호 설정/변경/해제. 비우고 저장하면 잠금 해제.
- * 저장 성공 시 onSaved(updatedParty) 호출. (이미 파티 안이므로 현재 비번 재확인은 생략)
- */
-export function openChangePasswordModal(party, onSaved) {
-  const overlay = el('div', { className: 'modal-overlay' });
-  const modal   = el('div', { className: 'modal' });
-
-  const pwInput = pinInput('새 비밀번호 · 숫자 4자리 (비우면 잠금 해제)', 'new-password');
-  const pwConfirm = pinInput('숫자 4자리 확인', 'new-password');
-  pwConfirm.style.marginTop = '10px'; // 두 입력칸 너무 붙어 보여 간격
-
-  const submit = async (e) => {
-    const v1 = pwInput.value;
-    const v2 = pwConfirm.value;
-    if (v1 && !isPin(v1)) { alert('비밀번호는 숫자 4자리로 입력해주세요'); pwInput.focus(); return; }
-    if (v1 !== v2) { alert('두 비밀번호가 일치하지 않아요'); pwConfirm.focus(); return; }
-    const btn = e?.currentTarget;
-    if (btn) btn.disabled = true;
-    // 평문 PIN(빈문자열="" = 해제) 전달 — 서버(set_party_pw RPC)가 해시.
-    const updated = Storage.updateParty(party.id, { pw: v1 || '' });
-    if (!updated) { alert('파티를 찾을 수 없어요'); overlay.remove(); return; }
-    overlay.remove();
-    alert(v1 ? '비밀번호가 설정됐어요' : '비밀번호가 해제됐어요');
-    onSaved?.(updated);
-  };
-
-  pwConfirm.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); submit(e); }
-  });
-
-  modal.appendChild(el('div', { className: 'modal-header' },
-    el('h2', { className: 'modal-title' }, '비밀번호 변경'),
-    el('button', {
-      className: 'icon-btn-close',
-      type: 'button',
-      onclick: () => overlay.remove(),
-      'aria-label': '닫기',
-    }, '×'),
-  ));
-  modal.appendChild(el('div', { className: 'form-meta' },
-    `${party.name} · 현재 ${party.pw ? '비밀번호 설정됨' : '잠금 없음'}`,
-  ));
-  modal.appendChild(el('div', { className: 'form-group' },
-    el('label', { className: 'form-label' }, '새 비밀번호 (숫자 4자리)'),
-    pwInput,
-    pwConfirm,
-    el('div', { className: 'form-hint' }, '숫자 4자리. 비워두고 저장하면 비밀번호가 해제돼요'),
-  ));
-  modal.appendChild(el('div', { className: 'modal-actions' },
-    el('button', {
-      className: 'btn btn-ghost',
-      type: 'button',
-      onclick: () => overlay.remove(),
-    }, '취소'),
-    el('button', {
-      className: 'btn btn-primary',
-      type: 'button',
-      onclick: submit,
-    }, '저장'),
-  ));
-
-  overlay.appendChild(modal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-  document.body.appendChild(overlay);
-  setTimeout(() => pwInput.focus(), 50);
-}
-
 // ── 파티 설정 페이지 (#/party/:id/settings) — 멤버 관리 + 비밀번호 ──
 
 /**
@@ -352,7 +286,8 @@ export function openChangePasswordModal(party, onSaved) {
  * @param {(updated:object)=>void} [onUnlockChange] - 비번 변경 시 app.js의 unlockedParties 동기화용
  */
 export function renderPartySettingsPage(container, party, onUnlockChange) {
-  const paint = (p) => {
+  // flash: { section:'mem'|'pw', ok:boolean, text } — 재렌더 후에도 메시지 유지
+  const paint = (p, flash) => {
     clear(container);
 
     container.appendChild(el('header', { className: 'page-header' },
@@ -364,6 +299,12 @@ export function renderPartySettingsPage(container, party, onUnlockChange) {
     const main = el('main', { className: 'widget-page-main' });
 
     // ── 파티원 ──
+    const memMsg = el('div', { className: 'inline-msg' });
+    const showMem = (text, ok) => {
+      memMsg.textContent = text;
+      memMsg.className = 'inline-msg ' + (ok ? 'inline-msg-ok' : 'inline-msg-err');
+    };
+
     const memberRows = p.members.map(name =>
       el('div', { className: 'member-manage-row' },
         el('span', { className: 'member-manage-name' }, name),
@@ -372,17 +313,23 @@ export function renderPartySettingsPage(container, party, onUnlockChange) {
           type: 'button',
           title: '삭제',
           'aria-label': `${name} 삭제`,
-          onclick: () => {
+          onclick: async () => {
             if (p.members.length <= 1) {
-              alert('파티원은 최소 1명이어야 해요');
+              showMem('파티원은 최소 1명이어야 해요', false);
               return;
             }
-            if (!confirm(`"${name}"을(를) 파티원에서 삭제할까요?\n(기존 회차 기록은 그대로 유지돼요)`)) return;
+            const ok = await confirmDialog({
+              title: '파티원 삭제',
+              message: `"${name}"을(를) 파티원에서 삭제할까요?\n기존 회차 기록은 그대로 유지돼요.`,
+              confirmText: '삭제',
+              danger: true,
+            });
+            if (ok !== true) return;
             const updated = Storage.updateParty(p.id, {
               members: p.members.filter(m => m !== name),
             });
             if (!updated) { location.hash = '#/'; return; }
-            paint(updated);
+            paint(updated, { section: 'mem', ok: true, text: `"${name}" 삭제됨` });
           },
         }, '×'),
       ),
@@ -397,15 +344,15 @@ export function renderPartySettingsPage(container, party, onUnlockChange) {
     });
     const addMember = () => {
       const name = addInput.value.trim();
-      if (!name) { alert('닉네임을 입력해주세요'); addInput.focus(); return; }
+      if (!name) { showMem('닉네임을 입력해주세요', false); addInput.focus(); return; }
       if (p.members.includes(name)) {
-        alert(`"${name}"은(는) 이미 파티에 있어요`);
+        showMem(`"${name}"은(는) 이미 파티에 있어요`, false);
         addInput.focus();
         return;
       }
       const updated = Storage.updateParty(p.id, { members: [...p.members, name] });
       if (!updated) { location.hash = '#/'; return; }
-      paint(updated);
+      paint(updated, { section: 'mem', ok: true, text: `"${name}" 추가됨` });
     };
     addInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); addMember(); }
@@ -414,6 +361,7 @@ export function renderPartySettingsPage(container, party, onUnlockChange) {
     main.appendChild(el('section', { className: 'settings-section' },
       el('h2', { className: 'settings-title' }, `파티원 (${p.members.length}명)`),
       ...memberRows,
+      memMsg,
       el('div', { className: 'member-add-row' },
         addInput,
         el('button', { className: 'btn btn-ghost', type: 'button', onclick: addMember }, '추가'),
@@ -424,16 +372,23 @@ export function renderPartySettingsPage(container, party, onUnlockChange) {
     const pwInput   = pinInput('새 비밀번호 · 숫자 4자리 (비우면 잠금 해제)', 'new-password');
     const pwConfirm = pinInput('숫자 4자리 확인', 'new-password');
     pwConfirm.style.marginTop = '10px';
+    const pwMsg = el('div', { className: 'inline-msg' });
+    const showPw = (text, ok) => {
+      pwMsg.textContent = text;
+      pwMsg.className = 'inline-msg ' + (ok ? 'inline-msg-ok' : 'inline-msg-err');
+    };
     const savePw = () => {
       const v1 = pwInput.value;
       const v2 = pwConfirm.value;
-      if (v1 && !isPin(v1)) { alert('비밀번호는 숫자 4자리로 입력해주세요'); pwInput.focus(); return; }
-      if (v1 !== v2) { alert('두 비밀번호가 일치하지 않아요'); pwConfirm.focus(); return; }
+      if (v1 && !isPin(v1)) { showPw('비밀번호는 숫자 4자리로 입력해주세요', false); pwInput.focus(); return; }
+      if (v1 !== v2)        { showPw('비밀번호를 확인하세요', false); pwConfirm.focus(); return; }
       const updated = Storage.updateParty(p.id, { pw: v1 || '' });
       if (!updated) { location.hash = '#/'; return; }
       onUnlockChange?.(updated);
-      alert(v1 ? '비밀번호가 설정됐어요' : '비밀번호가 해제됐어요');
-      paint(updated);
+      paint(updated, {
+        section: 'pw', ok: true,
+        text: v1 ? '비밀번호가 변경되었습니다.' : '비밀번호가 해제되었습니다.',
+      });
     };
     pwConfirm.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); savePw(); }
@@ -449,10 +404,17 @@ export function renderPartySettingsPage(container, party, onUnlockChange) {
         pwConfirm,
         el('div', { className: 'form-hint' }, '숫자 4자리. 비워두고 저장하면 비밀번호가 해제돼요'),
       ),
+      pwMsg,
       el('button', { className: 'btn btn-primary', type: 'button', onclick: savePw }, '비밀번호 저장'),
     ));
 
     container.appendChild(main);
+
+    if (flash) {
+      const target = flash.section === 'pw' ? pwMsg : memMsg;
+      target.textContent = flash.text;
+      target.className = 'inline-msg ' + (flash.ok ? 'inline-msg-ok' : 'inline-msg-err');
+    }
   };
 
   paint(party);
