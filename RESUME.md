@@ -27,6 +27,12 @@
 - 사용자 추가 요청으로 `record.js` 통일: 회차 폼 검증 alert 6건→저장 버튼 위 인라인(`showFormMsg`), 회차 삭제 confirm→confirmDialog(위험·보스명), 예약 시간 alert→예약 폼 인라인. record.js→utils confirmDialog import.
 - 커밋 `c3ca347`, 라이브 `showFormMsg` 7회 확인.
 - **★ 결과: 사이트 전체 js에서 네이티브 alert/confirm/prompt 0건** — 모든 알림이 무드 토큰 기반(인라인 메시지 / confirmDialog / toast). `grep -rn "[^.a-zA-Z]alert(\|confirm(\|prompt(" js/*.js` = 0건.
+- 커밋 `c3ca347`.
+
+## ★ 2026-05-17 (후속5) — 세션 코드 리뷰 정리 (배포 완료)
+- 3-에이전트(reuse/quality/efficiency) 병렬 리뷰 후 실제 이슈만 수정. 커밋 `0a04153`, 라이브 확인.
+- `inlineMsg()` 헬퍼(utils)로 인라인 메시지 중복 6곳 통합, storage `onPushError` 추출. mood-3 `.btn-danger` 대비 실패 → `--on-danger:#2a0606` 토큰 도입. `confirmDialog` 견고화(isTopmost 키 가드/inFlight 닫기 차단/throw 로깅/message 배열) + `openDateModal` ESC 최상단 가드(회귀 방지). `toast` 최대 3개, `compactSlots` no-op 스킵(IME).
+- **보류**: 5개 모달 공용 셸 `createModal` 추출(reuse MEDIUM) — 세션 외 기존 중복까지 건드리는 큰 리팩터라 별도 작업으로 미룸. 다음에 모달 UI 손볼 때 같이.
 - **다음 세션 첫 액션 = 사용자 새 지시 대기**(진행 중 작업 없음).
 
 ## ⛔ 작업 규칙 (사용자 지정 — 반드시 준수)
