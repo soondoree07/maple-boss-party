@@ -152,6 +152,19 @@ function push(promise, label) {
     });
 }
 
+// push 의 직렬화 버전 — 여러 서버 작업의 순서가 중요한 경우(예: 파티 INSERT 가
+// 끝난 뒤에야 set_party_pw RPC 가 그 row 를 UPDATE 할 수 있음) 사용한다.
+// fn 은 await 로 순서를 직접 보장하는 async 함수. 실패 시 재동기 + 알림.
+function pushSerial(fn, label) {
+  Promise.resolve()
+    .then(fn)
+    .catch(async (e) => {
+      console.error(`[storage] ${label} 저장 실패:`, e);
+      alert(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`);
+      try { await loadAll(); if (remoteCb) remoteCb(); } catch (_) { /* noop */ }
+    });
+}
+
 // ── 파티 ─────────────────────────────────────────────
 
 export const getParties = () => cache.parties;
@@ -169,8 +182,24 @@ export function createParty({ name, members, pw }) {
   };
   if (pw) party.pw = true; // 센티넬(불리언) — 실제 해시는 서버만 보유
   cache.parties.push(party);
-  push(supabase.from('parties').insert(partyToRow(party)), '파티 생성');
-  if (pw) push(supabase.rpc('set_party_pw', { p_party_id: party.id, p_pin: String(pw) }), '비번 설정');
+
+  // ★ INSERT 와 set_party_pw 를 반드시 직렬화 ★
+  // 예전엔 둘 다 fire-and-forget(push) 라 PostgREST 도달 순서가 보장되지 않았다.
+  // RPC 가 INSERT 보다 먼저 도착하면 set_party_pw 의 UPDATE 대상 row 가 아직
+  // 없어 pw_hash 가 NULL 로 남는 race condition 발생 → 만든 PC 는 게이트만 뜨고
+  // 정답 PIN 도 거부, 다른/재접속 PC 는 has_pw=false 라 비번 없이 입장.
+  // INSERT 가 끝난 뒤에 RPC 를 호출해 항상 row 가 존재하도록 보장한다.
+  pushSerial(async () => {
+    const { error: e1 } = await supabase.from('parties').insert(partyToRow(party));
+    if (e1) throw e1;
+    if (pw) {
+      const { error: e2 } = await supabase.rpc('set_party_pw', {
+        p_party_id: party.id, p_pin: String(pw),
+      });
+      if (e2) throw e2;
+    }
+  }, pw ? '파티 생성(비번 포함)' : '파티 생성');
+
   return party;
 }
 
@@ -192,14 +221,24 @@ export function updateParty(partyId, patch) {
   }
   cache.parties[idx] = next;
 
-  if (Object.keys(rest).length > 0) {
-    push(supabase.from('parties').update(partyToRow(next)).eq('id', partyId), '파티 수정');
-  }
-  if (hasPw) {
-    push(
-      supabase.rpc('set_party_pw', { p_party_id: partyId, p_pin: patch.pw ? String(patch.pw) : null }),
-      '비번 변경',
-    );
+  // createParty 와 같은 이유로 직렬화: 갓 만들어진(아직 INSERT 가 서버에
+  // 안 닿았을 수도 있는) 파티를 곧바로 수정하는 경우에도 row 존재를 보장.
+  // 기존 파티 수정은 race 가 없지만 일관성/안전을 위해 동일 경로 사용.
+  const hasRest = Object.keys(rest).length > 0;
+  if (hasRest || hasPw) {
+    pushSerial(async () => {
+      if (hasRest) {
+        const { error: e1 } = await supabase
+          .from('parties').update(partyToRow(next)).eq('id', partyId);
+        if (e1) throw e1;
+      }
+      if (hasPw) {
+        const { error: e2 } = await supabase.rpc('set_party_pw', {
+          p_party_id: partyId, p_pin: patch.pw ? String(patch.pw) : null,
+        });
+        if (e2) throw e2;
+      }
+    }, hasPw ? '비번 변경' : '파티 수정');
   }
   return next;
 }
