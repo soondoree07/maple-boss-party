@@ -57,7 +57,15 @@ function route() {
 // 배경/색은 index.html <head>의 인라인 스크립트가 무드 6벌 중 1벌을
 // 방문(로드)마다 랜덤으로 얹어 처리한다 (css/themes/mood-N.css :root 오버라이드).
 window.addEventListener('hashchange', route);
-window.addEventListener('DOMContentLoaded', route);
+window.addEventListener('DOMContentLoaded', () => {
+  // 공유된 딥링크(#/party/:id, #/crystals 등)로 들어와도 항상 파티 선택
+  // 페이지에서 시작한다. 비밀번호 게이트 우회·파티 존재 노출 방지.
+  // 앱 내 이동(파티 클릭)은 hashchange 경로라 새 로드가 아니므로 영향 없음.
+  if (location.hash && location.hash !== '#/' && location.hash !== '#') {
+    history.replaceState(null, '', location.pathname + location.search + '#/');
+  }
+  route();
+});
 
 // ── 파티 비밀번호 게이트 ──────────────────────────────
 
