@@ -990,6 +990,11 @@ a { color: inherit; text-decoration: none; }
 .calendar-cell:hover { background: var(--bg-card-hover); }
 .calendar-cell:nth-child(7n) { border-right: none; }
 
+/* 모바일 주간 뷰 — 한 주만 보이므로 셀을 크게(세로 여유).
+   미디어쿼리의 .calendar-grid 와 명시도 동률이라 .calendar-grid.calendar-week 로 확실히 이김. */
+.calendar-grid.calendar-week { grid-auto-rows: minmax(124px, auto); }
+.calendar-grid.calendar-week .calendar-cell { min-height: 124px; }
+
 .calendar-cell.other-month { opacity: 0.35; }
 .calendar-cell.weekend .cell-date { color: var(--accent-rose); }
 

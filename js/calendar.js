@@ -5,7 +5,7 @@
 
 import * as Storage from './storage.js';
 import { getBoss } from './data.js';
-import { toDateStr, todayStr, el, clear } from './utils.js';
+import { toDateStr, todayStr, el, clear, isMobile } from './utils.js';
 
 /**
  * @param {{id: string, members: string[]}} party
@@ -32,6 +32,12 @@ function paintCalendar(wrap, party, viewDate, onDateClick, repaint) {
 
   const year  = viewDate.getFullYear();
   const month = viewDate.getMonth();
+
+  // ── 모바일: 주 단위 뷰 (목→수 한 주, 라벨은 그 주 일요일 기준) ──
+  if (isMobile()) {
+    paintWeek(wrap, party, viewDate, onDateClick, repaint);
+    return;
+  }
 
   // ── 헤더 ──
   wrap.appendChild(el('div', { className: 'calendar-header' },
@@ -90,6 +96,62 @@ function paintCalendar(wrap, party, viewDate, onDateClick, repaint) {
       runsHere,
       resHere,
       isOtherMonth: cellDate.getMonth() !== month,
+      isToday:      cellKey === todayKey,
+      onClick:      () => onDateClick(cellKey),
+    }));
+  }
+  wrap.appendChild(grid);
+}
+
+// 모바일 주간 뷰 — 목요일 시작 7일. 라벨(N월 N주차)은 그 주의 일요일 기준.
+function paintWeek(wrap, party, viewDate, onDateClick, repaint) {
+  // 이 날짜가 속한 주의 시작 목요일.
+  const daysFromThu = (viewDate.getDay() - 4 + 7) % 7;
+  const weekThu = new Date(viewDate.getFullYear(), viewDate.getMonth(), viewDate.getDate() - daysFromThu);
+  // 그 주의 일요일 = 목 +3일. 이게 속한 달/주차로 라벨.
+  const sunday = new Date(weekThu.getFullYear(), weekThu.getMonth(), weekThu.getDate() + 3);
+  const weekOfMonth = Math.ceil(sunday.getDate() / 7); // 일요일은 7일 간격이라 ceil이 정확
+  const label = `${sunday.getFullYear()}년 ${sunday.getMonth() + 1}월 ${weekOfMonth}주차`;
+
+  const shift = (days) => repaint(
+    new Date(weekThu.getFullYear(), weekThu.getMonth(), weekThu.getDate() + days),
+  );
+
+  wrap.appendChild(el('div', { className: 'calendar-header' },
+    el('button', {
+      className: 'cal-nav-btn', type: 'button', title: '이전 주',
+      onclick: () => shift(-7),
+    }, '←'),
+    el('h2', { className: 'calendar-title' }, label),
+    el('button', {
+      className: 'cal-nav-btn', type: 'button', title: '다음 주',
+      onclick: () => shift(7),
+    }, '→'),
+  ));
+
+  const dayLabels  = ['목', '금', '토', '일', '월', '화', '수'];
+  const weekendIdx = new Set([2, 3]);
+  wrap.appendChild(el('div', { className: 'calendar-weekdays' },
+    dayLabels.map((d, i) => el('div', {
+      className: 'weekday' + (weekendIdx.has(i) ? ' weekend' : ''),
+    }, d)),
+  ));
+
+  const runsByDate = groupByDate(Storage.getRunsByParty(party.id));
+  const resByDate  = groupByDate(Storage.getReservationsByParty(party.id));
+  const todayKey   = todayStr();
+
+  const grid = el('div', { className: 'calendar-grid calendar-week' });
+  for (let i = 0; i < 7; i++) {
+    const cellDate = new Date(weekThu.getFullYear(), weekThu.getMonth(), weekThu.getDate() + i);
+    const cellKey  = toDateStr(cellDate);
+    grid.appendChild(buildCell({
+      cellDate,
+      cellKey,
+      dow:          cellDate.getDay(),
+      runsHere:     runsByDate[cellKey] || [],
+      resHere:      resByDate[cellKey]  || [],
+      isOtherMonth: false,
       isToday:      cellKey === todayKey,
       onClick:      () => onDateClick(cellKey),
     }));
