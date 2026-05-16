@@ -328,6 +328,7 @@ export function openChangePasswordModal(party, onSaved) {
 
   const pwInput = pinInput('새 비밀번호 · 숫자 4자리 (비우면 잠금 해제)', 'new-password');
   const pwConfirm = pinInput('숫자 4자리 확인', 'new-password');
+  pwConfirm.style.marginTop = '10px'; // 두 입력칸 너무 붙어 보여 간격
 
   const submit = async (e) => {
     const v1 = pwInput.value;

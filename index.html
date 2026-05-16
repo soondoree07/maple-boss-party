@@ -11,13 +11,16 @@
 
   <link rel="stylesheet" href="css/style.css">
   <script>
-    // 방문(로드)마다 무드 6벌 중 1벌을 랜덤으로 적용한다.
-    // style.css 뒤에 :root 오버라이드 <link>를 얹어 색만 덮어쓴다(구조/클래스/JS 불변).
+    // 무드 <link>를 style.css 뒤에 얹어 :root만 덮어쓴다(구조/클래스/JS 불변).
+    // 첫 페인트는 항상 파티 선택 화면(진입 가드가 #/ 로 강제)이라 랜덤 픽으로 시작.
+    // 파티 안에서는 app.js가 유저 선택 무드로 href만 교체한다(js/mood.js).
     (function () {
       var moods = [1, 2, 3, 4, 6, 8];
       var pick = moods[Math.floor(Math.random() * moods.length)];
+      window.__moodRandomId = pick;
       var link = document.createElement('link');
       link.rel = 'stylesheet';
+      link.id = 'mood-theme-link';
       link.href = 'css/themes/mood-' + pick + '.css';
       document.head.appendChild(link);
     })();

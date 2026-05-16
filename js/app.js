@@ -15,6 +15,7 @@ import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
 import { el, clear, sha256Hex, pinInput } from './utils.js';
+import { applyRouteMood, openMoodModal } from './mood.js';
 
 const root = document.getElementById('app');
 
@@ -27,6 +28,9 @@ const unlockedParties = new Set();
 
 function route() {
   const hash = location.hash || '#/';
+
+  // 무드: 파티 선택 화면만 랜덤, 그 외(파티/게이트/보스 설정)는 유저 선택값.
+  applyRouteMood(hash);
 
   if (hash === '#/crystals') {
     renderCrystalsPage(root);
@@ -127,6 +131,12 @@ function renderPartyDetail(container, party) {
     el('a', { href: '#/', className: 'back-btn' }, '← 파티 목록'),
     el('h1', { className: 'page-title' }, party.name),
     el('div', { className: 'header-actions' },
+      el('button', {
+        className: 'icon-btn',
+        type: 'button',
+        title: '무드(테마) 설정 — 미리보기 후 적용',
+        onclick: () => openMoodModal(),
+      }, '무드 설정'),
       el('a', {
         href: '#/crystals',
         className: 'icon-btn',
