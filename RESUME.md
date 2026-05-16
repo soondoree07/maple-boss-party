@@ -9,7 +9,7 @@
 **프로젝트 위치:** `/mnt/c/Users/박정혁/Downloads/maple-boss/` (Windows Downloads 폴더)
 **png 원본 폴더:** `/home/soondoree07/maple-boss/png/`
 **보스 데이터 원본:** `/home/soondoree07/maple-boss/boss_table.md` (사용자가 준 보스×난이도×결정석×전리품 표)
-**배포 URL:** https://soondoree07.github.io/maple-boss-party/
+**배포 URL(공유 링크):** https://maplebossparty.vercel.app  — **Vercel** 호스팅, `git push` 시 자동 재배포. (구: https://soondoree07.github.io/maple-boss-party/ 아직 살아있음·같은 Supabase 데이터)
 **Repo:** https://github.com/soondoree07/maple-boss-party (main / root, GitHub Pages 활성)
 
 ## 오늘 완료한 것 (2026-05-16 — v0.5: 보스 난이도 모델 전면 도입)
