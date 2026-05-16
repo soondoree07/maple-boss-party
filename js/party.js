@@ -1,7 +1,7 @@
 // party.js — 메인 화면 (파티 카드 목록 + 새 파티 만들기 모달)
 
 import * as Storage from './storage.js';
-import { el, clear, pinInput, isPin, isMobile, buildMobileMenu, confirmDialog } from './utils.js';
+import { el, clear, pinInput, isPin, isMobile, buildMobileMenu, confirmDialog, toast } from './utils.js';
 import { exportToFile, importFromFile } from './backup.js';
 
 /**
@@ -42,7 +42,11 @@ function buildHeader(container) {
     type: 'file',
     accept: 'application/json',
     style: { display: 'none' },
-    onchange: (e) => handleImport(e.target.files[0], container),
+    onchange: (e) => {
+      const f = e.target.files[0];
+      e.target.value = ''; // 같은 파일 재선택 가능하도록 초기화
+      handleImport(f, container);
+    },
   });
 
   const actionNodes = [
@@ -202,6 +206,13 @@ function openCreatePartyModal(container) {
 
   const pwInput = pinInput('숫자 4자리 (비워두면 잠금 없음)', 'new-password');
 
+  const createMsg = el('div', { className: 'inline-msg' });
+  const showCreateMsg = (text, focusEl) => {
+    createMsg.textContent = text;
+    createMsg.className = 'inline-msg inline-msg-err';
+    focusEl?.focus();
+  };
+
   modal.appendChild(el('div', { className: 'modal-header' },
     el('h2', { className: 'modal-title' }, '새 파티 만들기'),
     el('button', {
@@ -229,6 +240,8 @@ function openCreatePartyModal(container) {
       '설정하면 이 파티에 들어올 때 숫자 4자리를 입력해야 해요'),
   ));
 
+  modal.appendChild(createMsg);
+
   modal.appendChild(el('div', { className: 'modal-actions' },
     el('button', {
       className: 'btn btn-ghost',
@@ -244,19 +257,18 @@ function openCreatePartyModal(container) {
         for (const input of memberInputs) {
           const v = input.value.trim();
           if (!v) continue;
-          if (seen.has(v)) { alert(`닉네임이 중복돼요: "${v}"`); input.focus(); return; }
+          if (seen.has(v)) { showCreateMsg(`닉네임이 중복돼요: "${v}"`, input); return; }
           seen.add(v);
           members.push(v);
         }
 
         const name = nameInput.value.trim();
-        if (!name) { alert('파티 이름을 입력해주세요'); nameInput.focus(); return; }
-        if (members.length === 0) { alert('파티원을 1명 이상 입력해주세요'); return; }
+        if (!name) { showCreateMsg('파티 이름을 입력해주세요', nameInput); return; }
+        if (members.length === 0) { showCreateMsg('파티원을 1명 이상 입력해주세요'); return; }
 
         const pwRaw = pwInput.value;
         if (pwRaw && !isPin(pwRaw)) {
-          alert('비밀번호는 숫자 4자리로 입력해주세요');
-          pwInput.focus();
+          showCreateMsg('비밀번호는 숫자 4자리로 입력해주세요', pwInput);
           return;
         }
 
@@ -422,11 +434,18 @@ export function renderPartySettingsPage(container, party, onUnlockChange) {
 
 // ── 백업/복원 ─────────────────────────────────────────
 
-function handleImport(file, container) {
+async function handleImport(file, container) {
   if (!file) return;
-  if (!confirm('현재 데이터가 모두 덮어써져요. 계속할까요?')) return;
+  const ok = await confirmDialog({
+    title: '백업 복원',
+    message: '현재 데이터가 모두 백업 파일 내용으로 덮어써집니다.\n계속할까요?',
+    confirmText: '복원',
+    cancelText: '취소',
+    danger: true,
+  });
+  if (ok !== true) return;
   importFromFile(file,
-    () => { alert('불러오기 완료'); renderPartyList(container); },
-    (err) => alert('불러오기 실패: ' + err.message),
+    () => { toast('백업을 불러왔어요', 'ok'); renderPartyList(container); },
+    (err) => toast('불러오기 실패: ' + err.message, 'err'),
   );
 }

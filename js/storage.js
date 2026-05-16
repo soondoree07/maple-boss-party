@@ -13,6 +13,7 @@
 // localStorage 버전이 필요하면 git 태그 pre-supabase-2026-05-16 로 복구.
 
 import { supabase } from './config.js';
+import { toast } from './utils.js';
 
 const cache = {
   parties:      [], // [{ id, name, members:[], createdAt, pw? }]
@@ -147,7 +148,7 @@ function push(promise, label) {
     .then(({ error } = {}) => { if (error) throw error; })
     .catch(async (e) => {
       console.error(`[storage] ${label} 저장 실패:`, e);
-      alert(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`);
+      toast(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`, 'err');
       try { await loadAll(); if (remoteCb) remoteCb(); } catch (_) { /* noop */ }
     });
 }
@@ -160,7 +161,7 @@ function pushSerial(fn, label) {
     .then(fn)
     .catch(async (e) => {
       console.error(`[storage] ${label} 저장 실패:`, e);
-      alert(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`);
+      toast(`서버 저장에 실패했어요 (${label}). 화면을 동기화할게요.`, 'err');
       try { await loadAll(); if (remoteCb) remoteCb(); } catch (_) { /* noop */ }
     });
 }
@@ -263,7 +264,7 @@ export async function deletePartyWithPin(partyId, pin) {
   });
   if (error) {
     console.error('[storage] delete_party 실패:', error);
-    alert('서버 삭제에 실패했어요. 잠시 후 다시 시도해주세요.');
+    toast('서버 삭제에 실패했어요. 잠시 후 다시 시도해주세요.', 'err');
     return false;
   }
   if (data !== true) return false; // 비번 불일치
@@ -410,7 +411,7 @@ export function importData(data) {
     .then(async () => { await loadAll(); if (remoteCb) remoteCb(); })
     .catch((e) => {
       console.error('[storage] 복원 실패:', e);
-      alert('백업 복원에 실패했어요. 서버 상태를 확인해주세요.');
+      toast('백업 복원에 실패했어요. 서버 상태를 확인해주세요.', 'err');
     });
 }
 

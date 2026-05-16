@@ -2180,6 +2180,40 @@ a { color: inherit; text-decoration: none; }
 .inline-msg-ok  { color: var(--accent-gold); }
 .inline-msg-err { color: var(--danger); }
 
+/* 토스트 — 하단 중앙 일시 알림 */
+.toast-wrap {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 200;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  max-width: 88vw;
+  padding: 11px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--card-filter);
+  -webkit-backdrop-filter: var(--card-filter);
+  animation: toast-in 0.2s ease-out;
+  cursor: pointer;
+}
+.toast-ok  { color: var(--accent-gold); }
+.toast-err { color: var(--danger); }
+.toast-out { animation: toast-out 0.2s ease-in forwards; }
+@keyframes toast-in  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(10px); } }
+
 .party-card-lock {
   color: var(--accent-aqua);
   font-weight: 600;

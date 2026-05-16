@@ -336,6 +336,32 @@ export function confirmDialog(opts = {}) {
   });
 }
 
+// ── 토스트 (네이티브 alert 대체 — 일시 알림) ──────────
+
+let _toastWrap = null;
+
+/**
+ * 화면 하단 중앙에 잠깐 떴다 사라지는 무드 알림. 네이티브 alert 대체.
+ * @param {string} message
+ * @param {'ok'|'err'} [kind='err']
+ * @param {number} [ms=3500] 자동 사라짐(ms). 클릭하면 즉시 닫힘.
+ */
+export function toast(message, kind = 'err', ms = 3500) {
+  if (!_toastWrap || !_toastWrap.isConnected) {
+    _toastWrap = el('div', { className: 'toast-wrap' });
+    document.body.appendChild(_toastWrap);
+  }
+  const t = el('div', { className: 'toast toast-' + (kind === 'ok' ? 'ok' : 'err') }, message);
+  _toastWrap.appendChild(t);
+  const kill = () => {
+    t.classList.add('toast-out');
+    setTimeout(() => t.remove(), 200);
+  };
+  const timer = setTimeout(kill, ms);
+  t.addEventListener('click', () => { clearTimeout(timer); kill(); });
+  return t;
+}
+
 // ── 해시 ──────────────────────────────────────────────
 //
 // 파티 비밀번호 저장용. localStorage 기반이라 진짜 보안은 아니고

@@ -14,7 +14,7 @@ import { renderCalendar } from './calendar.js';
 import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
-import { el, clear, pinInput, isMobile, buildMobileMenu } from './utils.js';
+import { el, clear, pinInput, isMobile, buildMobileMenu, toast } from './utils.js';
 import { applyRouteMood, openMoodModal } from './mood.js';
 
 const root = document.getElementById('app');
@@ -95,7 +95,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await Storage.init();
   } catch (e) {
     console.error('[app] Storage.init 실패:', e);
-    alert('서버 연결에 실패했어요. 네트워크를 확인하고 새로고침해주세요.');
+    toast('서버 연결에 실패했어요. 네트워크를 확인하고 새로고침해주세요.', 'err', 6000);
   }
   // 다른 사람이 수정 → Realtime → 현재 화면 자동 재렌더.
   Storage.onRemoteChange(route);
