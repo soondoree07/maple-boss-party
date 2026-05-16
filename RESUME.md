@@ -42,7 +42,8 @@
 ## 다음 액션 (이어할 작업) — ★ 여기부터 재개
 
 > **체크포인트(2026-05-16):** **1단계 종료·푸시 `449dd44`** (방문마다 무드 6벌 랜덤) + **진입 가드 `c0f781a`** (모든 진입을 파티 선택 페이지로 강제 — 공유 딥링크로 게이트 우회·파티 노출 차단, `app.js` DOMContentLoaded에서 hash≠`#/`면 `history.replaceState`로 `#/` 재작성 후 route) + **삭제 가드 `4358853`** (`party.js` `confirmAndDeleteParty()` — 비번 있으면 입력·sha256 검증 → 2차 "정말 삭제?" 경고 → 삭제. 메인 카드·상세 헤더 공용) + **비번=숫자 4자리 PIN `d1dc891`** (`utils.js` `pinInput()`/`isPin()`, 4곳 적용) + **무드 정책 분리 `d72e4b1`** (`js/mood.js` — 파티 선택만 랜덤·파티 안은 유저 선택 무드 `localStorage 'maple-mood'`, 헤더 "보스 설정" 왼쪽 "무드 설정" 버튼=미리보기→적용 / 비번모달 입력칸 간격). devlog 푸시 완료. tree clean. CSS 토큰화 이전 되돌리기 = git 태그 `pre-redesign-2026-05-16` (백업 파일은 삭제됨).
-> **이어할 첫 액션 = 사용자가 Supabase 프로젝트 생성 → URL/키 전달 (또는 "가이드 해줘") → P1 착수.** (2단계 결정 4개 확정 완료, 아래)
+> **2단계 P1·P2 푸시 완료 `1363b70`** (Supabase 연결 + storage.js 방식2 + boss_settings 파티별). 롤백 태그 `pre-supabase-2026-05-16`.
+> **이어할 첫 액션 = 사용자 검증 결과 확인.** 사용자가 ① delete RLS 추가 SQL 실행 ② 콘솔 스니펫으로 기존 localStorage 백업 ③ "↑ 복원"으로 Supabase 업로드 ④ 다기기·Realtime 검증 중. 결과(데이터 보임/실시간 반영/오류) 들으면 디버그 또는 P5(비번·삭제 서버 강제) 진행.
 
 ### 1단계 — 디자인 무드 개편 : ✅ 종료 (정책 분리 + 무드 설정 모달)
 - `style.css` 완전 토큰화(값 1:1 동일·렌더 무변화) 완료. 운영 무드 6벌(전부 다크, 번호 1~6 연속, `d5a6281`) = 1 Midnight Slate·2 Abyss Teal·3 Crimson Noir·4 Neon Synth·5 Royal Plum·6 Carbon Amber.
@@ -50,11 +51,14 @@
 - 정리 완료: app.js `applyRandomBackground`/`BACKGROUNDS` 제거, 임시 전환기 `js/theme-switch.js`·index 임시 script 삭제, 미사용 무드 5(Graphite Mono)·7(Espresso Copper) + `css/style.pre-redesign.css` 백업 삭제. 검증: 로컬서버 자산 전부 200·댕글링 0. 커밋 `449dd44`(랜덤 1단계)→`d72e4b1`(정책 분리) 푸시.
 - (무드 6벌 목록 변경은 `index.html`의 `moods=[…]` + `js/mood.js`의 `MOOD_IDS`/`MOOD_LABELS` 동기 수정)
 
-### 2단계 — 공유 백엔드 전환 : 설계+결정 완료, **P1 착수 대기** ← ★ 지금 여기
-- 산출: `/mnt/c/Users/박정혁/Downloads/maple-boss/BACKEND_PLAN.md` — `storage.js` **인메모리캐시+Realtime(방식2)**(읽기 동기 유지→화면코드 거의 그대로, app.js 2곳만)·1회 마이그레이션(backup JSON→upsert 멱등)·비번 서버 verify RPC+RLS 승격.
-- **결정 4개 확정(2026-05-16):** ① 스택=**Supabase** ② 공개범위=**(a) 그냥 공유**(링크만 알면 누구나 조회·수정, 로그인X) ③ `boss_settings`=**파티별 분리**(party_id PK, 호출부 수정 +0.5~1일) ④ 호스팅=**GitHub Pages 유지**(추후 Vercel 전환 가능·되돌릴 수 있음). 공수 약 3.5~5.5일.
-- **다음 = P1: 사용자 Supabase 프로젝트 생성** → Project URL·anon key·service_role key 확보 → 내가 §2 스키마(party 스코프 boss_settings)+§5 verify RPC+§8 RLS SQL 일괄 제공 → P2(storage.js 방식2)→P3(app.js)→P4(마이그레이션, 기존 전역 boss_settings를 모든 파티에 시드)→P5(비번 RPC)→P6(배포·Pages 유지).
-- 사용자가 Supabase 프로젝트 만들고 URL/키 주면(또는 "가이드 해줘") P1 착수. ⚠️ "그냥 공유"는 RLS가 유일 방어선 — delete 차단·pw_hash RLS 숨김·backup 유도(§8).
+### 2단계 — 공유 백엔드 전환 : P1·P2 완료, **사용자 검증 + P5 남음** ← ★ 지금 여기
+- **결정 4개 확정:** ① Supabase ② (a) 그냥 공유 ③ boss_settings 파티별(party_id PK) ④ GitHub Pages 유지.
+- **P1 완료:** Supabase 프로젝트 `plunswlhklpbyihrnxwo` (URL `https://plunswlhklpbyihrnxwo.supabase.co`). 스키마 4테이블+RLS(select/insert/update)+`verify_party_pw` RPC 적용. anon 키는 `js/config.js`에 (공개 OK). **service_role 키는 채팅 노출됨 → 사용자가 재발급 권장(P4 불필요해져서 안 써도 됨).**
+- **P2 완료(`1363b70`):** `js/config.js`(supabase-js v2 ESM). `storage.js` 전면 재작성 = 인메모리 캐시 + `init()` 1회 로드 + Realtime 구독 + 낙관적 write-through. 읽기 API 동기 유지(화면 코드 거의 불변). row↔앱 매핑(snake/camel), reservation `payload jsonb`. `boss_settings` 파티별: `getBossSettings(partyId)`/`setBossSettings(partyId,patch)`, 라우트 `#/crystals/:partyId`, crystals/earnings/monthly/record + 헤더 링크/뒤로/저장 갱신. `app.js` `await Storage.init()` + `onRemoteChange(route)`. `mood.js` `#/crystals/:id` 파티 안 인식. P3는 P2에 포함됨.
+- **마이그레이션(P4 대체):** service_role 스크립트 불필요 — 기존 localStorage JSON을 콘솔 스니펫(`localStorage.getItem('maple-boss-v1')`)으로 받아 사이트 "↑ 복원" → `importData`가 Supabase upsert. 구버전 전역 bossSettings는 importData가 전 파티에 복제.
+- **사용자가 지금 해야 할 것:** ① delete RLS 추가 SQL(`grant delete ...` + 4개 `create policy "delete" ... using(true)`) 실행 ② 콘솔 스니펫으로 백업 ③ "↑ 복원" 업로드 ④ 새로고침/다기기/Realtime 검증.
+- **남은 = P5:** 비번·삭제 서버 강제(`pw_hash` RLS 숨김 + `verify_party_pw`/`delete_party` RPC로 승격). 현재는 클라이언트 판정(약한 잠금). + P6 = 다기기 스모크·마무리.
+- ⚠️ "그냥 공유"는 RLS가 유일 방어선. 현재 delete도 anon 허용(기능 유지 위해). Realtime unhealthy면 새로고침해야 반영(기능은 동작).
 
 ### (선택, 보류) 그 외
 - 배포 사이트 검증 한 바퀴(회차 난이도 캐스케이드·보이기 필터·기존 데이터 호환)
