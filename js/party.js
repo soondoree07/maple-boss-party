@@ -61,6 +61,29 @@ function buildHeader(container) {
   );
 }
 
+/**
+ * 파티 삭제 가드 — 비번이 있으면 ① 비번 입력·검증 → ② 최종 경고 확인 → 삭제.
+ * 비번 없는 파티는 ②만. 두 삭제 진입점(메인 카드 ×, 파티 상세 헤더)이 공용으로 쓴다.
+ * @returns {Promise<boolean>} 실제로 삭제됐으면 true
+ */
+export async function confirmAndDeleteParty(party) {
+  if (party.pw) {
+    const entered = prompt(`"${party.name}" 삭제 — 비밀번호를 입력하세요`);
+    if (entered == null || entered === '') return false;            // 취소/빈값
+    if ((await sha256Hex(entered)) !== party.pw) {
+      alert('비밀번호가 올바르지 않아요. 삭제가 취소됐어요.');
+      return false;
+    }
+  }
+  const runCount = Storage.getRunsByParty(party.id).length;
+  const warn = runCount > 0
+    ? `정말 "${party.name}" 파티를 삭제하시겠습니까?\n기록 ${runCount}건도 함께 영구 삭제되며 되돌릴 수 없습니다.`
+    : `정말 "${party.name}" 파티를 삭제하시겠습니까?\n되돌릴 수 없습니다.`;
+  if (!confirm(warn)) return false;
+  Storage.deleteParty(party.id);
+  return true;
+}
+
 function renderPartyCard(party, container) {
   const runCount = Storage.getRunsByParty(party.id).length;
 
@@ -73,15 +96,12 @@ function renderPartyCard(party, container) {
       type: 'button',
       title: '파티 삭제',
       'aria-label': `${party.name} 삭제`,
-      onclick: (e) => {
+      onclick: async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const msg = runCount > 0
-          ? `"${party.name}" 파티를 삭제하면 기록 ${runCount}건도 모두 사라져요. 정말 삭제할까요?`
-          : `"${party.name}" 파티를 삭제할까요?`;
-        if (!confirm(msg)) return;
-        Storage.deleteParty(party.id);
-        renderPartyList(container);
+        if (await confirmAndDeleteParty(party)) {
+          renderPartyList(container);
+        }
       },
     }, '×'),
     el('div', { className: 'party-card-name' }, party.name),

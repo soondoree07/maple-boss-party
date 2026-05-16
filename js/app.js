@@ -5,7 +5,7 @@
 //   #/party/:id       파티 상세 (진행도 + 캘린더)
 
 import * as Storage from './storage.js';
-import { renderPartyList, openAddMemberModal, openChangePasswordModal } from './party.js';
+import { renderPartyList, openAddMemberModal, openChangePasswordModal, confirmAndDeleteParty } from './party.js';
 import { renderMonthlyHistory } from './monthly.js';
 import { renderChannelRoulette } from './roulette.js';
 import { renderLadder } from './ladder.js';
@@ -157,9 +157,8 @@ function renderPartyDetail(container, party) {
         className: 'icon-btn icon-btn-danger',
         type: 'button',
         title: '파티 삭제',
-        onclick: () => {
-          if (confirm(`"${party.name}" 파티를 삭제하면 관련 보스 기록도 모두 사라져요. 정말 삭제할까요?`)) {
-            Storage.deleteParty(party.id);
+        onclick: async () => {
+          if (await confirmAndDeleteParty(party)) {
             calendarViewByParty.delete(party.id);
             location.hash = '#/';
           }
