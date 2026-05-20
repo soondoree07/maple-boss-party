@@ -1510,6 +1510,11 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 10px;
 }
 
+.loot-grid > .empty-state-sm {
+  grid-column: 1 / -1;
+  padding: 16px 12px;
+}
+
 .loot-tile {
   --tile-color: var(--border-strong);
   background: var(--bg-elevated);
