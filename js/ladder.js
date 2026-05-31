@@ -13,7 +13,7 @@
 
 import { el, clear } from './utils.js';
 
-const ROWS         = 16;
+const ROWS         = 8;
 const ROW_HEIGHT   = 22;
 const TOP_PAD      = 8;
 const BOT_PAD      = 8;
