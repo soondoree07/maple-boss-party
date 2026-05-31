@@ -1,4 +1,12 @@
-# 메이플 보스 파티 기록 — 진행 상황 (2026-05-17 KST 기준)
+# 메이플 보스 파티 기록 — 진행 상황 (2026-05-31 KST 기준)
+
+## ★ 2026-05-31 — 사다리타기 UX 개편 (배포 완료)
+- **결과 칸 가리기** — 뽑기 직후 결과 칸 N개 전부 '?'로 표시. 사용자가 이름 칩 또는 결과 칸을 **직접 눌러야** 그 칸 O/X 공개(`revealedResults: Set` 상태). 한 번 공개된 칸은 유지.
+- **양방향 trace** — 이름 칩 클릭 = 위→아래(기존), **결과 칸 클릭 = 아래→위 reverse**. `result.reverseTrace` 플래그 + `traceAlongPath`에 `corners.reverse()` 넘김.
+- **O 위치 균일 랜덤** — 기존 `winnerIdx`(시작 컬럼) 균일 랜덤 → `winnerEndCol`(결과 칸) 직접 균일 랜덤으로 변경. 시작 컬럼은 `startByEnd[endCol]` 역매핑. 사다리 가로줄 분포에 의존한 미세 편향 제거, **결과 칸 기준 정확히 1/N**.
+- **ROWS 8 → 16** — 사다리 전체 길이 ~2배. CSS `.ladder-svg aspect-ratio 100/192 → 100/368`.
+- 결과 칸 div→button(revealed일 때만), `.ladder-result-clickable` hover, button reset(`padding:0/appearance:none`). 자동 winner 안내 + hint 두 줄 제거. dead CSS(`.ladder-winner`/`.ladder-trace-hint`/`.ladder-cover-icon`) 정리.
+- 커밋 `d310564`, Vercel 자동 배포 진행. tree clean.
 
 ## ★ 2026-05-17 — 파티 비밀번호 race condition 수정 (최우선 읽기)
 - **증상**: 비번 파티 생성 시 만든 PC는 정답 PIN도 거부 / 다른·재접속 PC는 비번 없이 입장.
