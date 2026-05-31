@@ -6,7 +6,8 @@
 - **O 위치 균일 랜덤** — 기존 `winnerIdx`(시작 컬럼) 균일 랜덤 → `winnerEndCol`(결과 칸) 직접 균일 랜덤으로 변경. 시작 컬럼은 `startByEnd[endCol]` 역매핑. 사다리 가로줄 분포에 의존한 미세 편향 제거, **결과 칸 기준 정확히 1/N**.
 - **ROWS 8 → 16** — 사다리 전체 길이 ~2배. CSS `.ladder-svg aspect-ratio 100/192 → 100/368`.
 - 결과 칸 div→button(revealed일 때만), `.ladder-result-clickable` hover, button reset(`padding:0/appearance:none`). 자동 winner 안내 + hint 두 줄 제거. dead CSS(`.ladder-winner`/`.ladder-trace-hint`/`.ladder-cover-icon`) 정리.
-- 커밋 `d310564`, Vercel 자동 배포 진행. tree clean.
+- 커밋 `d310564`, Vercel 자동 배포 진행.
+- **후속 `3c1bf4e`** — 사용자 피드백 반영: 사다리가 너무 길고 사이드 컬럼에 자동 스크롤바 생김. `ROWS 16 → 8`, `aspect-ratio 100/368 → 100/192` 원복. 원인은 `.side-left { max-height: calc(100vh-32px); overflow-y: auto }`라 룰렛+사다리 합이 viewport 넘으면 자체 스크롤 등장 — 콘텐츠를 viewport에 맞춰 자연 해소. tree clean.
 
 ## ★ 2026-05-17 — 파티 비밀번호 race condition 수정 (최우선 읽기)
 - **증상**: 비번 파티 생성 시 만든 PC는 정답 PIN도 거부 / 다른·재접속 PC는 비번 없이 입장.
