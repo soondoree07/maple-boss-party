@@ -1,16 +1,19 @@
 // ladder.js — 사다리타기 (당첨 1명 고정)
 //
 // UX:
-//  1) 입력 단계        — 인원수(2~파티 총원) + 이름 N개 입력. 사다리/결과는 가려져 있음.
-//  2) "뽑기" 클릭      — 새 사다리(랜덤 가로줄) + 결과(O 1명, X N-1명) 배치 + 공개.
-//                         이름은 클릭 가능한 칩으로 전환.
-//  3) 이름 칩 클릭     — 그 사람의 path를 색상 라인으로 그려가며(stroke-dashoffset 애니메이션)
-//                         점이 따라가는 모습이 보인다. 도착 컬럼의 결과 셀이 강조.
-//  4) "다시 뽑기"      — 1단계로 복귀, 새 사다리.
+//  1) 입력 단계   — 인원수(2~파티 총원) + 이름 N개 입력. 사다리/결과는 가려져 있음.
+//  2) "뽑기" 클릭 — 새 사다리(랜덤 가로줄) + 결과(O 1명, X N-1명) 배치 + 공개.
+//                   결과 칸은 전부 "?"로 가려진 상태로 시작.
+//  3) 이름 칩 클릭 → 위→아래 trace + 도착 결과 칸 공개.
+//     결과 칸 클릭 → 아래→위 reverse trace + 그 칸 공개 + 시작 이름 칩 강조.
+//  4) "다시 뽑기"  — 1단계로 복귀, 새 사다리.
+//
+// O 위치는 endCol을 직접 균일 랜덤으로 뽑아서 결정 (시작 컬럼 균일 → endCol 분포가
+// 사다리 가로줄 분포에 의존하는 미세 편향을 제거).
 
 import { el, clear } from './utils.js';
 
-const ROWS         = 8;
+const ROWS         = 16;
 const ROW_HEIGHT   = 22;
 const TOP_PAD      = 8;
 const BOT_PAD      = 8;
@@ -39,8 +42,9 @@ export function renderLadder(party) {
   let names = Array(count).fill('');
   let rungs = makeRungs(count);
   /**
-   * null         → 입력 단계 (가려진 상태)
-   * { paths, results, winnerIdx, focusedIdx } → 공개 단계
+   * null → 입력 단계 (가려진 상태)
+   * { paths, results, startByEnd, focusedIdx, reverseTrace, revealedResults }
+   *   - revealedResults: Set<number> — 사용자가 눌러서 공개된 결과 칸의 endCol
    */
   let result = null;
   let cancelTrace = null;
@@ -97,10 +101,11 @@ export function renderLadder(party) {
         const chip = el('button', {
           className: 'ladder-name-chip' + (isFocused ? ' focused' : ''),
           type: 'button',
-          title: '눌러서 따라가기',
           style: { '--chip-color': color },
           onclick: () => {
             result.focusedIdx = i;
+            result.reverseTrace = false;
+            result.revealedResults.add(result.paths[i].endCol);
             repaint();
           },
         }, label);
@@ -138,19 +143,34 @@ export function renderLadder(party) {
       style: { gridTemplateColumns: `repeat(${count}, 1fr)` },
     });
     for (let c = 0; c < count; c++) {
-      const showResult = revealed;
-      const r = showResult ? result.results[c] : '?';
+      const opened = revealed && result.revealedResults.has(c);
+      const r = opened ? result.results[c] : '?';
       const isWin = r === 'O';
-      // 현재 추적 중인 사람의 도착 컬럼이면 강조.
       const isTraceArrival = revealed
         && result.focusedIdx != null
         && result.paths[result.focusedIdx].endCol === c;
       const cls = 'ladder-result'
-        + (r === '?' ? ' ladder-result-pending'
+        + (!opened ? ' ladder-result-pending'
           : isWin ? ' ladder-result-win'
           : ' ladder-result-lose')
-        + (isTraceArrival ? ' ladder-result-arrival' : '');
-      resultsGrid.appendChild(el('div', { className: cls }, r));
+        + (isTraceArrival ? ' ladder-result-arrival' : '')
+        + (revealed ? ' ladder-result-clickable' : '');
+
+      if (revealed) {
+        resultsGrid.appendChild(el('button', {
+          className: cls,
+          type: 'button',
+          onclick: () => {
+            const startIdx = result.startByEnd[c];
+            result.focusedIdx = startIdx;
+            result.reverseTrace = true;
+            result.revealedResults.add(c);
+            repaint();
+          },
+        }, r));
+      } else {
+        resultsGrid.appendChild(el('div', { className: cls }, r));
+      }
     }
     board.appendChild(resultsGrid);
 
@@ -169,12 +189,23 @@ export function renderLadder(party) {
         const paths = [];
         for (let i = 0; i < count; i++) paths.push(traceLadder(rungs, i));
 
-        const winnerIdx = Math.floor(Math.random() * count);
-        const winnerEndCol = paths[winnerIdx].endCol;
+        // O 위치를 결과 칸에서 직접 균일 랜덤으로. 사다리 분포 영향 0.
+        const winnerEndCol = Math.floor(Math.random() * count);
         const results = Array(count).fill('X');
         results[winnerEndCol] = 'O';
 
-        result = { paths, results, winnerIdx, focusedIdx: null };
+        // 결과 칸 c → 어떤 시작 컬럼이 그쪽으로 도착하는지 매핑.
+        const startByEnd = {};
+        for (let i = 0; i < count; i++) startByEnd[paths[i].endCol] = i;
+
+        result = {
+          paths,
+          results,
+          startByEnd,
+          focusedIdx: null,
+          reverseTrace: false,
+          revealedResults: new Set(),
+        };
         repaint();
       } else {
         // 다시 뽑기 — 공개 상태 해제, 새 사다리.
@@ -185,21 +216,15 @@ export function renderLadder(party) {
     });
     card.appendChild(btn);
 
-    if (revealed) {
-      const winnerName = (names[result.winnerIdx] || '').trim() || `참가자 ${result.winnerIdx + 1}`;
-      card.appendChild(el('div', { className: 'ladder-winner' },
-        el('strong', null, winnerName), ' 당첨!'));
-      card.appendChild(el('div', { className: 'ladder-trace-hint' },
-        result.focusedIdx == null
-          ? '이름을 눌러서 사다리를 따라가보세요'
-          : '다른 이름을 눌러 다시 추적할 수 있어요'));
-    }
-
     // ── 추적 애니메이션 ──
     if (revealed && result.focusedIdx != null) {
+      const basePath = result.paths[result.focusedIdx];
+      const path = result.reverseTrace
+        ? { ...basePath, corners: basePath.corners.slice().reverse() }
+        : basePath;
       cancelTrace = traceAlongPath(
         svgBundle,
-        result.paths[result.focusedIdx],
+        path,
         TRACE_COLORS[result.focusedIdx % TRACE_COLORS.length],
         geom,
       );
@@ -306,6 +331,7 @@ function buildLadderSvg(N, rungs, geom, revealed) {
  * 이전 trace는 호출 전에 cancelAnim으로 정리되어야 함 — 여기서는 새 layer 자식만 추가.
  *
  * stroke-dashoffset으로 path 그리기 + 별도 circle을 rAF로 누적 길이 비례 보간 위치로 이동.
+ * corners를 reverse해 넘기면 아래→위 trace가 됨.
  */
 function traceAlongPath({ traceLayer }, path, color, geom) {
   // 이전 trace 정리.

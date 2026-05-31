@@ -1686,7 +1686,7 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
   height: auto;
   display: block;
-  aspect-ratio: 100 / 192;
+  aspect-ratio: 100 / 368;
   overflow: visible;
   transition: filter 0.25s ease-out;
 }
@@ -1722,7 +1722,6 @@ a { color: inherit; text-decoration: none; }
   pointer-events: none;
   user-select: none;
 }
-.ladder-cover-icon { font-size: 22px; filter: grayscale(0.2); }
 .ladder-cover-text {
   font-size: 11px;
   font-weight: 700;
@@ -1779,12 +1778,6 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 0 14px color-mix(in srgb, var(--chip-color) 50%, transparent);
 }
 
-.ladder-trace-hint {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  text-align: center;
-}
-
 .ladder-result-arrival {
   outline: 2px solid currentColor;
   outline-offset: 1px;
@@ -1801,6 +1794,18 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
   font-weight: 800;
   font-feature-settings: 'tnum';
+  padding: 0;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.ladder-result-clickable {
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+}
+.ladder-result-clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-aqua) 30%, transparent);
 }
 .ladder-result-pending {
   background: rgba(var(--hairline-rgb), 0.04);
@@ -1845,13 +1850,6 @@ a { color: inherit; text-decoration: none; }
 }
 .ladder-btn:hover { transform: translateY(-1px); }
 .ladder-btn:active { transform: translateY(0); }
-
-.ladder-winner {
-  font-size: 13px;
-  color: var(--accent-aqua);
-  font-weight: 600;
-}
-.ladder-winner strong { color: var(--text-primary); font-weight: 700; }
 
 /* ── 회차 참여자 picker (기록 폼) ──────────────────── */
 
