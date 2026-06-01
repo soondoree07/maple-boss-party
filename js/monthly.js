@@ -1,14 +1,11 @@
 // monthly.js — 월별 전리품/결정석 누적 사이드바
 //
 // 오늘 기준 이번 달 / 1달 전 / 2달 전 카드 3개를 세로로 나열.
-//   - 헤더: "YYYY년 M월" + 인당 총 결정석 (weekly+monthly 결정석 합 ÷ 인원)
+//   - 헤더: "YYYY년 M월" + 전리품 총합 (그 달 전리품 가격을 나누기 전 원가 그대로 합산)
 //   - 본문: 그 달에 기록된 전리품 행 (이미지 + 이름 + 나누기 전 가격)
 
 import * as Storage from './storage.js';
 import {
-  getBoss,
-  getEffectiveCrystal,
-  resolveDifficultyKey,
   sortLoot,
   getLootImage,
   getDisplayLootColor,
@@ -49,18 +46,6 @@ function renderMonthCard(party, m) {
   const runs = Storage.getRunsByPartyInRange(party.id, m.startStr, m.endStr)
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const defaults = Storage.getBossSettings(party.id).defaults;
-  const partyCount = Math.max(party.members.length, 1);
-
-  // 인당 결정석 = Σ(회차 결정석 / 회차 참여자 수). 한 사람이 모든 회차 참여 시 받는 금액.
-  const perHead = runs.reduce((sum, r) => {
-    const b = getBoss(r.boss);
-    if (!b) return sum;
-    const n = r.memberSnapshot?.length || partyCount;
-    const diffKey = resolveDifficultyKey(r.boss, r.difficulty, defaults);
-    return sum + getEffectiveCrystal(r.boss, diffKey) / Math.max(n, 1);
-  }, 0);
-
   // 전리품 행: 회차들의 loot 항목 평탄화 (최근 날짜 순).
   const lootRows = [];
   for (const r of runs) {
@@ -70,11 +55,17 @@ function renderMonthCard(party, m) {
     }
   }
 
+  // 전리품 총합 = 그 달 전리품 가격을 나누기 전 원가 그대로 합산 (1/N 안 함).
+  const lootTotal = lootRows.reduce((sum, row) => {
+    const price = Number(row.price);
+    return sum + (isNaN(price) ? 0 : price);
+  }, 0);
+
   return el('div', { className: 'month-card' },
     el('div', { className: 'month-card-header' },
       el('span', { className: 'month-card-title' }, `${m.year}년 ${m.month}월`),
-      el('span', { className: 'month-card-perhead', title: '인당 총 결정석' },
-        displayMeso(perHead),
+      el('span', { className: 'month-card-perhead', title: '전리품 총합' },
+        displayMeso(lootTotal),
       ),
     ),
     el('div', { className: 'month-card-body' },
