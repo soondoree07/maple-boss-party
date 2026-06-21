@@ -14,7 +14,8 @@ const TICK_END   = 180;    // 끝에 느리게
 
 export function renderBossRoulette(party) {
   const settings   = Storage.getBossSettings(party.id);
-  const candidates = getVisibleBosses(settings.visible);
+  // 활성화된 보스 중 월간 보스(검은 마법사)는 룰렛에서 항상 제외 — 주간 보스 순서용.
+  const candidates = getVisibleBosses(settings.visible).filter(b => b.cycle !== 'monthly');
   const hasBoss    = candidates.length > 0;
 
   const display = el('div', { className: 'roulette-display' }, '?');
