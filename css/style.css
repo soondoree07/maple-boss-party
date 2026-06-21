@@ -545,9 +545,6 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
-  padding-right: 4px;
 }
 
 /* 룰렛/사다리는 sticky 컨테이너 안에 들어가므로 본인은 sticky 해제. */
