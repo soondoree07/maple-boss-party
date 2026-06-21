@@ -24,7 +24,7 @@ export function renderCrystalsPage(container, party) {
   const draftVisible  = {};  // { [id]: boolean }
   const draftDefaults = {};  // { [id]: difficultyKey }
   bosses.forEach(b => {
-    draftVisible[b.id]  = settings.visible[b.id] !== false;
+    draftVisible[b.id]  = b.defaultHidden ? false : (settings.visible[b.id] !== false);
     const dft = settings.defaults[b.id];
     draftDefaults[b.id] = (dft && b.difficulties.some(d => d.key === dft))
       ? dft
@@ -65,13 +65,16 @@ export function renderCrystalsPage(container, party) {
 }
 
 function buildBossRow(boss, draftVisible, draftDefaults) {
-  // 보이기 체크박스
+  // 보이기 체크박스 (defaultHidden 보스는 코드에서 항상 숨김 — 끄고 비활성화)
   const visibleCheck = el('input', {
     type: 'checkbox',
     className: 'boss-visible-check',
     checked: draftVisible[boss.id],
+    disabled: !!boss.defaultHidden,
+    title: boss.defaultHidden ? '코드에서 숨김 처리된 보스예요' : null,
   });
   visibleCheck.addEventListener('change', () => {
+    if (boss.defaultHidden) return;
     draftVisible[boss.id] = visibleCheck.checked;
     card.classList.toggle('boss-hidden', !visibleCheck.checked);
   });

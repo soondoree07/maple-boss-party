@@ -130,53 +130,53 @@ export const BOSSES = [
   {
     id: 'gas', name: '가디언 엔젤 슬라임', cycle: 'weekly', color: '#7DD3FC',
     difficulties: [
-      { key: 'normal', crystal: 0.268, loot: [] },
-      { key: 'chaos',  crystal: 0.791, loot: [] },
+      { key: 'normal', crystal: 0.2546, loot: [] },
+      { key: 'chaos',  crystal: 0.7515, loot: [] },
     ],
   },
   {
     id: 'kalos', name: '감시자 칼로스', cycle: 'weekly', color: '#4ECDC4',
     difficulties: [
-      { key: 'easy',    crystal: 3.11, loot: [...COMMON] },
-      { key: 'normal',  crystal: 5.61, loot: ['연마석', ...COMMON] },
-      { key: 'chaos',   crystal: 13.4, loot: ['에테상자', '연마석', ...COMMON] },
-      { key: 'extreme', crystal: 43.2, loot: ['해머(눈장식)', '에테상자', '영달포', '연마석', ...COMMON] },
+      { key: 'easy',    crystal: 2.8, loot: [...COMMON] },
+      { key: 'normal',  crystal: 5.05, loot: ['연마석', ...COMMON] },
+      { key: 'chaos',   crystal: 12.73, loot: ['에테상자', '연마석', ...COMMON] },
+      { key: 'extreme', crystal: 41.04, loot: ['해머(눈장식)', '에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
     id: 'damien', name: '데미안', cycle: 'weekly', color: '#EF4444',
     difficulties: [
-      { key: 'normal', crystal: 0.184, loot: [] },
-      { key: 'hard',   crystal: 0.515, loot: ['마깃안', ...COMMON] },
+      { key: 'normal', crystal: 0.1748, loot: [] },
+      { key: 'hard',   crystal: 0.4893, loot: ['마깃안', ...COMMON] },
     ],
   },
   {
     id: 'dusk', name: '더스크', cycle: 'weekly', color: '#8B5CF6',
     difficulties: [
-      { key: 'normal', crystal: 0.463, loot: [] },
-      { key: 'chaos',  crystal: 0.735, loot: ['거공', ...COMMON] },
+      { key: 'normal', crystal: 0.4399, loot: [] },
+      { key: 'chaos',  crystal: 0.6983, loot: ['거공', ...COMMON] },
     ],
   },
   {
     id: 'dunkel', name: '듄켈', cycle: 'weekly', color: '#F59E0B',
     difficulties: [
-      { key: 'normal', crystal: 0.5,   loot: [] },
-      { key: 'hard',   crystal: 0.994, loot: ['커포링', ...COMMON] },
+      { key: 'normal', crystal: 0.475,   loot: [] },
+      { key: 'hard',   crystal: 0.9443, loot: ['커포링', ...COMMON] },
     ],
   },
   {
     id: 'lucid', name: '루시드', cycle: 'weekly', color: '#C4B5FD',
     difficulties: [
-      { key: 'easy',   crystal: 0.314, loot: [] },
-      { key: 'normal', crystal: 0.375, loot: [] },
-      { key: 'hard',   crystal: 0.662, loot: ['몽벨', ...COMMON] },
+      { key: 'easy',   crystal: 0.2983, loot: [] },
+      { key: 'normal', crystal: 0.3563, loot: [] },
+      { key: 'hard',   crystal: 0.6289, loot: ['몽벨', ...COMMON] },
     ],
   },
   {
     id: 'limbo', name: '림보', cycle: 'weekly', color: '#60A5FA',
     difficulties: [
-      { key: 'normal', crystal: 10.8, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '신마석', ...COMMON] },
-      { key: 'hard',   crystal: 25.1, loot: [...LEGACY_LOOT.limbo] },
+      { key: 'normal', crystal: 10.26, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '신마석', ...COMMON] },
+      { key: 'hard',   crystal: 23.85, loot: [...LEGACY_LOOT.limbo] },
     ],
   },
   {
@@ -194,8 +194,8 @@ export const BOSSES = [
   {
     id: 'baldrix', name: '발드릭스', cycle: 'weekly', color: '#34D399',
     difficulties: [
-      { key: 'normal', crystal: 14.4, loot: ['신마석', ...PURPLE_CORE, ...COMMON] },
-      { key: 'hard',   crystal: 32.4, loot: ['죽음의 맹세', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'normal', crystal: 13.68, loot: ['신마석', ...PURPLE_CORE, ...COMMON] },
+      { key: 'hard',   crystal: 30.78, loot: ['죽음의 맹세', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
@@ -215,39 +215,39 @@ export const BOSSES = [
     // 사용자 결정에 따라 기존 세렌 전리품을 전 난이도에 채움.
     id: 'seren', name: '선택받은 세렌', cycle: 'weekly', color: '#FF6B9D',
     difficulties: [
-      { key: 'normal',  crystal: 2.66,  loot: [...COMMON] },
-      { key: 'hard',    crystal: 3.96,  loot: ['미트라의 분노', ...COMMON] },
-      { key: 'extreme', crystal: 31.5,  loot: [...LEGACY_LOOT.seren] },
+      { key: 'normal',  crystal: 2.4,  loot: [...COMMON] },
+      { key: 'hard',    crystal: 3.57,  loot: ['미트라의 분노', ...COMMON] },
+      { key: 'extreme', crystal: 28.35,  loot: [...LEGACY_LOOT.seren] },
     ],
   },
   {
     id: 'suu', name: '스우', cycle: 'weekly', color: '#2DD4BF',
     difficulties: [
-      { key: 'normal',  crystal: 0.176, loot: [] },
-      { key: 'hard',    crystal: 0.542, loot: ['루컨마', ...COMMON] },
-      { key: 'extreme', crystal: 6.04,  loot: ['루컨마', '언컨', ...COMMON] },
+      { key: 'normal',  crystal: 0.1672, loot: [] },
+      { key: 'hard',    crystal: 0.5149, loot: ['루컨마', ...COMMON] },
+      { key: 'extreme', crystal: 5.74,  loot: ['루컨마', '언컨', ...COMMON] },
     ],
   },
   {
-    id: 'cygnus', name: '시그너스', cycle: 'weekly', color: '#FDE047',
+    id: 'cygnus', name: '시그너스', cycle: 'weekly', color: '#FDE047', defaultHidden: true,
     difficulties: [
-      { key: 'easy',   crystal: 0.0455, loot: [] },
-      { key: 'normal', crystal: 0.075,  loot: [] },
+      { key: 'easy',   crystal: 0.0432, loot: [] },
+      { key: 'normal', crystal: 0.0713,  loot: [] },
     ],
   },
   {
     id: 'will', name: '윌', cycle: 'weekly', color: '#A3E635',
     difficulties: [
-      { key: 'easy',   crystal: 0.34,  loot: [] },
-      { key: 'normal', crystal: 0.433, loot: [] },
-      { key: 'hard',   crystal: 0.812, loot: ['마도서', ...COMMON] },
+      { key: 'easy',   crystal: 0.323,  loot: [] },
+      { key: 'normal', crystal: 0.4114, loot: [] },
+      { key: 'hard',   crystal: 0.7714, loot: ['마도서', ...COMMON] },
     ],
   },
   {
     id: 'jupiter', name: '유피테르', cycle: 'weekly', color: '#FB923C',
     difficulties: [
-      { key: 'normal', crystal: 17.0, loot: ['신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',   crystal: 51.0, loot: ['오만의 원죄', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'normal', crystal: 16.15, loot: ['신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 48.45, loot: ['오만의 원죄', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
@@ -259,39 +259,39 @@ export const BOSSES = [
   {
     id: 'jinhilla', name: '진 힐라', cycle: 'weekly', color: '#9333EA',
     difficulties: [
-      { key: 'normal', crystal: 0.749, loot: [] },
-      { key: 'hard',   crystal: 1.12,  loot: ['고근', ...COMMON] },
+      { key: 'normal', crystal: 0.7116, loot: [] },
+      { key: 'hard',   crystal: 1.07,  loot: ['고근', ...COMMON] },
     ],
   },
   {
     id: 'lotus', name: '찬란한 흉성', cycle: 'weekly', color: '#F87171',
     difficulties: [
-      { key: 'normal', crystal: 6.58,  loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',   crystal: 28.19, loot: [...LEGACY_LOOT.lotus] },
+      { key: 'normal', crystal: 6.26,  loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 26.79, loot: [...LEGACY_LOOT.lotus] },
     ],
   },
   {
     id: 'adversary', name: '최초의 대적자', cycle: 'weekly', color: '#FFD93D',
     difficulties: [
-      { key: 'easy',    crystal: 3.24, loot: ['연마석', ...COMMON] },
-      { key: 'normal',  crystal: 5.89, loot: ['연마석', ...COMMON] },
-      { key: 'hard',    crystal: 15.1, loot: ['불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON] },
-      { key: 'extreme', crystal: 49.6, loot: ['해머(훈장)', '불멸의 유산', '에테상자', '영달포', '연마석', ...COMMON] },
+      { key: 'easy',    crystal: 3.08, loot: ['연마석', ...COMMON] },
+      { key: 'normal',  crystal: 5.6, loot: ['연마석', ...COMMON] },
+      { key: 'hard',    crystal: 14.35, loot: ['불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON] },
+      { key: 'extreme', crystal: 47.12, loot: ['해머(훈장)', '불멸의 유산', '에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
     id: 'kaling', name: '카링', cycle: 'weekly', color: '#A78BFA',
     difficulties: [
-      { key: 'easy',    crystal: 4.19, loot: [] },
-      { key: 'normal',  crystal: 7.14, loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',    crystal: 18.3, loot: ['신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'extreme', crystal: 56.7, loot: ['해머(귀고리)', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
+      { key: 'easy',    crystal: 3.78, loot: [] },
+      { key: 'normal',  crystal: 6.79, loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',    crystal: 17.39, loot: ['신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'extreme', crystal: 53.87, loot: ['해머(귀고리)', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
     ],
   },
   {
     id: 'papulatus', name: '파풀라투스', cycle: 'weekly', color: '#38BDF8',
     difficulties: [
-      { key: 'chaos', crystal: 0.138, loot: [] },
+      { key: 'chaos', crystal: 0.1311, loot: [] },
     ],
   },
   {
@@ -301,22 +301,22 @@ export const BOSSES = [
     ],
   },
   {
-    id: 'pinkbean', name: '핑크빈', cycle: 'weekly', color: '#F9A8D4',
+    id: 'pinkbean', name: '핑크빈', cycle: 'weekly', color: '#F9A8D4', defaultHidden: true,
     difficulties: [
-      { key: 'chaos', crystal: 0.0658, loot: [] },
+      { key: 'chaos', crystal: 0.0625, loot: [] },
     ],
   },
   {
-    id: 'hilla', name: '힐라', cycle: 'weekly', color: '#C026D3',
+    id: 'hilla', name: '힐라', cycle: 'weekly', color: '#C026D3', defaultHidden: true,
     difficulties: [
-      { key: 'hard', crystal: 0.0575, loot: [] },
+      { key: 'hard', crystal: 0.0546, loot: [] },
     ],
   },
   {
     id: 'blackmage', name: '검은 마법사', cycle: 'monthly', color: '#C084FC',
     difficulties: [
-      { key: 'hard',    crystal: 7.0,  loot: ['창세의 뱃지', ...COMMON] },
-      { key: 'extreme', crystal: 92.0, loot: [...LEGACY_LOOT.blackmage] },
+      { key: 'hard',    crystal: 6.65,  loot: ['창세의 뱃지', ...COMMON] },
+      { key: 'extreme', crystal: 87.4, loot: [...LEGACY_LOOT.blackmage] },
     ],
   },
 ];
@@ -425,8 +425,16 @@ export function getBossLoot(bossId, difficultyKey) {
   return sortLoot(d.loot.map(name => ({ name, group: getLootGroup(name) })));
 }
 
-/** 보이는 보스만 (visible map: { [id]: false } 면 숨김, 그 외 전부 노출). */
-export const isBossVisible = (bossId, visible = {}) => visible[bossId] !== false;
+/**
+ * 보이는 보스만.
+ * - `defaultHidden: true` 보스는 코드에서 항상 숨김(파티별 visible 설정 무시, 모든 파티 일괄 적용).
+ * - 그 외에는 visible map 기준 ({ [id]: false } 면 숨김, 그 외 전부 노출).
+ */
+export const isBossVisible = (bossId, visible = {}) => {
+  const boss = getBoss(bossId);
+  if (boss && boss.defaultHidden) return false;
+  return visible[bossId] !== false;
+};
 export const getVisibleBosses = (visible = {}) => BOSSES.filter(b => isBossVisible(b.id, visible));
 
 /** 보스 이름 가나다순 정렬된 복사본. */
