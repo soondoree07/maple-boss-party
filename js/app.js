@@ -1,11 +1,13 @@
 // app.js — 해시 라우팅 + 파티 상세 화면
 //
 // 라우트:
-//   #/                메인 (파티 목록)
-//   #/party/:id       파티 상세 (진행도 + 캘린더)
+//   #/                메인 — 수익 순위 · 이번 주 현황 · 기록 카드 (v2, 2026-09 개편)
+//   #/manage          유저 · 캐릭터 · 파티 프리셋 관리 (v2)
+//   #/party/:id       옛 파티 상세 (숨겨 둔 옛 기록 보기용, 목록에서는 안 보임)
+// 모든 화면은 사이트 비밀번호(v2/gate.js)를 먼저 통과해야 한다.
 
 import * as Storage from './storage.js';
-import { renderPartyList, confirmAndDeleteParty, renderPartySettingsPage } from './party.js';
+import { confirmAndDeleteParty, renderPartySettingsPage } from './party.js';
 import { renderMonthlyHistory } from './monthly.js';
 import { renderChannelRoulette } from './roulette.js';
 import { renderBossRoulette } from './boss-roulette.js';
@@ -17,6 +19,10 @@ import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
 import { el, clear, pinInput, isMobile, buildMobileMenu, toast } from './utils.js';
 import { applyRouteMood, openMoodModal } from './mood.js';
+import * as V2 from './v2/store.js';
+import { isSiteUnlocked, renderSiteGate } from './v2/gate.js';
+import { renderHome } from './v2/home.js';
+import { renderManage } from './v2/manage.js';
 
 const root = document.getElementById('app');
 
@@ -32,6 +38,10 @@ function route() {
 
   // 무드: 파티 선택 화면만 랜덤, 그 외(파티/게이트/보스 설정)는 유저 선택값.
   applyRouteMood(hash);
+
+  if (!isSiteUnlocked()) { renderSiteGate(root, route); return; }
+
+  if (hash === '#/manage') { renderManage(root, route); return; }
 
   const crystalsMatch = hash.match(/^#\/crystals\/([A-Za-z0-9_-]+)$/);
   if (crystalsMatch) {
@@ -81,27 +91,23 @@ function route() {
   }
 
   // 기본: 메인
-  renderPartyList(root);
+  renderHome(root, route);
 }
 
 window.addEventListener('hashchange', route);
 // 모바일↔데스크톱 폭 경계를 넘으면 레이아웃(햄버거↔사이드) 재구성.
 window.matchMedia('(max-width: 720px)').addEventListener('change', route);
 window.addEventListener('DOMContentLoaded', async () => {
-  // 공유된 딥링크로 들어와도 항상 파티 선택 페이지에서 시작
-  // (비밀번호 게이트 우회·파티 존재 노출 방지). 앱 내 이동은 hashchange라 영향 없음.
-  if (location.hash && location.hash !== '#/' && location.hash !== '#') {
-    history.replaceState(null, '', location.pathname + location.search + '#/');
-  }
   // 공유 백엔드: Supabase에서 전체 1회 로드 후 렌더. 실패해도 빈 화면으로라도 뜨게.
   try {
-    await Storage.init();
+    await Promise.all([Storage.init(), V2.init()]);
   } catch (e) {
     console.error('[app] Storage.init 실패:', e);
     toast('서버 연결에 실패했어요. 네트워크를 확인하고 새로고침해주세요.', 'err', 6000);
   }
   // 다른 사람이 수정 → Realtime → 현재 화면 자동 재렌더.
   Storage.onRemoteChange(route);
+  V2.onRemoteChange(route);
   route();
 });
 

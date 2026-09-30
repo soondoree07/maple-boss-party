@@ -1,0 +1,66 @@
+// v2/home.js — 메인 화면: 수익 순위 · 이번 주 현황 · 기록 카드 목록
+
+import { el, clear } from '../utils.js';
+import { getRuns } from './store.js';
+import { renderRanking } from './ranking.js';
+import { renderWeekly } from './weekly.js';
+import { renderRunCard } from './run-card.js';
+import { openRunForm } from './run-form.js';
+
+const PAGE_SIZE = 30;
+let visibleCount = PAGE_SIZE; // "더 보기"로 늘린 개수는 다시 그려도 유지
+
+/**
+ * @param {HTMLElement} container
+ * @param {() => void} rerender - 기록이 바뀌면 화면 전체를 다시 그린다
+ */
+export function renderHome(container, rerender) {
+  clear(container);
+
+  const addRun = () => openRunForm(null, rerender);
+
+  container.appendChild(el('header', { className: 'page-header' },
+    el('h1', { className: 'page-title' }, '메이플 보스 기록'),
+    el('div', { className: 'header-actions' },
+      el('a', { href: '#/manage', className: 'icon-btn' }, '유저·파티 관리'),
+      el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),
+    ),
+  ));
+
+  container.appendChild(el('main', { className: 'v2-home' },
+    renderRanking(),
+    renderWeekly(),
+    renderRunList(rerender, addRun),
+  ));
+}
+
+function renderRunList(rerender, addRun) {
+  const runs = getRuns();
+  const handlers = { onEdit: (run) => openRunForm(run, rerender), onDeleted: rerender };
+
+  if (runs.length === 0) {
+    return el('section', { className: 'v2-section' },
+      el('h2', { className: 'v2-section-title' }, '보스 기록'),
+      el('div', { className: 'empty-state' },
+        el('p', null, '아직 기록이 없어요'),
+        el('p', { className: 'empty-state-sub' }, '보스를 잡으면 첫 기록을 남겨 보세요'),
+        el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),
+      ),
+    );
+  }
+
+  const shown = runs.slice(0, visibleCount);
+  return el('section', { className: 'v2-section' },
+    el('div', { className: 'v2-section-head' },
+      el('h2', { className: 'v2-section-title' }, '보스 기록'),
+      el('span', { className: 'v2-section-sub' }, `${runs.length}건`),
+    ),
+    el('div', { className: 'v2-run-list' }, shown.map(run => renderRunCard(run, handlers))),
+    runs.length > visibleCount
+      ? el('button', {
+          className: 'btn btn-ghost v2-more', type: 'button',
+          onclick: () => { visibleCount += PAGE_SIZE; rerender(); },
+        }, `더 보기 (${runs.length - visibleCount}건 남음)`)
+      : null,
+  );
+}
