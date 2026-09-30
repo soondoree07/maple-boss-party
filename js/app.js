@@ -18,7 +18,6 @@ import { openDateModal } from './record.js';
 import { renderCrystalsPage } from './crystals.js';
 import { exportToFile } from './backup.js';
 import { el, clear, pinInput, isMobile, buildMobileMenu, toast } from './utils.js';
-import { applyRouteMood, openMoodModal } from './mood.js';
 import * as V2 from './v2/store.js';
 import { isSiteUnlocked, renderSiteGate } from './v2/gate.js';
 import { renderHome } from './v2/home.js';
@@ -37,7 +36,6 @@ function route() {
   const hash = location.hash || '#/';
 
   // 무드: 파티 선택 화면만 랜덤, 그 외(파티/게이트/보스 설정)는 유저 선택값.
-  applyRouteMood(hash);
 
   if (!isSiteUnlocked()) { renderSiteGate(root, route); return; }
 
@@ -180,12 +178,6 @@ function renderPartyDetail(container, party) {
 
   // 헤더 액션 — 데스크톱=헤더 우측 / 모바일=햄버거 드로어
   const actionNodes = [
-    el('button', {
-      className: 'icon-btn',
-      type: 'button',
-      title: '무드(테마) 설정 — 미리보기 후 적용',
-      onclick: () => openMoodModal(),
-    }, '무드 설정'),
     el('a', {
       href: `#/crystals/${party.id}`,
       className: 'icon-btn',

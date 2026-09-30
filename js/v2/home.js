@@ -8,6 +8,7 @@ import { groupRunsByParty } from './calc.js';
 import { openRunForm } from './run-form.js';
 import { openModal } from './modal.js';
 import { renderChannelRoulette } from '../roulette.js';
+import { createThemeToggle } from '../theme.js';
 
 const PAGE_SIZE = 20; // 카드(같은 주 · 같은 파티 묶음) 기준
 let visibleCount = PAGE_SIZE; // "더 보기"로 늘린 개수는 다시 그려도 유지
@@ -24,6 +25,7 @@ export function renderHome(container, rerender) {
   container.appendChild(el('header', { className: 'page-header' },
     el('h1', { className: 'page-title' }, '메이플 보스 기록'),
     el('div', { className: 'header-actions' },
+      createThemeToggle(),
       el('button', { className: 'icon-btn', type: 'button', onclick: openRouletteModal }, '채널 룰렛'),
       el('a', { href: '#/manage', className: 'icon-btn' }, '유저 관리'),
       el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),

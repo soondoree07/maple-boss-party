@@ -1,0 +1,111 @@
+/* ============================================================
+   theme.css — 사이트 무드 (2026-09-30 고정: 화이트 + 토스 느낌 박스, 다크 모드)
+   style.css · v2.css 뒤에 얹어 :root 토큰과 박스 모양만 덮어쓴다(구조·클래스 불변).
+   다크 모드: <html data-theme="dark"> 이거나, 따로 고른 적 없고 시스템이 다크일 때.
+   고르는 버튼은 js/theme.js, 첫 화면 깜빡임 방지는 index.html <head> 스크립트.
+   ============================================================ */
+
+/* ── 라이트 (기본) ───────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --bg-base: #F2F4F6; --bg-elevated: #FFFFFF; --bg-card: #FFFFFF; --bg-card-hover: #F9FAFB; --bg-overlay: rgba(0,0,0,.4);
+  --border-subtle: #EEF0F3; --border-strong: #DDE1E6;
+  --text-primary: #191F28; --text-secondary: #4E5968; --text-tertiary: #8B95A1; --text-muted: #B0B8C1;
+  --accent-gold: #3182F6; --accent-purple: #6B5CF6; --accent-rose: #6B5CF6; --accent-aqua: #3182F6; --danger: #F04452;
+  --on-accent: #FFFFFF; --on-danger: #2a0606; --on-boss: #1a1102; --accent-hover: #1B64DA; --btn-grad-text: #FFFFFF;
+  --glow-rgb: 49, 130, 246; --shade-rgb: 242, 244, 246; --hairline-rgb: 0, 0, 0; --ink-rgb: 0, 0, 0; --danger-rgb: 239, 68, 68; --ladder-grad-rgb: 49, 130, 246;
+  --card-filter: none; --overlay-filter: none;
+  --page-bg: #F2F4F6; --page-bg-attachment: fixed;
+  --radius-sm: 10px; --radius-md: 14px; --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgba(20,20,40,.06); --shadow-md: 0 6px 18px rgba(20,20,40,.08); --shadow-lg: 0 18px 46px rgba(20,20,40,.16);
+  --font-base: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+}
+
+:root { --fill-1: rgba(var(--hairline-rgb), 0.045); --fill-2: rgba(var(--hairline-rgb), 0.08); --fill-3: rgba(var(--hairline-rgb), 0.12); }
+
+/* ── 다크 ────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-base: #17171C; --bg-elevated: #26262E; --bg-card: #202027; --bg-card-hover: #2A2A33; --bg-overlay: rgba(0, 0, 0, 0.6);
+  --border-subtle: #2C2C35; --border-strong: #3A3A45;
+  --text-primary: #F2F4F6; --text-secondary: #C3C8CF; --text-tertiary: #8B95A1; --text-muted: #4E5968;
+  --accent-gold: #3182F6; --accent-purple: #8C7CFF; --accent-rose: #8C7CFF; --accent-aqua: #4593FC; --danger: #F66570;
+  --on-accent: #FFFFFF; --accent-hover: #4593FC; --btn-grad-text: #FFFFFF;
+  --glow-rgb: 69, 147, 252; --shade-rgb: 0, 0, 0; --hairline-rgb: 255, 255, 255;
+  --page-bg: #17171C;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4); --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.35); --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg-base: #17171C; --bg-elevated: #26262E; --bg-card: #202027; --bg-card-hover: #2A2A33; --bg-overlay: rgba(0, 0, 0, 0.6);
+    --border-subtle: #2C2C35; --border-strong: #3A3A45;
+    --text-primary: #F2F4F6; --text-secondary: #C3C8CF; --text-tertiary: #8B95A1; --text-muted: #4E5968;
+    --accent-gold: #3182F6; --accent-purple: #8C7CFF; --accent-rose: #8C7CFF; --accent-aqua: #4593FC; --danger: #F66570;
+    --on-accent: #FFFFFF; --accent-hover: #4593FC; --btn-grad-text: #FFFFFF;
+    --glow-rgb: 69, 147, 252; --shade-rgb: 0, 0, 0; --hairline-rgb: 255, 255, 255;
+    --page-bg: #17171C;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4); --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.35); --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ── 박스 모양 (토스 느낌: 테두리 대신 면, 큰 둥근 모서리) ── */
+.page-header { border-bottom: none; }
+.page-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+
+/* 큰 박스 */
+.v2-section {
+  border: none;
+  border-radius: 24px;
+  padding: 24px 26px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+.v2-section-head { margin-bottom: 18px; }
+.v2-section-title { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+
+/* 순위 막대 */
+.v2-rank-list { gap: 12px; }
+.v2-rank-bar { height: 10px; background: var(--fill-2); }
+
+/* 기간 탭 → 세그먼트 */
+.v2-tabs { background: var(--fill-2); padding: 3px; border-radius: 12px; gap: 2px; }
+.v2-tab { border: none; border-radius: 9px; padding: 6px 14px; font-weight: 600; }
+.v2-tab.active { box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+
+/* 기록 카드 */
+.v2-run-list { gap: 16px; }
+.v2-run-card { border: none; border-radius: 20px; background: var(--fill-1); padding: 18px 20px; gap: 10px; }
+.v2-run-total { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+.v2-boss-entry { border-top: none; padding: 14px; border-radius: 14px; background: var(--fill-1); }
+.member-chip { border: none; background: var(--fill-2); padding: 4px 11px; font-weight: 600; }
+
+/* 작은 버튼 · 헤더 버튼 → 채운 알약 */
+.btn-mini { border: none; background: var(--fill-2); border-radius: 10px; padding: 6px 12px; font-weight: 600; }
+.btn-mini:hover { background: var(--fill-3); color: var(--text-primary); }
+.btn-mini.btn-primary { background: var(--accent-gold); color: var(--on-accent); }
+.icon-btn { border: none; background: var(--fill-2); border-radius: 12px; font-weight: 600; }
+.btn { border-radius: 14px; }
+.btn-ghost { border: none; background: var(--fill-2); color: var(--text-primary); }
+.btn-ghost:hover { background: var(--fill-3); }
+
+/* 창 */
+.modal { border: none; border-radius: 28px; }
+.modal-actions { border-top: none; }
+
+/* 입력칸 → 채운 면, 누르면 강조색 테두리 */
+.text-input, .select-input { border: 1.5px solid transparent; background: var(--fill-2); border-radius: 12px; }
+.text-input:focus, .select-input:focus { border-color: var(--accent-gold); background: var(--bg-elevated); }
+
+/* 기록 창 안 */
+.v2-boss-block { border: none; background: var(--fill-1); border-radius: 18px; }
+.v2-pick-char, .v2-loot-chip { border: none; background: var(--fill-2); font-weight: 500; }
+.v2-pick-char:hover, .v2-loot-chip:hover { background: var(--fill-3); }
+.v2-loot-row + .v2-loot-row { border-top: none; }
+
+/* 관리 페이지 카드 */
+.v2-manage-card { border: none; background: var(--fill-1); border-radius: 18px; padding: 16px; }
+
+@media (max-width: 720px) {
+  .page-title { font-size: 22px; }
+  .v2-section { padding: 18px 16px; border-radius: 20px; }
+}

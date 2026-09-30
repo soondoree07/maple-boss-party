@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0c14">
+  <meta name="theme-color" content="#F2F4F6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#17171C" media="(prefers-color-scheme: dark)">
   <title>메이플 보스 기록</title>
 
   <link rel="stylesheet" as="style" crossorigin
@@ -11,20 +12,13 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/v2.css">
+  <link rel="stylesheet" href="css/theme.css">
   <script>
-    // 무드 <link>를 style.css 뒤에 얹어 :root만 덮어쓴다(구조/클래스/JS 불변).
-    // 첫 페인트는 항상 파티 선택 화면(진입 가드가 #/ 로 강제)이라 랜덤 픽으로 시작.
-    // 파티 안에서는 app.js가 유저 선택 무드로 href만 교체한다(js/mood.js).
-    (function () {
-      var moods = [1, 2, 3, 4, 5, 6];
-      var pick = moods[Math.floor(Math.random() * moods.length)];
-      window.__moodRandomId = pick;
-      var link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.id = 'mood-theme-link';
-      link.href = 'css/themes/mood-' + pick + '.css';
-      document.head.appendChild(link);
-    })();
+    // 고른 모드(js/theme.js 와 같은 키)를 첫 페인트 전에 적용해 깜빡임을 막는다.
+    try {
+      var saved = localStorage.getItem('maple-theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+    } catch (e) {}
   </script>
 </head>
 <body>
