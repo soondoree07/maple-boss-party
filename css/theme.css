@@ -1,8 +1,8 @@
 /* ============================================================
    theme.css — 사이트 무드 (2026-09-30 고정: 화이트 + 토스 느낌 박스, 다크 모드)
    style.css · v2.css 뒤에 얹어 :root 토큰과 박스 모양만 덮어쓴다(구조·클래스 불변).
-   다크 모드: <html data-theme="dark"> 이거나, 따로 고른 적 없고 시스템이 다크일 때.
-   고르는 버튼은 js/theme.js, 첫 화면 깜빡임 방지는 index.html <head> 스크립트.
+   다크 모드: <html data-theme="dark"> 일 때만. 따로 고른 적이 없으면 index.html <head> 스크립트와
+   js/theme.js 가 기기(시스템) 설정을 data-theme 로 옮겨 준다 → 다크 색은 아래 한 곳에만 둔다.
    ============================================================ */
 
 /* ── 라이트 (기본) ───────────────────────────────────── */
@@ -21,6 +21,7 @@
   --font-base: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
 }
 
+:root { --tag-plain-bg: #E5E8EB; --tag-plain-ink: #4E5968; }
 :root { --fill-1: rgba(var(--hairline-rgb), 0.045); --fill-2: rgba(var(--hairline-rgb), 0.08); --fill-3: rgba(var(--hairline-rgb), 0.12); }
 
 /* ── 다크 ────────────────────────────────────────────── */
@@ -33,20 +34,8 @@
   --on-accent: #FFFFFF; --accent-hover: #4593FC; --btn-grad-text: #FFFFFF;
   --glow-rgb: 69, 147, 252; --shade-rgb: 0, 0, 0; --hairline-rgb: 255, 255, 255;
   --page-bg: #17171C;
+  --tag-plain-bg: #3A3A45; --tag-plain-ink: #C3C8CF;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4); --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.35); --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.5);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg-base: #17171C; --bg-elevated: #26262E; --bg-card: #202027; --bg-card-hover: #2A2A33; --bg-overlay: rgba(0, 0, 0, 0.6);
-    --border-subtle: #2C2C35; --border-strong: #3A3A45;
-    --text-primary: #F2F4F6; --text-secondary: #C3C8CF; --text-tertiary: #8B95A1; --text-muted: #4E5968;
-    --accent-gold: #3182F6; --accent-purple: #8C7CFF; --accent-rose: #8C7CFF; --accent-aqua: #4593FC; --danger: #F66570;
-    --on-accent: #FFFFFF; --accent-hover: #4593FC; --btn-grad-text: #FFFFFF;
-    --glow-rgb: 69, 147, 252; --shade-rgb: 0, 0, 0; --hairline-rgb: 255, 255, 255;
-    --page-bg: #17171C;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4); --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.35); --shadow-lg: 0 18px 46px rgba(0, 0, 0, 0.5);
-  }
 }
 
 /* ── 박스 모양 (토스 느낌: 테두리 대신 면, 큰 둥근 모서리) ── */
@@ -99,7 +88,9 @@
 /* 기록 창 안 */
 .v2-boss-block { border: none; background: var(--fill-1); border-radius: 18px; }
 .v2-pick-char, .v2-loot-chip { border: none; background: var(--fill-2); font-weight: 500; }
-.v2-pick-char:hover, .v2-loot-chip:hover { background: var(--fill-3); }
+@media (hover: hover) {
+  .v2-pick-char:not(.active):hover, .v2-loot-chip:hover { background: var(--fill-3); }
+}
 .v2-loot-row + .v2-loot-row { border-top: none; }
 
 /* 관리 페이지 카드 */
@@ -127,7 +118,7 @@
 .v2-run-card, .v2-boss-entry { align-content: start; }
 .v2-run-add { justify-self: start; }
 
-.header-actions { align-items: center; }
+.header-actions { align-items: center; flex-wrap: wrap; }
 .header-actions > .icon-btn, .header-actions > .btn {
   display: inline-flex;
   align-items: center;
@@ -179,9 +170,5 @@ select.select-input:disabled { cursor: not-allowed; opacity: 0.55; border-style:
 .icon-btn-close svg { width: 14px; height: 14px; }
 
 /* ── 하위 보스 태그 — 회색 단색 (주요 보스 색은 js/v2/boss-tag.js) ── */
-.v2-boss-tag-plain { background: #E5E8EB; color: #4E5968; }
-:root[data-theme="dark"] .v2-boss-tag-plain { background: #3A3A45; color: #C3C8CF; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .v2-boss-tag-plain { background: #3A3A45; color: #C3C8CF; }
-}
+.v2-boss-tag-plain { background: var(--tag-plain-bg); color: var(--tag-plain-ink); }
 .run-boss-badge { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; font-weight: 700; white-space: nowrap; }

@@ -1,8 +1,8 @@
 // app.js — 해시 라우팅 + 파티 상세 화면
 //
 // 라우트:
-//   #/                메인 — 수익 순위 · 이번 주 현황 · 기록 카드 (v2, 2026-09 개편)
-//   #/manage          유저 · 캐릭터 · 파티 프리셋 관리 (v2)
+//   #/                메인 — 수익 순위 · 이번 달 전리품 · 기록 카드 (v2, 2026-09 개편)
+//   #/manage          유저 · 캐릭터 관리 (v2)
 //   #/party/:id       옛 파티 상세 (숨겨 둔 옛 기록 보기용, 목록에서는 안 보임)
 // 모든 화면은 사이트 비밀번호(v2/gate.js)를 먼저 통과해야 한다.
 
@@ -34,8 +34,6 @@ const unlockedParties = new Set();
 
 function route() {
   const hash = location.hash || '#/';
-
-  // 무드: 파티 선택 화면만 랜덤, 그 외(파티/게이트/보스 설정)는 유저 선택값.
 
   if (!isSiteUnlocked()) { renderSiteGate(root, route); return; }
 

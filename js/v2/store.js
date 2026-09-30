@@ -1,5 +1,5 @@
 // v2/store.js — 유저 · 캐릭터 · 기록 (2026-09 개편 구조)
-// (party_presets 테이블은 DB에 남아 있지만 2026-09-30 부터 화면에서 쓰지 않는다.)
+// (party_presets 테이블은 DB에 남아 있지만 화면에서 쓰지 않는다.)
 //
 // 읽기는 인메모리 캐시에서 동기로, 쓰기는 서버 응답을 기다린 뒤 캐시에 반영한다.
 // (옛 storage.js 의 낙관적 쓰기보다 느리지만, 순서 꼬임 걱정이 없다.)
@@ -46,7 +46,12 @@ const byNewest = (a, b) => b.date.localeCompare(a.date) || String(b.createdAt).l
 
 // ── 로드 + Realtime ───────────────────────────────────
 
-async function loadAll() {
+// 불러오기가 겹치면(저장 직후 + Realtime 이벤트 여러 개) 늦게 끝난 옛 응답이 캐시를 덮지 않게
+// 요청마다 순번을 매기고, 가장 마지막 요청의 결과만 반영한다.
+let loadSeq = 0;
+let latestLoad = Promise.resolve();
+
+async function fetchAll() {
   const [u, c, r] = await Promise.all([
     supabase.from('users').select('*'),
     supabase.from('characters').select('*'),
@@ -54,9 +59,19 @@ async function loadAll() {
   ]);
   const err = u.error || c.error || r.error;
   if (err) throw err;
-  cache.users = (u.data || []).map(userFromRow).sort(bySortThenName);
-  cache.characters = (c.data || []).map(charFromRow).sort(bySortThenName);
-  cache.runs = (r.data || []).map(runFromRow).sort(byNewest);
+  return {
+    users: (u.data || []).map(userFromRow).sort(bySortThenName),
+    characters: (c.data || []).map(charFromRow).sort(bySortThenName),
+    runs: (r.data || []).map(runFromRow).sort(byNewest),
+  };
+}
+
+/** 전체를 다시 불러온다. 더 나중 요청이 있으면 그 요청이 끝날 때까지 기다린다. */
+function loadAll() {
+  const seq = ++loadSeq;
+  const request = fetchAll().then((data) => { if (seq === loadSeq) Object.assign(cache, data); });
+  latestLoad = request;
+  return request.then(() => (seq === loadSeq ? undefined : latestLoad));
 }
 
 export async function init() {
@@ -72,11 +87,16 @@ export async function init() {
   }
 }
 
-async function reloadFromRemote() {
-  try {
-    await loadAll();
-    if (remoteCb) remoteCb();
-  } catch (e) { console.error('[v2/store] realtime reload 실패:', e); }
+// Realtime 이벤트는 한 번 저장에 여러 개가 몰려 오므로(보스 여러 개 저장 등) 잠깐 모았다가 한 번만 다시 불러온다.
+let remoteTimer = null;
+function reloadFromRemote() {
+  clearTimeout(remoteTimer);
+  remoteTimer = setTimeout(async () => {
+    try {
+      await loadAll();
+      if (remoteCb) remoteCb();
+    } catch (e) { console.error('[v2/store] realtime reload 실패:', e); }
+  }, 150);
 }
 
 // ── 읽기 ──────────────────────────────────────────────
@@ -101,7 +121,14 @@ async function write(label, request) {
     toast(`${label}에 실패했어요. 잠시 후 다시 시도해 주세요.`, 'err');
     return false;
   }
-  await loadAll();
+  // 서버에는 이미 저장됐으므로, 다시 불러오기가 실패해도 "성공"으로 돌려준다
+  // (실패로 알리면 사용자가 다시 눌러 같은 기록이 두 번 생긴다). 화면은 Realtime 이나 새로고침 때 맞춰진다.
+  try {
+    await loadAll();
+  } catch (e) {
+    console.error(`[v2/store] ${label} 후 다시 불러오기 실패:`, e);
+    toast('저장했어요. 화면이 늦게 바뀌면 새로고침해 주세요.', 'ok');
+  }
   return true;
 }
 

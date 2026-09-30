@@ -1,6 +1,6 @@
 // v2/run-form.js — 기록 추가 · 수정 창
 //
-// 날짜 → 참여 캐릭터(프리셋 가능) → 보스 칸 여러 개(보스 · 난이도 · 그 보스 드랍템).
+// 날짜 → 참여 캐릭터 → 보스 칸 여러 개(보스 · 난이도 · 그 보스 드랍템).
 // 저장하면 보스 칸마다 기록(run)이 하나씩 생긴다. 같은 주·같은 파티 기록은
 // 메인 화면에서 카드 한 장으로 묶이므로, 나중에 같은 파티로 또 넣으면 그 카드에 더해진다.
 // 수정은 기록 하나만 고친다(보스 칸 하나, 추가 버튼 없음).
@@ -15,10 +15,10 @@ import { takerChoices } from './members.js';
 /**
  * @param {object|null} existing - 수정할 기록 (새 기록이면 null)
  * @param {() => void} onSaved
- * @param {{ characterIds?: string[] }} [prefill] - 새 기록일 때 미리 골라 둘 파티
+ * @param {{ characterIds?: string[], date?: string }} [prefill] - 새 기록일 때 미리 골라 둘 파티 · 날짜
  */
 export function openRunForm(existing, onSaved, prefill = {}) {
-  const dateInput = el('input', { className: 'text-input', type: 'date', value: existing?.date || todayStr() });
+  const dateInput = el('input', { className: 'text-input', type: 'date', value: existing?.date || prefill.date || todayStr() });
   const errMsg = el('div', { className: 'dialog-error' });
 
   const blocks = [];
@@ -74,10 +74,14 @@ export function openRunForm(existing, onSaved, prefill = {}) {
     }
 
     button.disabled = true;
-    const ok = existing
-      ? await saveRun({ ...existing, date: dateInput.value, characterIds, ...entries[0] })
-      : await saveNewRuns(entries.map(entry => ({ id: makeId('r'), date: dateInput.value, characterIds, ...entry })));
-    button.disabled = false;
+    let ok = false;
+    try {
+      ok = existing
+        ? await saveRun({ ...existing, date: dateInput.value, characterIds, ...entries[0] })
+        : await saveNewRuns(entries.map(entry => ({ id: makeId('r'), date: dateInput.value, characterIds, ...entry })));
+    } finally {
+      button.disabled = false; // 어떤 경우에도 버튼이 잠긴 채 남지 않게
+    }
     if (ok) { close(); onSaved(); }
   };
 

@@ -1,4 +1,5 @@
--- v2-schema.sql — 유저 · 캐릭터 · 파티(프리셋) · 기록 구조 (2026-09-30 개편)
+-- v2-schema.sql — 유저 · 캐릭터 · 기록 구조 (2026-09-30 개편)
+-- (party_presets 는 처음에 만들었지만 화면에서는 쓰지 않는다. 테이블만 남아 있다.)
 --
 -- 기존 테이블(parties / boss_runs / reservations / boss_settings)은 건드리지 않는다.
 -- Supabase SQL Editor 에 통째로 붙여넣고 한 번 실행한다. 다시 실행해도 안전하다.
@@ -57,7 +58,7 @@ create table if not exists site_settings (
 );
 insert into site_settings (id, pw_hash)
 values (1, encode(digest('1212', 'sha256'), 'hex'))
-on conflict (id) do update set pw_hash = excluded.pw_hash;
+on conflict (id) do nothing; -- 다시 실행해도 바꾼 비밀번호를 되돌리지 않는다
 
 create or replace function verify_site_pw(p_candidate text)
 returns boolean
@@ -123,5 +124,8 @@ insert into characters (id, user_id, name, job, sort_order) values
   ('c-jjuhi',          'u-jjuhi',    '쭈히',         '아델',           1),
   ('c-hyeokju',        'u-hyeokju',  '혁쥬',         '비숍',           1),
   ('c-minmyerin',      'u-myerin',   '민몌린',       '히어로',         1),
-  ('c-minhyeoksulsa',  'u-myerin',   '민혁술사',     '레테',           2)
+  ('c-minhyeoksulsa',  'u-myerin',   '민혁술사',     '레테',           2),
+  -- 외부 인원 자리표: 기록 창의 "기타 − n +" 가 인원 수만큼 채워 쓴다(화면에는 이름 대신 "기타").
+  ('c-ext1', 'u-etc', '외부1', '', 1), ('c-ext2', 'u-etc', '외부2', '', 2), ('c-ext3', 'u-etc', '외부3', '', 3),
+  ('c-ext4', 'u-etc', '외부4', '', 4), ('c-ext5', 'u-etc', '외부5', '', 5)
 on conflict (id) do nothing;

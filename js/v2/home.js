@@ -45,7 +45,7 @@ function renderRunList(rerender, addRun) {
   const handlers = {
     onEdit: (run) => openRunForm(run, rerender),
     onDeleted: rerender,
-    onAddMore: (characterIds) => openRunForm(null, rerender, { characterIds }),
+    onAddMore: (characterIds, date) => openRunForm(null, rerender, { characterIds, date }),
   };
 
   if (runs.length === 0) {

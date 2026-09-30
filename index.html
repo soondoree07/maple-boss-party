@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#F2F4F6" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#17171C" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" id="theme-color-meta" content="#F2F4F6">
   <title>메이플 보스 기록</title>
 
   <link rel="stylesheet" as="style" crossorigin
@@ -14,11 +13,15 @@
   <link rel="stylesheet" href="css/v2.css">
   <link rel="stylesheet" href="css/theme.css">
   <script>
-    // 고른 모드(js/theme.js 와 같은 키)를 첫 페인트 전에 적용해 깜빡임을 막는다.
-    try {
-      var saved = localStorage.getItem('maple-theme');
-      if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
-    } catch (e) {}
+    // 첫 페인트 전에 모드를 정해 깜빡임을 막는다(js/theme.js 와 같은 키·같은 규칙).
+    // 고른 적이 없으면 기기 설정을 따른다. 다크 색은 css/theme.css 의 [data-theme="dark"] 한 곳에만 있다.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('maple-theme'); } catch (e) {}
+      var dark = saved ? saved === 'dark' : !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      document.getElementById('theme-color-meta').content = dark ? '#17171C' : '#F2F4F6';
+    })();
   </script>
 </head>
 <body>

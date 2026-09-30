@@ -68,7 +68,8 @@ function openUserForm(user, rerender) {
     title: user ? '유저 수정' : '유저 추가',
     body: el('div', { className: 'v2-form' }, field('이름', nameInput), errMsg),
     actions: [
-      user ? el('button', { className: 'btn btn-danger', type: 'button', onclick: remove }, '삭제하기') : null,
+      // 기타(외부 인원) 유저는 지우면 외부 인원이 섞인 기록이 모두 깨지므로 삭제를 막는다.
+      user && !user.isExternal ? el('button', { className: 'btn btn-danger', type: 'button', onclick: remove }, '삭제하기') : null,
       el('button', { className: 'btn btn-ghost', type: 'button', onclick: () => close() }, '취소'),
       el('button', { className: 'btn btn-primary', type: 'button', onclick: save }, '저장하기'),
     ],

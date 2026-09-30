@@ -3,7 +3,7 @@
 // 기록(run)마다 들어 있는 드랍템을 한 줄씩 펼쳐 달별로 묶는다.
 // 한 줄 = 날짜 · 아이템 · 보스 · 누가(독식이면 그 사람, 분배면 파티원 전체) · 가격(나누기 전).
 
-import { el } from '../utils.js';
+import { el, todayStr } from '../utils.js';
 import { getBoss, difficultyLabel, getLootImage } from '../data.js';
 import { getRuns } from './store.js';
 import { formatEok, lootPrice } from './calc.js';
@@ -62,7 +62,7 @@ const renderList = (list) => el('ul', { className: 'v2-loot-list' }, list.map(re
 /** 메인 화면 칸 — 이번 달 전리품. */
 export function renderLootHistory() {
   const months = groupByMonth(lootEntries(getRuns()));
-  const thisMonth = todayMonth();
+  const thisMonth = todayStr().slice(0, 7);
   const current = months.find(m => m.month === thisMonth);
 
   return el('section', { className: 'v2-section' },
@@ -77,11 +77,6 @@ export function renderLootHistory() {
       ? renderList(current.list)
       : el('p', { className: 'form-hint' }, '이번 달엔 아직 드랍템이 없어요. 기록에 드랍템을 넣으면 여기에 모여요.'),
   );
-}
-
-function todayMonth() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
 /** "전체 보기" 창 — 달마다 합계와 목록. 닫기는 위쪽 X · 바깥 클릭 · ESC. */
