@@ -409,9 +409,19 @@ export const isBossVisible = (bossId, visible = {}) => {
 /** 보스의 가장 비싼 난이도 결정석(억). */
 const topCrystal = (boss) => Math.max(0, ...boss.difficulties.map(d => Number(d.crystal) || 0));
 
-/** 보스 목록 순서: 결정석이 가장 비싼 난이도 기준으로 비싼 보스가 위, 같으면 이름 가나다순. */
+// 위쪽 고정 순서 (사용자 지정). 여기 없는 보스는 그 아래에 결정석 비싼 순.
+const TOP_BOSS_ORDER = [
+  'blackmage', 'jupiter', 'baldrix', 'limbo', 'bellona', 'lotus',
+  'adversary', 'kaling', 'kalos', 'seren', 'suu',
+];
+
+/** 보스 목록 순서: 고정 순서 11개 → 나머지는 가장 비싼 난이도 결정석 순(같으면 이름 가나다순). */
 export function bossesInOrder() {
-  return [...BOSSES].sort((a, b) => (topCrystal(b) - topCrystal(a)) || a.name.localeCompare(b.name, 'ko'));
+  const rank = new Map(TOP_BOSS_ORDER.map((id, i) => [id, i]));
+  const top = TOP_BOSS_ORDER.map(id => BOSSES.find(b => b.id === id)).filter(Boolean);
+  const rest = BOSSES.filter(b => !rank.has(b.id))
+    .sort((a, b) => (topCrystal(b) - topCrystal(a)) || a.name.localeCompare(b.name, 'ko'));
+  return [...top, ...rest];
 }
 
 export const getLootImage = (itemName) => LOOT_IMAGE[itemName] || null;
