@@ -27,15 +27,17 @@ export const difficultyRank  = (key) => DIFFICULTY_RANK[key] ?? 99;
 // 그룹은 아이템 고유 속성이라 보스/난이도와 무관하다.
 
 // 각 배열의 순서 = 그룹 내 표시 순서 (사용자 지정).
-const UNIQUE  = ['황홀한 악몽', '근원의 속삭임', '죽음의 맹세', '불멸의 유산', '창세의 뱃지', '오만의 원죄', '언컨'];
+const UNIQUE  = ['황홀한 악몽', '근원의 속삭임', '죽음의 맹세', '불멸의 유산', '창세의 뱃지', '오만의 원죄', '굶주리는 핏빛 원혼', '언컨'];
 const HAMMER  = ['해머(얼굴장식)', '해머(눈장식)', '해머(훈장)', '해머(귀고리)', '해머(벨트)'];
 const EPIC    = ['연마석', '신마석', '장신망상자', '영달포'];
 const PURPLE  = ['루컨마', '마깃안', '몽벨', '마도서', '거공', '고근', '커포링', '미트라의 분노'];
+// 소울 에테르는 1~4단계가 있다. 등급 자리는 임시로 퍼플코어 바로 아래 (사용자 결정 2026-09-30).
+const SOUL    = ['2단계 소울 에테르'];
 const DEFAULT = ['리3', '리4', '컨3', '컨4', '에테상자'];
 
-// 전리품 그룹 표시 순서: 유니크 → 해머 → 에픽 → 퍼플코어 → 기본
-const LOOT_GROUP_ORDER = ['unique', 'hammer', 'epic', 'purple', 'default'];
-const GROUP_ARRAYS = { unique: UNIQUE, hammer: HAMMER, epic: EPIC, purple: PURPLE, default: DEFAULT };
+// 전리품 그룹 표시 순서: 유니크 → 해머 → 에픽 → 퍼플코어 → 소울 에테르 → 기본
+const LOOT_GROUP_ORDER = ['unique', 'hammer', 'epic', 'purple', 'soul', 'default'];
+const GROUP_ARRAYS = { unique: UNIQUE, hammer: HAMMER, epic: EPIC, purple: PURPLE, soul: SOUL, default: DEFAULT };
 
 export const LOOT_GROUP = (() => {
   const m = {};
@@ -76,12 +78,14 @@ export function sortLoot(list) {
  *  - hammer:  해머 5종
  *  - epic:    에픽 — 연마석/신마석/장신망상자/영달포
  *  - purple:  퍼플코어 8종
+ *  - soul:    소울 에테르 (1~4단계)
  *  - default: 그 외 — 검정(글자색 미적용)
  */
 export const LOOT_COLORS = {
   hammer:  '#D4A056',
   epic:    '#22C55E',
   purple:  '#9B5DE5',
+  soul:    '#F97316',
   unique:  '#E0C9A6',
   default: '#1A1A1A',
 };
@@ -97,6 +101,7 @@ export const LOOT_NAME_COLOR = {
   '불멸의 유산':   '#FFA700',
   '창세의 뱃지':   '#FB0400',
   '오만의 원죄':   '#C9B58E',
+  '굶주리는 핏빛 원혼': '#E11D48',
   '언컨':          '#D04040',
 };
 
@@ -201,9 +206,10 @@ export const BOSSES = [
   {
     id: 'bellona', name: '벨로나', cycle: 'weekly', color: '#F0ABFC',
     difficulties: [
-      { key: 'easy',   crystal: 3.9,  loot: [] },
-      { key: 'normal', crystal: 8.2,  loot: [] },
-      { key: 'hard',   crystal: 29.5, loot: [] },
+      // 반지 상자(백옥·생명) = 리4·컨4 / 혼돈의 칠흑 장신구 상자 = 퍼플코어 / 광기의 에테르넬 방어구 상자 = 에테상자
+      { key: 'easy',   crystal: 3.9,  loot: ['리4', '컨4'] },
+      { key: 'normal', crystal: 8.2,  loot: ['연마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
+      { key: 'hard',   crystal: 29.5, loot: ['굶주리는 핏빛 원혼', '에테상자', '신마석', '연마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
     ],
   },
   {
