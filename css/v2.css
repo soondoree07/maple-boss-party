@@ -174,7 +174,8 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
 }
-.v2-boss-line { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.v2-boss-line { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto 28px; gap: 8px; align-items: center; }
+.v2-boss-line .v2-boss-crystal { white-space: nowrap; }
 .v2-boss-crystal { font-size: 12px; color: var(--text-tertiary); }
 .v2-add-boss { justify-self: start; margin-top: 8px; }
 
@@ -199,6 +200,45 @@
 .v2-loot-row { display: grid; grid-template-columns: minmax(0, 1.6fr) 96px 72px minmax(0, 1.2fr) auto; gap: 6px; align-items: center; }
 .v2-loot-row select[hidden] { display: block; visibility: hidden; } /* 분배 줄도 칸 위치를 독식 줄과 맞춘다 */
 
+/* ── 기록 창 (넓은 2단) ────────────────────────────────── */
+
+.modal-wide:has(.v2-run-form) { max-width: min(1240px, 96vw); max-height: 96vh; padding: 22px 32px; }
+.modal:has(.v2-run-form) .modal-header { margin-bottom: 14px; }
+.modal:has(.v2-run-form) .modal-actions { margin-top: 12px; padding-top: 14px; }
+.v2-run-form .form-group { margin-bottom: 12px; }
+.v2-date-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.v2-date-row .form-label { margin: 0; width: 52px; }
+.v2-run-form .v2-pick-presets .btn-mini, .v2-run-form .v2-loot-editor > .btn-mini { font-size: 13px; padding: 5px 12px; }
+.v2-run-form .v2-add-boss { font-size: 14px; }
+.modal:has(.v2-run-form) .modal-title { font-size: 22px; }
+.v2-run-form {
+  display: grid;
+  grid-template-columns: minmax(360px, 5fr) minmax(0, 7fr);
+  gap: 28px;
+  align-items: start;
+}
+.v2-run-form .form-label { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.v2-run-form .text-input, .v2-run-form .select-input { font-size: 15px; padding: 10px 12px; }
+.v2-run-form .v2-pick-group { gap: 8px; }
+.v2-run-form .v2-pick-user { width: 52px; font-size: 14px; }
+.v2-run-form .v2-pick-char { font-size: 15px; padding: 8px 14px; }
+.v2-run-form .v2-pick-char small { font-size: 12px; }
+.v2-run-form .v2-ext-stepper .v2-pick-char { width: 38px; padding: 8px 0; }
+.v2-run-form .v2-ext-count, .v2-run-form .v2-ext-hint { font-size: 14px; }
+.v2-run-form .v2-boss-block { padding: 14px 16px; gap: 10px; }
+.v2-run-form .v2-boss-crystal { font-size: 14px; }
+.v2-run-form .v2-loot-chip { font-size: 14px; padding: 5px 11px; }
+.v2-run-form .v2-loot-chip .v2-loot-img { width: 20px; height: 20px; }
+@media (min-width: 721px) {
+  .v2-run-form .v2-loot-row { grid-template-columns: minmax(0, 1.6fr) 110px 84px minmax(0, 1.2fr) auto; }
+}
+.v2-run-form .dialog-error { font-size: 14px; }
+.modal:has(.v2-run-form) .modal-actions .btn { font-size: 15px; padding: 10px 22px; }
+
+@media (max-width: 1000px) {
+  .v2-run-form { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}
+
 /* ── 관리 페이지 ──────────────────────────────────────── */
 
 .v2-manage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
@@ -222,12 +262,15 @@
   .v2-form .form-row { grid-template-columns: 1fr 1fr; }
   .v2-form .form-row .form-group:first-child { grid-column: 1 / -1; }
   /* 1줄: 아이템 이름 · 지우기 / 2줄: 판매가 · 분배/독식 · 가져간 사람 */
-  .v2-loot-row { grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1.4fr) 28px; }
+  .v2-loot-row { grid-template-columns: repeat(3, minmax(0, 1fr)) 28px; }
+  .v2-run-form .v2-loot-row .text-input, .v2-run-form .v2-loot-row .select-input { padding: 9px 8px; font-size: 14px; }
   .v2-loot-row > input:first-child { grid-column: 1 / 4; grid-row: 1; }
   .v2-loot-row > button { grid-column: 4; grid-row: 1; }
   .v2-loot-row > :nth-child(2), .v2-loot-row > :nth-child(3), .v2-loot-row > :nth-child(4) { grid-row: 2; }
   .v2-loot-row + .v2-loot-row { padding-top: 6px; border-top: 1px dashed var(--border-subtle); }
   .v2-boss-block { padding: 10px; }
+  .v2-boss-line { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 28px; }
+  .v2-boss-line .v2-boss-crystal { grid-column: 1 / -1; grid-row: 2; }
   .v2-run-list { grid-template-columns: minmax(0, 1fr); }
   .v2-rank-row { grid-template-columns: 20px 52px minmax(0, 1fr) auto; }
 }

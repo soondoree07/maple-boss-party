@@ -64,11 +64,11 @@ export function createBossBlock({ existing = null, defaultBoss, defaultDifficult
     el('div', { className: 'v2-boss-line' },
       bossSelect,
       diffSelect,
+      crystalInfo,
       onRemove
         ? el('button', { className: 'icon-btn icon-btn-sm', type: 'button', title: '이 보스 빼기', onclick: onRemove }, '×')
-        : null,
+        : el('span'),
     ),
-    crystalInfo,
     lootEditor.node,
   );
 

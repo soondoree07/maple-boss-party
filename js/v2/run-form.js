@@ -51,12 +51,17 @@ export function openRunForm(existing, onSaved, prefill = {}) {
   };
   addBlock(existing);
 
-  const body = el('div', { className: 'v2-form' },
-    field('날짜', dateInput),
-    field('참여 캐릭터', picker.node),
-    field(existing ? '보스' : '보스 (잡은 순서대로 추가)', blocksBox,
-      existing ? null : el('button', { className: 'btn btn-ghost btn-mini v2-add-boss', type: 'button', onclick: () => addBlock() }, '+ 보스 추가')),
-    errMsg,
+  // 넓은 화면에서는 왼쪽 = 날짜 · 파티, 오른쪽 = 보스 칸 (좁으면 위아래로 쌓인다)
+  const body = el('div', { className: 'v2-form v2-run-form' },
+    el('div', { className: 'v2-run-form-side' },
+      el('div', { className: 'v2-date-row' }, el('label', { className: 'form-label' }, '날짜'), dateInput),
+      field('참여 캐릭터', picker.node),
+    ),
+    el('div', { className: 'v2-run-form-main' },
+      field(existing ? '보스' : '보스 (잡은 순서대로 추가)', blocksBox,
+        existing ? null : el('button', { className: 'btn btn-ghost v2-add-boss', type: 'button', onclick: () => addBlock() }, '+ 보스 추가')),
+      errMsg,
+    ),
   );
 
   const save = async (e) => {

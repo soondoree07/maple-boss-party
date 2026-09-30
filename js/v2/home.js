@@ -63,6 +63,7 @@ function renderRunList(rerender, addRun) {
     el('div', { className: 'v2-section-head' },
       el('h2', { className: 'v2-section-title' }, '보스 기록'),
       el('span', { className: 'v2-section-sub' }, `보스 ${runs.length}건`),
+      el('button', { className: 'btn btn-primary btn-mini', type: 'button', onclick: addRun }, '+ 기록 추가'),
     ),
     el('div', { className: 'v2-run-list' }, shown.map(group => renderRunGroupCard(group, handlers))),
     groups.length > visibleCount
