@@ -26,7 +26,7 @@ export function renderHome(container, rerender) {
     el('h1', { className: 'page-title' }, '메이플 보스 기록'),
     el('div', { className: 'header-actions' },
       el('button', { className: 'icon-btn', type: 'button', onclick: openRouletteModal }, '채널 룰렛'),
-      el('a', { href: '#/manage', className: 'icon-btn' }, '유저·파티 관리'),
+      el('a', { href: '#/manage', className: 'icon-btn' }, '유저 관리'),
       el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),
     ),
   ));

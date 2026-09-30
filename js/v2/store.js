@@ -1,4 +1,5 @@
-// v2/store.js — 유저 · 캐릭터 · 파티 프리셋 · 기록 (2026-09 개편 구조)
+// v2/store.js — 유저 · 캐릭터 · 기록 (2026-09 개편 구조)
+// (party_presets 테이블은 DB에 남아 있지만 2026-09-30 부터 화면에서 쓰지 않는다.)
 //
 // 읽기는 인메모리 캐시에서 동기로, 쓰기는 서버 응답을 기다린 뒤 캐시에 반영한다.
 // (옛 storage.js 의 낙관적 쓰기보다 느리지만, 순서 꼬임 걱정이 없다.)
@@ -8,7 +9,7 @@
 import { supabase } from '../config.js';
 import { toast } from '../utils.js';
 
-const cache = { users: [], characters: [], presets: [], runs: [] };
+const cache = { users: [], characters: [], runs: [] };
 let remoteCb = null;
 
 export function onRemoteChange(cb) { remoteCb = cb; }
@@ -19,7 +20,6 @@ const asArray = (v) => (Array.isArray(v) ? v : []);
 
 const userFromRow = (r) => ({ id: r.id, name: r.name, sortOrder: r.sort_order, isExternal: r.is_external });
 const charFromRow = (r) => ({ id: r.id, userId: r.user_id, name: r.name, job: r.job, sortOrder: r.sort_order });
-const presetFromRow = (r) => ({ id: r.id, name: r.name, characterIds: asArray(r.character_ids) });
 const runFromRow = (r) => ({
   id: r.id,
   date: r.date,
@@ -47,17 +47,15 @@ const byNewest = (a, b) => b.date.localeCompare(a.date) || String(b.createdAt).l
 // ── 로드 + Realtime ───────────────────────────────────
 
 async function loadAll() {
-  const [u, c, p, r] = await Promise.all([
+  const [u, c, r] = await Promise.all([
     supabase.from('users').select('*'),
     supabase.from('characters').select('*'),
-    supabase.from('party_presets').select('*'),
     supabase.from('runs').select('*'),
   ]);
-  const err = u.error || c.error || p.error || r.error;
+  const err = u.error || c.error || r.error;
   if (err) throw err;
   cache.users = (u.data || []).map(userFromRow).sort(bySortThenName);
   cache.characters = (c.data || []).map(charFromRow).sort(bySortThenName);
-  cache.presets = (p.data || []).map(presetFromRow).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
   cache.runs = (r.data || []).map(runFromRow).sort(byNewest);
 }
 
@@ -65,7 +63,7 @@ export async function init() {
   await loadAll();
   try {
     const channel = supabase.channel('maple-boss-v2');
-    for (const table of ['users', 'characters', 'party_presets', 'runs']) {
+    for (const table of ['users', 'characters', 'runs']) {
       channel.on('postgres_changes', { event: '*', schema: 'public', table }, reloadFromRemote);
     }
     channel.subscribe();
@@ -88,7 +86,6 @@ export const getUser = (id) => cache.users.find(u => u.id === id) || null;
 export const getCharacters = () => cache.characters;
 export const getCharacter = (id) => cache.characters.find(c => c.id === id) || null;
 export const getCharactersOf = (userId) => cache.characters.filter(c => c.userId === userId);
-export const getPresets = () => cache.presets;
 export const getRuns = () => cache.runs;
 
 // ── 쓰기 (서버 성공 후 다시 불러와 캐시 갱신) ──────────
@@ -135,12 +132,6 @@ export const saveCharacter = (ch) =>
 export const deleteCharacter = (id) =>
   write('캐릭터 삭제', supabase.from('characters').delete().eq('id', id));
 
-export const savePreset = (preset) =>
-  write('파티 저장', supabase.from('party_presets').upsert({
-    id: preset.id, name: preset.name, character_ids: preset.characterIds,
-  }, { onConflict: 'id' }));
-export const deletePreset = (id) =>
-  write('파티 삭제', supabase.from('party_presets').delete().eq('id', id));
 
 /** 사이트 비밀번호 서버 검사. */
 export async function verifySitePw(pin) {

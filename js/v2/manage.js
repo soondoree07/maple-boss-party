@@ -1,20 +1,18 @@
-// v2/manage.js — 유저 · 캐릭터 · 파티 프리셋 관리 페이지 (#/manage)
+// v2/manage.js — 유저 · 캐릭터 관리 페이지 (#/manage)
 
 import { el, clear, confirmDialog } from '../utils.js';
 import {
-  getUsers, getCharactersOf, getPresets,
-  saveUser, deleteUser, saveCharacter, deleteCharacter, deletePreset, makeId,
+  getUsers, getCharactersOf,
+  saveUser, deleteUser, saveCharacter, deleteCharacter, makeId,
 } from './store.js';
-import { memberLabels } from './members.js';
 import { openModal, field } from './modal.js';
-import { openPresetForm } from './preset-form.js';
 
 export function renderManage(container, rerender) {
   clear(container);
 
   container.appendChild(el('header', { className: 'page-header' },
     el('a', { href: '#/', className: 'back-btn' }, '← 기록으로'),
-    el('h1', { className: 'page-title' }, '유저·파티 관리'),
+    el('h1', { className: 'page-title' }, '유저 관리'),
     el('div', { className: 'header-actions' }),
   ));
 
@@ -25,15 +23,6 @@ export function renderManage(container, rerender) {
         el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openUserForm(null, rerender) }, '+ 유저 추가'),
       ),
       el('div', { className: 'v2-manage-grid' }, getUsers().map(user => renderUserCard(user, rerender))),
-    ),
-    el('section', { className: 'v2-section' },
-      el('div', { className: 'v2-section-head' },
-        el('h2', { className: 'v2-section-title' }, '파티'),
-        el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openPresetForm(null, rerender) }, '+ 파티 만들기'),
-      ),
-      getPresets().length === 0
-        ? el('p', { className: 'form-hint' }, '자주 같이 가는 캐릭터를 파티로 묶어 두면 기록할 때 한 번에 고를 수 있어요.')
-        : el('div', { className: 'v2-manage-grid' }, getPresets().map(preset => renderPresetCard(preset, rerender))),
     ),
   ));
 }
@@ -55,25 +44,6 @@ function renderUserCard(user, rerender) {
           )),
           el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(null, user.id, rerender) }, '+ 캐릭터'),
         ],
-  );
-}
-
-function renderPresetCard(preset, rerender) {
-  const remove = async () => {
-    const ok = await confirmDialog({
-      title: '파티 삭제', message: `"${preset.name}" 파티를 지울까요?\n지금까지 남긴 기록은 그대로 남아요.`,
-      confirmText: '삭제하기', danger: true,
-    });
-    if (ok && await deletePreset(preset.id)) rerender();
-  };
-  return el('div', { className: 'v2-manage-card' },
-    el('div', { className: 'v2-manage-card-head' },
-      el('strong', null, preset.name),
-      el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openPresetForm(preset, rerender) }, '수정'),
-      el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: remove }, '삭제'),
-    ),
-    el('div', { className: 'v2-run-members' },
-      memberLabels(preset.characterIds).map(name => el('span', { className: 'member-chip' }, name))),
   );
 }
 

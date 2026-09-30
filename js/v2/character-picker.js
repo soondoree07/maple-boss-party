@@ -1,21 +1,19 @@
 // v2/character-picker.js — 캐릭터 여러 명 고르기 (유저별로 묶어서 표시)
 //
-// 기록 창(참여 캐릭터)과 관리 페이지(파티 프리셋 구성)에서 같이 쓴다.
-// withPresets 면 위쪽에 파티 프리셋 버튼 — 누르면 그 구성으로 한 번에 바꾼다.
+// 한 줄 = 왼쪽 유저 이름 + 오른쪽 캐릭터 버튼들(넘치면 같은 세로선에서 다음 줄로).
 // 외부 인원(기타)은 캐릭터 대신 "기타 - n +" 인원 수로 고른다 (members.js 참고).
 
 import { el } from '../utils.js';
-import { getUsers, getCharactersOf, getPresets } from './store.js';
+import { getUsers, getCharactersOf } from './store.js';
 import { externalSlotIds, isExternalCharacter, EXTERNAL_LABEL } from './members.js';
 
 /**
  * @param {object} opts
  * @param {string[]} [opts.initial]   - 처음부터 골라 둘 캐릭터 id
- * @param {boolean} [opts.withPresets]
  * @param {() => void} [opts.onChange]
  * @returns {{ node: HTMLElement, getSelected: () => string[], setSelected: (ids: string[]) => void }}
  */
-export function createCharacterPicker({ initial = [], withPresets = false, onChange = () => {} }) {
+export function createCharacterPicker({ initial = [], onChange = () => {} }) {
   const selected = new Set();
   const toggles = new Map(); // 우리 캐릭터 id → button
   const slots = externalSlotIds();
@@ -46,7 +44,7 @@ export function createCharacterPicker({ initial = [], withPresets = false, onCha
     .filter(group => group.characters.length > 0)
     .map(({ user, characters }) => el('div', { className: 'v2-pick-group' },
       el('span', { className: 'v2-pick-user' }, user.name),
-      characters.map(ch => {
+      el('div', { className: 'v2-pick-chars' }, characters.map(ch => {
         const btn = el('button', {
           className: 'v2-pick-char', type: 'button',
           onclick: () => {
@@ -56,7 +54,7 @@ export function createCharacterPicker({ initial = [], withPresets = false, onCha
         }, ch.name, ch.job ? el('small', null, ch.job) : null);
         toggles.set(ch.id, btn);
         return btn;
-      }),
+      })),
     ));
 
   const stepExternal = (delta) => {
@@ -66,26 +64,19 @@ export function createCharacterPicker({ initial = [], withPresets = false, onCha
   const externalGroup = slots.length > 0
     ? el('div', { className: 'v2-pick-group' },
         el('span', { className: 'v2-pick-user' }, EXTERNAL_LABEL),
-        el('div', { className: 'v2-ext-stepper' },
-          el('button', { className: 'v2-pick-char', type: 'button', 'aria-label': '외부 인원 빼기', onclick: () => stepExternal(-1) }, '−'),
-          countLabel,
-          el('button', { className: 'v2-pick-char', type: 'button', 'aria-label': '외부 인원 더하기', onclick: () => stepExternal(1) }, '+'),
+        el('div', { className: 'v2-pick-chars' },
+          el('div', { className: 'v2-ext-stepper' },
+            el('button', { className: 'v2-pick-char', type: 'button', 'aria-label': '외부 인원 빼기', onclick: () => stepExternal(-1) }, '−'),
+            countLabel,
+            el('button', { className: 'v2-pick-char', type: 'button', 'aria-label': '외부 인원 더하기', onclick: () => stepExternal(1) }, '+'),
+          ),
+          el('small', { className: 'v2-ext-hint' }, '같이 간 외부 인원 수'),
         ),
-        el('small', { className: 'v2-ext-hint' }, '같이 간 외부 인원 수'),
-      )
-    : null;
-
-  const presetRow = withPresets && getPresets().length > 0
-    ? el('div', { className: 'v2-pick-presets' },
-        getPresets().map(preset => el('button', {
-          className: 'btn btn-ghost btn-mini', type: 'button',
-          onclick: () => { setSelected(preset.characterIds); onChange(); },
-        }, preset.name)),
       )
     : null;
 
   setSelected(initial);
-  const node = el('div', { className: 'v2-picker' }, presetRow, ownGroups, externalGroup);
+  const node = el('div', { className: 'v2-picker' }, ownGroups, externalGroup);
   // 표시 순서(유저 순 → 캐릭터 순)대로, 외부 인원 자리표는 맨 뒤에.
   const getSelected = () => [
     ...[...toggles.keys()].filter(id => selected.has(id)),

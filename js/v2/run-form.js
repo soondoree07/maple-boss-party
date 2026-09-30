@@ -28,7 +28,6 @@ export function openRunForm(existing, onSaved, prefill = {}) {
 
   const picker = createCharacterPicker({
     initial: existing?.characterIds || prefill.characterIds || [],
-    withPresets: true,
     onChange: refreshBlocks,
   });
 
