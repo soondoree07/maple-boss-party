@@ -282,3 +282,10 @@
 }
 .v2-loot-editor[hidden] { display: none; }
 .v2-pick-group[hidden] { display: none; }
+
+/* ── 과거 기록 (#/archive) ────────────────────────────── */
+
+.v2-archive-sub { margin: 18px 0 10px; font-size: 14px; font-weight: 700; color: var(--text-secondary); }
+.v2-archive-sub:first-of-type { margin-top: 4px; }
+.v2-archive-note { margin: 14px 0 0; font-size: 12px; color: var(--text-tertiary); }
+.v2-home-footer { display: flex; justify-content: center; padding: 8px 0 24px; }

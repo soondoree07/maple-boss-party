@@ -1,0 +1,642 @@
+{
+ "note": "2026-09 개편 전 옛 파티 기록. 결정석은 그때 가격표 기준, 이후 바뀌지 않는 고정 기록.",
+ "parties": [
+  {
+   "id": "0f265ffa5d80",
+   "name": "밈곰잉",
+   "members": [
+    "밈두",
+    "곰범",
+    "잉짱",
+    "혁쥬"
+   ],
+   "runCount": 91,
+   "total": 2811.55,
+   "members_total": [
+    {
+     "name": "잉짱",
+     "total": 1287.5583333333334
+    },
+    {
+     "name": "밈두",
+     "total": 676.0083333333334
+    },
+    {
+     "name": "곰범",
+     "total": 442.80333333333334
+    },
+    {
+     "name": "혁쥬",
+     "total": 405.18
+    }
+   ],
+   "months": [
+    {
+     "month": "2026-09",
+     "runCount": 9,
+     "total": 219.68,
+     "members": [
+      {
+       "name": "잉짱",
+       "crystal": 122.47000000000001,
+       "loot": 0,
+       "total": 122.47000000000001
+      },
+      {
+       "name": "혁쥬",
+       "crystal": 97.21,
+       "loot": 0,
+       "total": 97.21
+      },
+      {
+       "name": "밈두",
+       "crystal": 0,
+       "loot": 0,
+       "total": 0
+      },
+      {
+       "name": "곰범",
+       "crystal": 0,
+       "loot": 0,
+       "total": 0
+      }
+     ],
+     "bosses": [
+      {
+       "name": "검은 마법사",
+       "count": 1
+      },
+      {
+       "name": "스우",
+       "count": 1
+      },
+      {
+       "name": "선택받은 세렌",
+       "count": 1
+      },
+      {
+       "name": "감시자 칼로스",
+       "count": 1
+      },
+      {
+       "name": "카링",
+       "count": 1
+      },
+      {
+       "name": "최초의 대적자",
+       "count": 1
+      },
+      {
+       "name": "찬란한 흉성",
+       "count": 1
+      },
+      {
+       "name": "림보",
+       "count": 1
+      },
+      {
+       "name": "발드릭스",
+       "count": 1
+      }
+     ],
+     "loot": []
+    },
+    {
+     "month": "2026-07",
+     "runCount": 10,
+     "total": 351.03,
+     "members": [
+      {
+       "name": "밈두",
+       "crystal": 100.875,
+       "loot": 22.5,
+       "total": 123.375
+      },
+      {
+       "name": "잉짱",
+       "crystal": 100.875,
+       "loot": 22.5,
+       "total": 123.375
+      },
+      {
+       "name": "곰범",
+       "crystal": 60.580000000000005,
+       "loot": 0,
+       "total": 60.580000000000005
+      },
+      {
+       "name": "혁쥬",
+       "crystal": 43.7,
+       "loot": 0,
+       "total": 43.7
+      }
+     ],
+     "bosses": [
+      {
+       "name": "스우",
+       "count": 2
+      },
+      {
+       "name": "검은 마법사",
+       "count": 2
+      },
+      {
+       "name": "림보",
+       "count": 1
+      },
+      {
+       "name": "찬란한 흉성",
+       "count": 1
+      },
+      {
+       "name": "최초의 대적자",
+       "count": 1
+      },
+      {
+       "name": "선택받은 세렌",
+       "count": 1
+      },
+      {
+       "name": "발드릭스",
+       "count": 1
+      },
+      {
+       "name": "감시자 칼로스",
+       "count": 1
+      }
+     ],
+     "loot": [
+      {
+       "date": "2026-07-08",
+       "boss": "kalos",
+       "bossName": "감시자 칼로스",
+       "difficulty": "chaos",
+       "item": "연마석",
+       "price": 9,
+       "who": "밈두 · 잉짱 분배"
+      },
+      {
+       "date": "2026-07-08",
+       "boss": "baldrix",
+       "bossName": "발드릭스",
+       "difficulty": "normal",
+       "item": "신마석",
+       "price": 36,
+       "who": "밈두 · 잉짱 분배"
+      }
+     ]
+    },
+    {
+     "month": "2026-06",
+     "runCount": 31,
+     "total": 1108.4800000000002,
+     "members": [
+      {
+       "name": "잉짱",
+       "crystal": 254.69,
+       "loot": 374.8,
+       "total": 629.49
+      },
+      {
+       "name": "밈두",
+       "crystal": 186.85000000000002,
+       "loot": 59.3,
+       "total": 246.15000000000003
+      },
+      {
+       "name": "혁쥬",
+       "crystal": 43.7,
+       "loot": 113.5,
+       "total": 157.2
+      },
+      {
+       "name": "곰범",
+       "crystal": 50.64,
+       "loot": 25,
+       "total": 75.64
+      }
+     ],
+     "bosses": [
+      {
+       "name": "스우",
+       "count": 5
+      },
+      {
+       "name": "감시자 칼로스",
+       "count": 5
+      },
+      {
+       "name": "선택받은 세렌",
+       "count": 5
+      },
+      {
+       "name": "최초의 대적자",
+       "count": 4
+      },
+      {
+       "name": "찬란한 흉성",
+       "count": 3
+      },
+      {
+       "name": "림보",
+       "count": 3
+      },
+      {
+       "name": "발드릭스",
+       "count": 3
+      },
+      {
+       "name": "카링",
+       "count": 2
+      },
+      {
+       "name": "검은 마법사",
+       "count": 1
+      }
+     ],
+     "loot": [
+      {
+       "date": "2026-06-26",
+       "boss": "kalos",
+       "bossName": "감시자 칼로스",
+       "difficulty": "chaos",
+       "item": "연마석",
+       "price": 9,
+       "who": "밈두 독식"
+      },
+      {
+       "date": "2026-06-22",
+       "boss": "adversary",
+       "bossName": "최초의 대적자",
+       "difficulty": "hard",
+       "item": "연마석",
+       "price": 10.6,
+       "who": "밈두 · 잉짱 분배"
+      },
+      {
+       "date": "2026-06-21",
+       "boss": "lotus",
+       "bossName": "찬란한 흉성",
+       "difficulty": "hard",
+       "item": "루컨마",
+       "price": 25,
+       "who": "밈두 독식"
+      },
+      {
+       "date": "2026-06-21",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "장신망상자",
+       "price": 5,
+       "who": "잉짱 독식"
+      },
+      {
+       "date": "2026-06-21",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "루컨마",
+       "price": 25,
+       "who": "곰범 독식"
+      },
+      {
+       "date": "2026-06-14",
+       "boss": "suu",
+       "bossName": "스우",
+       "difficulty": "extreme",
+       "item": "언컨",
+       "price": 231,
+       "who": "잉짱 독식"
+      },
+      {
+       "date": "2026-06-14",
+       "boss": "baldrix",
+       "bossName": "발드릭스",
+       "difficulty": "normal",
+       "item": "마도서",
+       "price": 40,
+       "who": "밈두 · 잉짱 분배"
+      },
+      {
+       "date": "2026-06-01",
+       "boss": "blackmage",
+       "bossName": "검은 마법사",
+       "difficulty": "extreme",
+       "item": "창세의 뱃지",
+       "price": 227,
+       "who": "잉짱 · 혁쥬 분배"
+      }
+     ]
+    },
+    {
+     "month": "2026-05",
+     "runCount": 40,
+     "total": 1078.51,
+     "members": [
+      {
+       "name": "잉짱",
+       "crystal": 292.74,
+       "loot": 111.53333333333333,
+       "total": 404.2733333333333
+      },
+      {
+       "name": "밈두",
+       "crystal": 273.7,
+       "loot": 24.833333333333336,
+       "total": 298.5333333333333
+      },
+      {
+       "name": "곰범",
+       "crystal": 209.8,
+       "loot": 58.833333333333336,
+       "total": 268.6333333333333
+      },
+      {
+       "name": "혁쥬",
+       "crystal": 59.57,
+       "loot": 47.5,
+       "total": 107.07
+      }
+     ],
+     "bosses": [
+      {
+       "name": "최초의 대적자",
+       "count": 6
+      },
+      {
+       "name": "선택받은 세렌",
+       "count": 5
+      },
+      {
+       "name": "찬란한 흉성",
+       "count": 5
+      },
+      {
+       "name": "림보",
+       "count": 5
+      },
+      {
+       "name": "발드릭스",
+       "count": 5
+      },
+      {
+       "name": "감시자 칼로스",
+       "count": 5
+      },
+      {
+       "name": "스우",
+       "count": 4
+      },
+      {
+       "name": "카링",
+       "count": 3
+      },
+      {
+       "name": "검은 마법사",
+       "count": 2
+      }
+     ],
+     "loot": [
+      {
+       "date": "2026-05-31",
+       "boss": "seren",
+       "bossName": "선택받은 세렌",
+       "difficulty": "extreme",
+       "item": "미트라의 분노",
+       "price": 5,
+       "who": "밈두 독식"
+      },
+      {
+       "date": "2026-05-31",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "루컨마",
+       "price": 15,
+       "who": "잉짱 독식"
+      },
+      {
+       "date": "2026-05-31",
+       "boss": "lotus",
+       "bossName": "찬란한 흉성",
+       "difficulty": "hard",
+       "item": "마깃안",
+       "price": 38,
+       "who": "잉짱 독식"
+      },
+      {
+       "date": "2026-05-24",
+       "boss": "adversary",
+       "bossName": "최초의 대적자",
+       "difficulty": "hard",
+       "item": "연마석",
+       "price": 13,
+       "who": "곰범 · 혁쥬 분배"
+      },
+      {
+       "date": "2026-05-24",
+       "boss": "kaling",
+       "bossName": "카링",
+       "difficulty": "hard",
+       "item": "고근",
+       "price": 46,
+       "who": "곰범 · 혁쥬 분배"
+      },
+      {
+       "date": "2026-05-24",
+       "boss": "kaling",
+       "bossName": "카링",
+       "difficulty": "hard",
+       "item": "리4",
+       "price": 36,
+       "who": "곰범 · 혁쥬 분배"
+      },
+      {
+       "date": "2026-05-23",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "마깃안",
+       "price": 28.7,
+       "who": "잉짱 독식"
+      },
+      {
+       "date": "2026-05-23",
+       "boss": "lotus",
+       "bossName": "찬란한 흉성",
+       "difficulty": "hard",
+       "item": "에테상자",
+       "price": 1,
+       "who": "밈두 독식"
+      },
+      {
+       "date": "2026-05-23",
+       "boss": "lotus",
+       "bossName": "찬란한 흉성",
+       "difficulty": "hard",
+       "item": "몽벨",
+       "price": 34,
+       "who": "밈두 · 곰범 · 잉짱 분배"
+      },
+      {
+       "date": "2026-05-11",
+       "boss": "kalos",
+       "bossName": "감시자 칼로스",
+       "difficulty": "chaos",
+       "item": "연마석",
+       "price": 15,
+       "who": "밈두 · 잉짱 분배"
+      },
+      {
+       "date": "2026-05-07",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "루컨마",
+       "price": 11,
+       "who": "잉짱 독식"
+      }
+     ]
+    },
+    {
+     "month": "2026-04",
+     "runCount": 1,
+     "total": 53.85000000000001,
+     "members": [
+      {
+       "name": "곰범",
+       "crystal": 7.95,
+       "loot": 30,
+       "total": 37.95
+      },
+      {
+       "name": "밈두",
+       "crystal": 7.95,
+       "loot": 0,
+       "total": 7.95
+      },
+      {
+       "name": "잉짱",
+       "crystal": 7.95,
+       "loot": 0,
+       "total": 7.95
+      },
+      {
+       "name": "혁쥬",
+       "crystal": 0,
+       "loot": 0,
+       "total": 0
+      }
+     ],
+     "bosses": [
+      {
+       "name": "림보",
+       "count": 1
+      }
+     ],
+     "loot": [
+      {
+       "date": "2026-04-26",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "마도서",
+       "price": 30,
+       "who": "곰범 독식"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "d262cb9edd94",
+   "name": "쭈진",
+   "members": [
+    "쭈히",
+    "찌누아델"
+   ],
+   "runCount": 2,
+   "total": 173.94,
+   "members_total": [
+    {
+     "name": "쭈히",
+     "total": 86.97
+    },
+    {
+     "name": "찌누아델",
+     "total": 86.97
+    }
+   ],
+   "months": [
+    {
+     "month": "2026-09",
+     "runCount": 2,
+     "total": 173.94,
+     "members": [
+      {
+       "name": "쭈히",
+       "crystal": 25.32,
+       "loot": 61.65,
+       "total": 86.97
+      },
+      {
+       "name": "찌누아델",
+       "crystal": 25.32,
+       "loot": 61.65,
+       "total": 86.97
+      }
+     ],
+     "bosses": [
+      {
+       "name": "림보",
+       "count": 1
+      },
+      {
+       "name": "찬란한 흉성",
+       "count": 1
+      }
+     ],
+     "loot": [
+      {
+       "date": "2026-09-28",
+       "boss": "lotus",
+       "bossName": "찬란한 흉성",
+       "difficulty": "hard",
+       "item": "거공",
+       "price": 40,
+       "who": "쭈히 · 찌누아델 분배"
+      },
+      {
+       "date": "2026-09-28",
+       "boss": "lotus",
+       "bossName": "찬란한 흉성",
+       "difficulty": "hard",
+       "item": "리4",
+       "price": 40,
+       "who": "쭈히 · 찌누아델 분배"
+      },
+      {
+       "date": "2026-09-28",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "컨4",
+       "price": 30.5,
+       "who": "쭈히 · 찌누아델 분배"
+      },
+      {
+       "date": "2026-09-28",
+       "boss": "limbo",
+       "bossName": "림보",
+       "difficulty": "hard",
+       "item": "루컨마",
+       "price": 12.8,
+       "who": "쭈히 · 찌누아델 분배"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

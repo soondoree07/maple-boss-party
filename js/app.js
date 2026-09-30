@@ -3,6 +3,7 @@
 // 라우트:
 //   #/                메인 — 수익 순위 · 이번 달 전리품 · 기록 카드 (v2, 2026-09 개편)
 //   #/manage          유저 · 캐릭터 관리 (v2)
+//   #/archive         과거 기록 — 개편 전 옛 파티 기록 달별 요약 (읽기 전용, data/archive-2026.json)
 //   #/party/:id       옛 파티 상세 (숨겨 둔 옛 기록 보기용, 목록에서는 안 보임)
 // 모든 화면은 사이트 비밀번호(v2/gate.js)를 먼저 통과해야 한다.
 
@@ -22,6 +23,7 @@ import * as V2 from './v2/store.js';
 import { isSiteUnlocked, renderSiteGate } from './v2/gate.js';
 import { renderHome } from './v2/home.js';
 import { renderManage } from './v2/manage.js';
+import { renderArchive } from './v2/archive.js';
 
 const root = document.getElementById('app');
 
@@ -38,6 +40,7 @@ function route() {
   if (!isSiteUnlocked()) { renderSiteGate(root, route); return; }
 
   if (hash === '#/manage') { renderManage(root, route); return; }
+  if (hash === '#/archive') { renderArchive(root); return; }
 
   const crystalsMatch = hash.match(/^#\/crystals\/([A-Za-z0-9_-]+)$/);
   if (crystalsMatch) {

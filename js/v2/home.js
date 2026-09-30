@@ -37,6 +37,8 @@ export function renderHome(container, rerender) {
     renderRanking(),
     renderLootHistory(),
     renderRunList(rerender, addRun),
+    el('footer', { className: 'v2-home-footer' },
+      el('a', { href: '#/archive', className: 'btn btn-ghost' }, '과거 기록 보기')),
   ));
 }
 
