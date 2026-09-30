@@ -189,3 +189,8 @@
   .v2-run-list { grid-template-columns: minmax(0, 1fr); }
   .v2-rank-row { grid-template-columns: 20px 52px minmax(0, 1fr) auto; }
 }
+
+/* ── 채널 룰렛 창 ─────────────────────────────────────── */
+
+.v2-roulette .roulette-card { border: none; background: transparent; padding: 0; }
+.v2-roulette .roulette-title { display: none; } /* 창 제목과 겹친다 */

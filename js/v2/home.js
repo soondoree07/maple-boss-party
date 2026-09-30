@@ -6,6 +6,8 @@ import { renderRanking } from './ranking.js';
 import { renderWeekly } from './weekly.js';
 import { renderRunCard } from './run-card.js';
 import { openRunForm } from './run-form.js';
+import { openModal } from './modal.js';
+import { renderChannelRoulette } from '../roulette.js';
 
 const PAGE_SIZE = 30;
 let visibleCount = PAGE_SIZE; // "더 보기"로 늘린 개수는 다시 그려도 유지
@@ -22,6 +24,7 @@ export function renderHome(container, rerender) {
   container.appendChild(el('header', { className: 'page-header' },
     el('h1', { className: 'page-title' }, '메이플 보스 기록'),
     el('div', { className: 'header-actions' },
+      el('button', { className: 'icon-btn', type: 'button', onclick: openRouletteModal }, '채널 룰렛'),
       el('a', { href: '#/manage', className: 'icon-btn' }, '유저·파티 관리'),
       el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),
     ),
@@ -63,4 +66,12 @@ function renderRunList(rerender, addRun) {
         }, `더 보기 (${runs.length - visibleCount}건 남음)`)
       : null,
   );
+}
+
+function openRouletteModal() {
+  const close = openModal({
+    title: '채널 룰렛',
+    body: el('div', { className: 'v2-roulette' }, renderChannelRoulette()),
+    actions: [el('button', { className: 'btn btn-ghost', type: 'button', onclick: () => close() }, '닫기')],
+  });
 }
