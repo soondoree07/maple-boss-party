@@ -38,6 +38,7 @@ const runToRow = (x) => ({
   crystal: x.crystal,
   character_ids: x.characterIds,
   loot: x.loot,
+  ...(x.createdAt ? { created_at: x.createdAt } : {}), // 수정할 때는 처음 저장한 시각을 그대로 둔다
 });
 
 const bySortThenName = (a, b) => (a.sortOrder - b.sortOrder) || a.name.localeCompare(b.name, 'ko');
@@ -111,6 +112,12 @@ export const makeId = (prefix) => `${prefix}-${crypto.randomUUID().replace(/-/g,
 
 export const saveRun = (run) =>
   write('기록 저장', supabase.from('runs').upsert(runToRow(run), { onConflict: 'id' }));
+/** 새 기록 여러 개를 한 번에 저장한다. 배열 순서대로 저장 시각을 1ms씩 벌려 카드 안 순서를 지킨다. */
+export function saveNewRuns(runs) {
+  const base = Date.now();
+  const rows = runs.map((run, i) => runToRow({ ...run, createdAt: new Date(base + i).toISOString() }));
+  return write('기록 저장', supabase.from('runs').insert(rows));
+}
 export const deleteRun = (id) =>
   write('기록 삭제', supabase.from('runs').delete().eq('id', id));
 

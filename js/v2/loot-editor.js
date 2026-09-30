@@ -1,9 +1,12 @@
 // v2/loot-editor.js — 기록 창 안의 드랍템 입력 줄들
 //
 // 한 줄 = 아이템 이름 · 판매가(억) · 분배/독식 · (독식이면) 가져간 캐릭터.
-// 아이템 이름은 그 보스·난이도 드랍 목록에서 고르거나 직접 적는다.
+// 위쪽 아이템 버튼을 누르면 그 이름으로 한 줄이 바로 생긴다(여러 개 연달아 눌러 담기).
+// 목록에 없는 아이템은 "+ 직접 입력" 줄에 적는다.
 
 import { el } from '../utils.js';
+import { getLootImage } from '../data.js';
+import { isExternalCharacter } from './members.js';
 
 let datalistSeq = 0;
 
@@ -17,10 +20,19 @@ let datalistSeq = 0;
 export function createLootEditor({ getCandidates, getParticipants, initial = [] }) {
   const datalist = el('datalist', { id: `v2-loot-names-${++datalistSeq}` });
   const rowsBox = el('div', { className: 'v2-loot-rows' });
+  const quickBox = el('div', { className: 'v2-loot-quick' });
   const rows = [];
 
   const refresh = () => {
-    datalist.replaceChildren(...getCandidates().map(name => el('option', { value: name })));
+    const names = getCandidates();
+    datalist.replaceChildren(...names.map(name => el('option', { value: name })));
+    quickBox.replaceChildren(...names.map(name => {
+      const img = getLootImage(name);
+      return el('button', {
+        className: 'v2-loot-chip', type: 'button', title: `${name} 담기`,
+        onclick: () => addRow({ name }),
+      }, img ? el('img', { className: 'v2-loot-img', src: img, alt: '' }) : null, name);
+    }));
     rows.forEach(row => row.syncTakers());
   };
 
@@ -38,8 +50,9 @@ export function createLootEditor({ getCandidates, getParticipants, initial = [] 
 
   const node = el('div', { className: 'v2-loot-editor' },
     datalist,
+    quickBox,
     rowsBox,
-    el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => addRow() }, '+ 드랍템 추가'),
+    el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => addRow() }, '+ 직접 입력'),
   );
 
   const readItems = () => {
@@ -62,7 +75,7 @@ function createRow(item, datalistId, getParticipants, onRemove) {
   nameInput.setAttribute('list', datalistId); // input.list 는 읽기 전용이라 속성으로 건다
   const priceInput = el('input', {
     className: 'text-input v2-price-input', type: 'number', inputmode: 'decimal',
-    step: '0.01', min: '0', placeholder: '판매가(억)', value: item.price ?? '',
+    step: '0.01', min: '0', placeholder: '가격(억)', value: item.price ?? '',
   });
   const modeSelect = el('select', { className: 'select-input' },
     el('option', { value: 'split' }, '분배'),
@@ -74,8 +87,13 @@ function createRow(item, datalistId, getParticipants, onRemove) {
 
   const syncTakers = () => {
     const people = getParticipants();
+    // 외부 인원은 "기타" 하나로 합쳐 보이므로, 다른 자리표로 저장된 값도 그 칸으로 맞춘다.
+    const externalChoice = people.find(p => isExternalCharacter(p.id));
+    if (externalChoice && takerId && !people.some(p => p.id === takerId) && isExternalCharacter(takerId)) {
+      takerId = externalChoice.id;
+    }
     takerSelect.replaceChildren(
-      el('option', { value: '' }, '가져간 캐릭터'),
+      el('option', { value: '' }, '가져간 사람'),
       ...people.map(p => el('option', { value: p.id }, p.name)),
     );
     takerSelect.value = people.some(p => p.id === takerId) ? takerId : '';
@@ -96,7 +114,7 @@ function createRow(item, datalistId, getParticipants, onRemove) {
     const price = priceInput.value === '' ? 0 : Number(priceInput.value);
     if (!Number.isFinite(price) || price < 0) return { error: `${name}의 판매가를 숫자로 적어 주세요.` };
     if (modeSelect.value === 'solo' && !takerSelect.value) {
-      return { error: `${name}을(를) 가져간 캐릭터를 골라 주세요.` };
+      return { error: `${name}을(를) 가져간 사람을 골라 주세요.` };
     }
     return {
       item: modeSelect.value === 'solo'

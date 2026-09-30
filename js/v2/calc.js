@@ -99,3 +99,33 @@ export function monthlyClears(runs, today = todayStr()) {
   }
   return cleared;
 }
+
+/**
+ * 캐릭터별 수익 합계.
+ * @returns {Map<string, number>} characterId → 억
+ */
+export function characterTotals(runs) {
+  const totals = new Map();
+  for (const run of runs) {
+    for (const [charId, eok] of runShares(run)) totals.set(charId, (totals.get(charId) || 0) + eok);
+  }
+  return totals;
+}
+
+/**
+ * 같은 주(목요일 초기화) · 같은 파티 기록을 카드 한 장으로 묶는다.
+ * 카드는 최근 기록 순, 카드 안 보스는 잡은 순서(날짜 → 저장 시각) 순.
+ * @param {object[]} runs - 최신순 기록
+ * @returns {{ key: string, weekStart: string, characterIds: string[], runs: object[] }[]}
+ */
+export function groupRunsByParty(runs) {
+  const groups = new Map();
+  for (const run of runs) {
+    const weekStart = getWeekRange(parseDateStr(run.date)).start;
+    const key = `${weekStart}|${[...run.characterIds].sort().join(',')}`;
+    if (!groups.has(key)) groups.set(key, { key, weekStart, characterIds: run.characterIds, runs: [] });
+    groups.get(key).runs.push(run);
+  }
+  const byOldest = (a, b) => a.date.localeCompare(b.date) || String(a.createdAt).localeCompare(String(b.createdAt));
+  return [...groups.values()].map(group => ({ ...group, runs: group.runs.sort(byOldest) }));
+}

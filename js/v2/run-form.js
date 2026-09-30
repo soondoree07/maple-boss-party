@@ -1,80 +1,61 @@
 // v2/run-form.js — 기록 추가 · 수정 창
 //
-// 날짜 → 보스 → 난이도 → 참여 캐릭터(프리셋 가능) → 드랍템.
-// 결정석은 저장하는 순간의 가격표 값을 기록에 같이 저장한다(가격이 바뀌어도 과거 기록 유지).
-// 수정할 때 보스·난이도를 그대로 두면 처음 저장한 결정석을 그대로 쓴다.
+// 날짜 → 참여 캐릭터(프리셋 가능) → 보스 칸 여러 개(보스 · 난이도 · 그 보스 드랍템).
+// 저장하면 보스 칸마다 기록(run)이 하나씩 생긴다. 같은 주·같은 파티 기록은
+// 메인 화면에서 카드 한 장으로 묶이므로, 나중에 같은 파티로 또 넣으면 그 카드에 더해진다.
+// 수정은 기록 하나만 고친다(보스 칸 하나, 추가 버튼 없음).
 
 import { el, todayStr } from '../utils.js';
-import {
-  bossesInOrder, isBossVisible, getBossDifficulties, difficultyLabel,
-  getEffectiveCrystal, getBossLoot,
-} from '../data.js';
-import { saveRun, makeId, getCharacter, getRuns } from './store.js';
-import { formatEok } from './calc.js';
+import { saveRun, saveNewRuns, makeId, getRuns } from './store.js';
 import { openModal, field } from './modal.js';
 import { createCharacterPicker } from './character-picker.js';
-import { createLootEditor } from './loot-editor.js';
+import { createBossBlock } from './boss-block.js';
+import { takerChoices } from './members.js';
 
 /**
  * @param {object|null} existing - 수정할 기록 (새 기록이면 null)
  * @param {() => void} onSaved
+ * @param {{ characterIds?: string[] }} [prefill] - 새 기록일 때 미리 골라 둘 파티
  */
-export function openRunForm(existing, onSaved) {
+export function openRunForm(existing, onSaved, prefill = {}) {
   const lastRun = getRuns()[0];
-  const bosses = bossesInOrder().filter(b => isBossVisible(b.id) || b.id === existing?.boss);
-
   const dateInput = el('input', { className: 'text-input', type: 'date', value: existing?.date || todayStr() });
-  const bossSelect = el('select', { className: 'select-input' },
-    bosses.map(b => el('option', { value: b.id }, b.name)));
-  bossSelect.value = existing?.boss || lastRun?.boss || bosses[0].id;
-  const diffSelect = el('select', { className: 'select-input' });
-  const crystalInfo = el('div', { className: 'form-hint' });
   const errMsg = el('div', { className: 'dialog-error' });
 
-  const fillDifficulties = (preferred) => {
-    const diffs = getBossDifficulties(bossSelect.value);
-    diffSelect.replaceChildren(...diffs.map(d => el('option', { value: d.key }, difficultyLabel(d.key))));
-    diffSelect.value = diffs.some(d => d.key === preferred) ? preferred : diffs[diffs.length - 1].key;
-  };
-  fillDifficulties(existing?.difficulty || lastRun?.difficulty);
+  const blocks = [];
+  const blocksBox = el('div', { className: 'v2-boss-blocks' });
+  const refreshBlocks = () => blocks.forEach(block => block.refresh());
 
-  const currentCrystal = () => {
-    const unchanged = existing && existing.boss === bossSelect.value && existing.difficulty === diffSelect.value;
-    return unchanged ? existing.crystal : getEffectiveCrystal(bossSelect.value, diffSelect.value);
-  };
-
-  let picker = null;
-  const participants = () => picker.getSelected().map(id => ({ id, name: getCharacter(id)?.name || id }));
-
-  const lootEditor = createLootEditor({
-    getCandidates: () => getBossLoot(bossSelect.value, diffSelect.value).map(l => l.name),
-    getParticipants: participants,
-    initial: existing?.loot || [],
+  const picker = createCharacterPicker({
+    initial: existing?.characterIds || prefill.characterIds || [],
+    withPresets: true,
+    onChange: refreshBlocks,
   });
 
-  const refreshInfo = () => {
-    const crystal = currentCrystal();
-    const headcount = picker.getSelected().length;
-    crystalInfo.textContent = headcount > 0
-      ? `결정석 ${formatEok(crystal)} · ${headcount}명이면 1인 ${formatEok(crystal / headcount)}`
-      : `결정석 ${formatEok(crystal)}`;
-    lootEditor.refresh();
+  const addBlock = (existingRun = null) => {
+    const previous = blocks[blocks.length - 1]?.current();
+    const block = createBossBlock({
+      existing: existingRun,
+      defaultBoss: previous ? undefined : lastRun?.boss,
+      defaultDifficulty: previous ? undefined : lastRun?.difficulty,
+      getParticipants: () => takerChoices(picker.getSelected()),
+      getHeadcount: () => picker.getSelected().length,
+      onRemove: existing ? null : () => {
+        if (blocks.length === 1) return; // 보스 칸은 하나 이상 남긴다
+        blocks.splice(blocks.indexOf(block), 1);
+        block.node.remove();
+      },
+    });
+    blocks.push(block);
+    blocksBox.appendChild(block.node);
   };
-
-  picker = createCharacterPicker({ initial: existing?.characterIds || [], withPresets: true, onChange: refreshInfo });
-  bossSelect.addEventListener('change', () => { fillDifficulties(diffSelect.value); refreshInfo(); });
-  diffSelect.addEventListener('change', refreshInfo);
-  refreshInfo();
+  addBlock(existing);
 
   const body = el('div', { className: 'v2-form' },
-    el('div', { className: 'form-row' },
-      field('날짜', dateInput),
-      field('보스', bossSelect),
-      field('난이도', diffSelect),
-    ),
-    crystalInfo,
+    field('날짜', dateInput),
     field('참여 캐릭터', picker.node),
-    field('드랍템', lootEditor.node),
+    field(existing ? '보스' : '보스 (잡은 순서대로 추가)', blocksBox,
+      existing ? null : el('button', { className: 'btn btn-ghost btn-mini v2-add-boss', type: 'button', onclick: () => addBlock() }, '+ 보스 추가')),
     errMsg,
   );
 
@@ -84,19 +65,18 @@ export function openRunForm(existing, onSaved) {
     const characterIds = picker.getSelected();
     if (!dateInput.value) { errMsg.textContent = '날짜를 골라 주세요.'; return; }
     if (characterIds.length === 0) { errMsg.textContent = '참여한 캐릭터를 한 명 이상 골라 주세요.'; return; }
-    const loot = lootEditor.readItems();
-    if (loot.error) { errMsg.textContent = loot.error; return; }
+
+    const entries = [];
+    for (const block of blocks) {
+      const entry = block.read();
+      if (entry.error) { errMsg.textContent = entry.error; return; }
+      entries.push(entry);
+    }
 
     button.disabled = true;
-    const ok = await saveRun({
-      id: existing?.id || makeId('r'),
-      date: dateInput.value,
-      boss: bossSelect.value,
-      difficulty: diffSelect.value,
-      crystal: currentCrystal(),
-      characterIds,
-      loot: loot.items,
-    });
+    const ok = existing
+      ? await saveRun({ ...existing, date: dateInput.value, characterIds, ...entries[0] })
+      : await saveNewRuns(entries.map(entry => ({ id: makeId('r'), date: dateInput.value, characterIds, ...entry })));
     button.disabled = false;
     if (ok) { close(); onSaved(); }
   };

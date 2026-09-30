@@ -4,12 +4,13 @@ import { el, clear } from '../utils.js';
 import { getRuns } from './store.js';
 import { renderRanking } from './ranking.js';
 import { renderWeekly } from './weekly.js';
-import { renderRunCard } from './run-card.js';
+import { renderRunGroupCard } from './run-card.js';
+import { groupRunsByParty } from './calc.js';
 import { openRunForm } from './run-form.js';
 import { openModal } from './modal.js';
 import { renderChannelRoulette } from '../roulette.js';
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 20; // 카드(같은 주 · 같은 파티 묶음) 기준
 let visibleCount = PAGE_SIZE; // "더 보기"로 늘린 개수는 다시 그려도 유지
 
 /**
@@ -39,7 +40,11 @@ export function renderHome(container, rerender) {
 
 function renderRunList(rerender, addRun) {
   const runs = getRuns();
-  const handlers = { onEdit: (run) => openRunForm(run, rerender), onDeleted: rerender };
+  const handlers = {
+    onEdit: (run) => openRunForm(run, rerender),
+    onDeleted: rerender,
+    onAddMore: (characterIds) => openRunForm(null, rerender, { characterIds }),
+  };
 
   if (runs.length === 0) {
     return el('section', { className: 'v2-section' },
@@ -52,18 +57,19 @@ function renderRunList(rerender, addRun) {
     );
   }
 
-  const shown = runs.slice(0, visibleCount);
+  const groups = groupRunsByParty(runs);
+  const shown = groups.slice(0, visibleCount);
   return el('section', { className: 'v2-section' },
     el('div', { className: 'v2-section-head' },
       el('h2', { className: 'v2-section-title' }, '보스 기록'),
-      el('span', { className: 'v2-section-sub' }, `${runs.length}건`),
+      el('span', { className: 'v2-section-sub' }, `보스 ${runs.length}건`),
     ),
-    el('div', { className: 'v2-run-list' }, shown.map(run => renderRunCard(run, handlers))),
-    runs.length > visibleCount
+    el('div', { className: 'v2-run-list' }, shown.map(group => renderRunGroupCard(group, handlers))),
+    groups.length > visibleCount
       ? el('button', {
           className: 'btn btn-ghost v2-more', type: 'button',
           onclick: () => { visibleCount += PAGE_SIZE; rerender(); },
-        }, `더 보기 (${runs.length - visibleCount}건 남음)`)
+        }, `더 보기 (${groups.length - visibleCount}장 남음)`)
       : null,
   );
 }

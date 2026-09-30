@@ -1,9 +1,14 @@
-// v2/run-card.js — 기록 카드 한 장 (언제 · 무슨 보스 · 누가 · 드랍템 · 수익)
+// v2/run-card.js — 기록 카드 한 장 = 같은 주 · 같은 파티가 잡은 보스들
+//
+// 카드 머리: 파티원 · 날짜 · 카드 전체 수익.
+// 보스 한 줄마다: 보스 · 난이도 · 수익 · 결정석 · 드랍템 · 수정/삭제.
+// 맨 아래 "+ 이 파티로 보스 추가" 는 같은 파티를 골라 둔 채로 기록 창을 연다.
 
 import { el, parseDateStr, confirmDialog } from '../utils.js';
 import { getBoss, difficultyLabel, getLootImage } from '../data.js';
-import { getCharacter, deleteRun } from './store.js';
+import { deleteRun } from './store.js';
 import { formatEok, runTotal, lootPrice } from './calc.js';
+import { characterName, memberLabels } from './members.js';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -13,14 +18,34 @@ export function cardDateLabel(dateStr) {
   return `${d.getMonth() + 1}/${d.getDate()} (${WEEKDAYS[d.getDay()]})`;
 }
 
-/** 캐릭터 이름. 지워진 캐릭터면 안내 문구. */
-export const characterName = (id) => getCharacter(id)?.name || '(지운 캐릭터)';
-
 /**
- * @param {object} run
- * @param {{ onEdit: (run) => void, onDeleted: () => void }} handlers
+ * @param {{ characterIds: string[], runs: object[] }} group - calc.groupRunsByParty 결과 하나
+ * @param {{ onEdit: (run) => void, onDeleted: () => void, onAddMore: (characterIds) => void }} handlers
  */
-export function renderRunCard(run, { onEdit, onDeleted }) {
+export function renderRunGroupCard(group, handlers) {
+  const dates = [...new Set(group.runs.map(run => run.date))];
+  const dateLabel = dates.length === 1
+    ? cardDateLabel(dates[0])
+    : `${cardDateLabel(dates[0])} ~ ${cardDateLabel(dates[dates.length - 1])}`;
+  const groupTotal = group.runs.reduce((sum, run) => sum + runTotal(run), 0);
+
+  return el('article', { className: 'v2-run-card' },
+    el('header', { className: 'v2-run-head' },
+      el('span', { className: 'v2-run-date' }, dateLabel),
+      el('span', { className: 'v2-run-total' }, formatEok(groupTotal)),
+    ),
+    el('div', { className: 'v2-run-members' },
+      memberLabels(group.characterIds).map(name => el('span', { className: 'member-chip' }, name)),
+    ),
+    group.runs.map(run => renderBossEntry(run, dates.length > 1, handlers)),
+    el('button', {
+      className: 'btn btn-ghost btn-mini v2-run-add', type: 'button',
+      onclick: () => handlers.onAddMore(group.characterIds),
+    }, '+ 이 파티로 보스 추가'),
+  );
+}
+
+function renderBossEntry(run, showDate, { onEdit, onDeleted }) {
   const boss = getBoss(run.boss);
   const headcount = run.characterIds.length || 1;
 
@@ -34,18 +59,15 @@ export function renderRunCard(run, { onEdit, onDeleted }) {
     if (ok && await deleteRun(run.id)) onDeleted();
   };
 
-  return el('article', { className: 'v2-run-card' },
-    el('header', { className: 'v2-run-head' },
-      el('span', { className: 'v2-run-date' }, cardDateLabel(run.date)),
+  return el('section', { className: 'v2-boss-entry' },
+    el('div', { className: 'v2-run-head' },
+      showDate ? el('span', { className: 'v2-run-diff' }, cardDateLabel(run.date)) : null,
       el('span', {
         className: 'run-boss-badge',
         style: { background: boss?.color || 'var(--accent-aqua)' },
       }, boss?.name || run.boss),
       el('span', { className: 'v2-run-diff' }, difficultyLabel(run.difficulty)),
-      el('span', { className: 'v2-run-total' }, formatEok(runTotal(run))),
-    ),
-    el('div', { className: 'v2-run-members' },
-      run.characterIds.map(id => el('span', { className: 'member-chip' }, characterName(id))),
+      el('span', { className: 'v2-entry-total' }, formatEok(runTotal(run))),
     ),
     el('div', { className: 'v2-run-line' },
       el('span', { className: 'v2-run-label' }, '결정석'),

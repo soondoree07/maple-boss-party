@@ -1,13 +1,14 @@
-// v2/weekly.js — 이번 주 캐릭터별 주간 보스 현황 (N/12, 목요일 0시 초기화)
+// v2/weekly.js — 이번 주 캐릭터별 주간 보스 현황 (N/12 · 이번 주 수익, 목요일 0시 초기화)
 
 import { el, getWeekRange, shortMD } from '../utils.js';
 import { getRuns, getUsers, getCharactersOf } from './store.js';
-import { weeklyCounts, monthlyClears, WEEKLY_LIMIT } from './calc.js';
+import { weeklyCounts, monthlyClears, characterTotals, runsInPeriod, formatEok, WEEKLY_LIMIT } from './calc.js';
 
 export function renderWeekly() {
   const runs = getRuns();
   const counts = weeklyCounts(runs);
   const monthly = monthlyClears(runs);
+  const earnings = characterTotals(runsInPeriod(runs, 'week'));
   const week = getWeekRange(new Date());
 
   const groups = getUsers()
@@ -23,13 +24,13 @@ export function renderWeekly() {
     el('div', { className: 'v2-weekly-grid' },
       groups.map(({ user, characters }) => el('div', { className: 'v2-weekly-user' },
         el('div', { className: 'v2-weekly-user-name' }, user.name),
-        characters.map(ch => renderCharacterRow(ch, counts.get(ch.id) || 0, monthly.has(ch.id))),
+        characters.map(ch => renderCharacterRow(ch, counts.get(ch.id) || 0, earnings.get(ch.id) || 0, monthly.has(ch.id))),
       )),
     ),
   );
 }
 
-function renderCharacterRow(character, count, clearedMonthly) {
+function renderCharacterRow(character, count, earned, clearedMonthly) {
   const full = count >= WEEKLY_LIMIT;
   return el('div', { className: `v2-weekly-char${full ? ' full' : ''}` },
     el('span', { className: 'v2-weekly-char-name' },
@@ -40,5 +41,6 @@ function renderCharacterRow(character, count, clearedMonthly) {
     el('span', { className: 'v2-weekly-bar' },
       el('span', { className: 'v2-weekly-fill', style: { width: `${Math.min(count / WEEKLY_LIMIT, 1) * 100}%` } })),
     el('span', { className: 'v2-weekly-count' }, `${count}/${WEEKLY_LIMIT}`),
+    el('span', { className: 'v2-weekly-earned' }, formatEok(earned)),
   );
 }

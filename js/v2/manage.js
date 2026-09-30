@@ -5,7 +5,7 @@ import {
   getUsers, getCharactersOf, getPresets,
   saveUser, deleteUser, saveCharacter, deleteCharacter, deletePreset, makeId,
 } from './store.js';
-import { characterName } from './run-card.js';
+import { memberLabels } from './members.js';
 import { openModal, field } from './modal.js';
 import { openPresetForm } from './preset-form.js';
 
@@ -45,11 +45,16 @@ function renderUserCard(user, rerender) {
       user.isExternal ? el('small', null, '수익 합계에서 빠져요') : null,
       el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openUserForm(user, rerender) }, '수정'),
     ),
-    getCharactersOf(user.id).map(ch => el('div', { className: 'v2-manage-row' },
-      el('span', null, ch.name, ch.job ? el('small', null, ch.job) : null),
-      el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(ch, user.id, rerender) }, '수정'),
-    )),
-    el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(null, user.id, rerender) }, '+ 캐릭터'),
+    // 외부 인원은 기록할 때 인원 수로만 고르므로 자리표 캐릭터를 보여 주지 않는다.
+    user.isExternal
+      ? el('p', { className: 'form-hint' }, `기록할 때 외부 인원 수(최대 ${getCharactersOf(user.id).length}명)만 골라요.`)
+      : [
+          ...getCharactersOf(user.id).map(ch => el('div', { className: 'v2-manage-row' },
+            el('span', null, ch.name, ch.job ? el('small', null, ch.job) : null),
+            el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(ch, user.id, rerender) }, '수정'),
+          )),
+          el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(null, user.id, rerender) }, '+ 캐릭터'),
+        ],
   );
 }
 
@@ -68,7 +73,7 @@ function renderPresetCard(preset, rerender) {
       el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: remove }, '삭제'),
     ),
     el('div', { className: 'v2-run-members' },
-      preset.characterIds.map(id => el('span', { className: 'member-chip' }, characterName(id)))),
+      memberLabels(preset.characterIds).map(name => el('span', { className: 'member-chip' }, name))),
   );
 }
 

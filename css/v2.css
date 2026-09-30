@@ -88,7 +88,7 @@
 .v2-weekly-user-name { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
 .v2-weekly-char {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 70px 44px;
+  grid-template-columns: minmax(0, 1fr) auto 56px 40px 52px;
   align-items: center;
   gap: 8px;
   font-size: 13px;
@@ -99,7 +99,7 @@
   font-size: 11px;
   color: var(--text-tertiary);
 }
-.v2-weekly-char:not(:has(.v2-weekly-monthly)) { grid-template-columns: minmax(0, 1fr) 70px 44px; }
+.v2-weekly-char:not(:has(.v2-weekly-monthly)) { grid-template-columns: minmax(0, 1fr) 56px 40px 52px; }
 .v2-weekly-monthly {
   font-size: 10px;
   padding: 1px 6px;
@@ -109,6 +109,7 @@
 }
 .v2-weekly-count { text-align: right; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .v2-weekly-char.full .v2-weekly-count { color: var(--accent-gold); font-weight: 700; }
+.v2-weekly-earned { text-align: right; color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ── 기록 카드 ────────────────────────────────────────── */
 
@@ -132,6 +133,9 @@
 .v2-loot-name { display: inline-flex; align-items: center; gap: 5px; color: var(--text-primary); }
 .v2-loot-img { width: 18px; height: 18px; object-fit: contain; }
 .v2-run-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.v2-boss-entry { display: grid; gap: 6px; padding-top: 10px; border-top: 1px dashed var(--border-subtle); }
+.v2-entry-total { margin-left: auto; color: var(--text-primary); font-weight: 700; }
+.v2-run-add { justify-self: start; }
 .v2-more { width: 100%; margin-top: 12px; }
 
 /* ── 기록 창 ──────────────────────────────────────────── */
@@ -155,6 +159,40 @@
 }
 .v2-pick-char.active { background: var(--accent-gold); border-color: var(--accent-gold); color: var(--on-accent); font-weight: 600; }
 .v2-pick-char.active small { color: var(--on-accent); opacity: 0.75; }
+
+.v2-ext-stepper { display: inline-flex; align-items: center; gap: 6px; }
+.v2-ext-stepper .v2-pick-char { width: 32px; padding: 6px 0; text-align: center; }
+.v2-ext-count { min-width: 28px; text-align: center; font-size: 13px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.v2-ext-count.active { color: var(--accent-gold); font-weight: 700; }
+.v2-ext-hint { font-size: 11px; color: var(--text-tertiary); }
+
+.v2-boss-blocks { display: grid; gap: 10px; }
+.v2-boss-block {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.v2-boss-line { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.v2-boss-crystal { font-size: 12px; color: var(--text-tertiary); }
+.v2-add-boss { justify-self: start; margin-top: 8px; }
+
+.v2-loot-quick { display: flex; flex-wrap: wrap; gap: 4px; }
+.v2-loot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.v2-loot-chip:hover { border-color: var(--accent-gold); color: var(--text-primary); }
+.v2-loot-chip .v2-loot-img { width: 16px; height: 16px; }
 
 .v2-loot-editor { display: grid; gap: 8px; justify-items: start; }
 .v2-loot-rows { display: grid; gap: 6px; width: 100%; }
@@ -183,9 +221,13 @@
   .v2-section { padding: 14px; }
   .v2-form .form-row { grid-template-columns: 1fr 1fr; }
   .v2-form .form-row .form-group:first-child { grid-column: 1 / -1; }
-  .v2-loot-row { grid-template-columns: minmax(0, 1fr) 64px 84px 28px; }
-  .v2-loot-row select:last-of-type { grid-column: 1 / -1; grid-row: 2; }
-  .v2-loot-row select[hidden] { display: none; }
+  /* 1줄: 아이템 이름 · 지우기 / 2줄: 판매가 · 분배/독식 · 가져간 사람 */
+  .v2-loot-row { grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1.4fr) 28px; }
+  .v2-loot-row > input:first-child { grid-column: 1 / 4; grid-row: 1; }
+  .v2-loot-row > button { grid-column: 4; grid-row: 1; }
+  .v2-loot-row > :nth-child(2), .v2-loot-row > :nth-child(3), .v2-loot-row > :nth-child(4) { grid-row: 2; }
+  .v2-loot-row + .v2-loot-row { padding-top: 6px; border-top: 1px dashed var(--border-subtle); }
+  .v2-boss-block { padding: 10px; }
   .v2-run-list { grid-template-columns: minmax(0, 1fr); }
   .v2-rank-row { grid-template-columns: 20px 52px minmax(0, 1fr) auto; }
 }
@@ -194,3 +236,4 @@
 
 .v2-roulette .roulette-card { border: none; background: transparent; padding: 0; }
 .v2-roulette .roulette-title { display: none; } /* 창 제목과 겹친다 */
+.v2-form input[type="date"] { max-width: 200px; }
