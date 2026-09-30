@@ -11,31 +11,36 @@ import {
 } from '../data.js';
 import { formatEok } from './calc.js';
 import { createLootEditor } from './loot-editor.js';
+import { closeIcon } from './icons.js';
 
 /**
  * @param {object} opts
  * @param {object} [opts.existing]       - 수정할 기록 (boss · difficulty · crystal · loot)
- * @param {string} [opts.defaultBoss]    - 새 칸의 첫 보스
- * @param {string} [opts.defaultDifficulty]
  * @param {() => {id, name}[]} opts.getParticipants - 독식 대상 목록
  * @param {() => number} opts.getHeadcount          - 나눌 인원 n
  * @param {(() => void) | null} [opts.onRemove]     - 없으면 지우기 버튼을 안 보인다
  */
-export function createBossBlock({ existing = null, defaultBoss, defaultDifficulty, getParticipants, getHeadcount, onRemove = null }) {
+export function createBossBlock({ existing = null, getParticipants, getHeadcount, onRemove = null }) {
   const bosses = bossesInOrder().filter(b => isBossVisible(b.id) || b.id === existing?.boss);
+  // 새 칸은 비어 있는 "보스 선택"에서 시작한다 (수정일 때만 원래 보스).
   const bossSelect = el('select', { className: 'select-input' },
+    el('option', { value: '', disabled: true }, '보스 선택'),
     bosses.map(b => el('option', { value: b.id }, b.name)));
-  const startBoss = existing?.boss || defaultBoss;
-  bossSelect.value = bosses.some(b => b.id === startBoss) ? startBoss : bosses[0].id;
+  bossSelect.value = existing?.boss || '';
   const diffSelect = el('select', { className: 'select-input' });
   const crystalInfo = el('span', { className: 'v2-boss-crystal' });
 
   const fillDifficulties = (preferred) => {
+    diffSelect.disabled = !bossSelect.value;
+    if (!bossSelect.value) {
+      diffSelect.replaceChildren(el('option', { value: '' }, '난이도'));
+      return;
+    }
     const diffs = getBossDifficulties(bossSelect.value);
     diffSelect.replaceChildren(...diffs.map(d => el('option', { value: d.key }, difficultyLabel(d.key))));
     diffSelect.value = diffs.some(d => d.key === preferred) ? preferred : diffs[diffs.length - 1].key;
   };
-  fillDifficulties(existing?.difficulty || defaultDifficulty);
+  fillDifficulties(existing?.difficulty);
 
   const currentCrystal = () => {
     const unchanged = existing && existing.boss === bossSelect.value && existing.difficulty === diffSelect.value;
@@ -49,12 +54,14 @@ export function createBossBlock({ existing = null, defaultBoss, defaultDifficult
   });
 
   const refresh = () => {
+    lootEditor.refresh();
+    lootEditor.node.hidden = !bossSelect.value; // 보스를 고르기 전엔 드랍템 칸을 숨긴다
+    if (!bossSelect.value) { crystalInfo.textContent = ''; return; }
     const crystal = currentCrystal();
     const headcount = getHeadcount();
     crystalInfo.textContent = headcount > 0
       ? `결정석 ${formatEok(crystal)} · 1인 ${formatEok(crystal / headcount)}`
       : `결정석 ${formatEok(crystal)}`;
-    lootEditor.refresh();
   };
   bossSelect.addEventListener('change', () => { fillDifficulties(diffSelect.value); refresh(); });
   diffSelect.addEventListener('change', refresh);
@@ -66,7 +73,7 @@ export function createBossBlock({ existing = null, defaultBoss, defaultDifficult
       diffSelect,
       crystalInfo,
       onRemove
-        ? el('button', { className: 'icon-btn icon-btn-sm', type: 'button', title: '이 보스 빼기', onclick: onRemove }, '×')
+        ? el('button', { className: 'icon-btn icon-btn-sm', type: 'button', title: '이 보스 빼기', 'aria-label': '이 보스 빼기', onclick: onRemove }, closeIcon())
         : el('span'),
     ),
     lootEditor.node,
@@ -74,11 +81,11 @@ export function createBossBlock({ existing = null, defaultBoss, defaultDifficult
 
   /** @returns {{ error: string } | { boss, difficulty, crystal, loot }} */
   const read = () => {
+    if (!bossSelect.value) return { error: '보스를 골라 주세요.' };
     const loot = lootEditor.readItems();
     if (loot.error) return loot;
     return { boss: bossSelect.value, difficulty: diffSelect.value, crystal: currentCrystal(), loot: loot.items };
   };
 
-  const current = () => ({ boss: bossSelect.value, difficulty: diffSelect.value });
-  return { node, refresh, read, current };
+  return { node, refresh, read };
 }

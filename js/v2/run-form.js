@@ -6,7 +6,7 @@
 // 수정은 기록 하나만 고친다(보스 칸 하나, 추가 버튼 없음).
 
 import { el, todayStr } from '../utils.js';
-import { saveRun, saveNewRuns, makeId, getRuns } from './store.js';
+import { saveRun, saveNewRuns, makeId } from './store.js';
 import { openModal, field } from './modal.js';
 import { createCharacterPicker } from './character-picker.js';
 import { createBossBlock } from './boss-block.js';
@@ -18,7 +18,6 @@ import { takerChoices } from './members.js';
  * @param {{ characterIds?: string[] }} [prefill] - 새 기록일 때 미리 골라 둘 파티
  */
 export function openRunForm(existing, onSaved, prefill = {}) {
-  const lastRun = getRuns()[0];
   const dateInput = el('input', { className: 'text-input', type: 'date', value: existing?.date || todayStr() });
   const errMsg = el('div', { className: 'dialog-error' });
 
@@ -32,11 +31,8 @@ export function openRunForm(existing, onSaved, prefill = {}) {
   });
 
   const addBlock = (existingRun = null) => {
-    const previous = blocks[blocks.length - 1]?.current();
     const block = createBossBlock({
       existing: existingRun,
-      defaultBoss: previous ? undefined : lastRun?.boss,
-      defaultDifficulty: previous ? undefined : lastRun?.difficulty,
       getParticipants: () => takerChoices(picker.getSelected()),
       getHeadcount: () => picker.getSelected().length,
       onRemove: existing ? null : () => {

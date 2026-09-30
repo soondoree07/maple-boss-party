@@ -280,3 +280,4 @@
   .v2-loot-entry-date { grid-column: 1; grid-row: 2; }
   .v2-loot-entry-who { grid-column: 2 / 4; grid-row: 2; }
 }
+.v2-loot-editor[hidden] { display: none; }

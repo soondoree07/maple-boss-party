@@ -93,8 +93,8 @@
 .modal-actions { border-top: none; }
 
 /* 입력칸 → 채운 면, 누르면 강조색 테두리 */
-.text-input, .select-input { border: 1.5px solid transparent; background: var(--fill-2); border-radius: 12px; }
-.text-input:focus, .select-input:focus { border-color: var(--accent-gold); background: var(--bg-elevated); }
+.text-input, .select-input { border: 1.5px solid transparent; background-color: var(--fill-2); border-radius: 12px; }
+.text-input:focus, .select-input:focus { border-color: var(--accent-gold); background-color: var(--bg-elevated); }
 
 /* 기록 창 안 */
 .v2-boss-block { border: none; background: var(--fill-1); border-radius: 18px; }
@@ -144,3 +144,36 @@
 /* 캐릭터 이름 옆 직업 글씨 간격 */
 .v2-pick-char small, .v2-manage-row small, .v2-manage-card-head small { margin-left: 5px; font-size: 11px; color: var(--text-tertiary); }
 .v2-pick-char.active small { color: var(--on-accent); opacity: 0.8; }
+
+/* ── 스크롤바 숨김 — 스크롤은 그대로 되고 막대만 안 보인다 ── */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+
+/* ── 드롭다운 화살표 — 기본 화살표 대신 오른쪽 끝에서 조금 안쪽(14px)에 ── */
+select.select-input {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 38px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238B95A1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px 8px;
+  cursor: pointer;
+}
+select.select-input:disabled { cursor: not-allowed; opacity: 0.55; border-style: solid; background: var(--fill-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238B95A1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center / 12px 8px; }
+
+/* ── X 버튼 — 아이콘을 동그라미 한가운데, 줄 높이 가운데에 ── */
+.icon-btn-sm, .icon-btn-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  justify-self: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  line-height: 0;
+}
+.icon-btn-close { width: 34px; height: 34px; }
+.icon-btn-close svg { width: 14px; height: 14px; }

@@ -1,6 +1,7 @@
 // v2/modal.js — 입력 창 공용 틀 (제목 · 본문 · 버튼 줄, 바깥 클릭/ESC 닫기)
 
 import { el } from '../utils.js';
+import { closeIcon } from './icons.js';
 
 /**
  * @param {object} opts
@@ -27,7 +28,7 @@ export function openModal({ title, body, actions, wide = false }) {
   modal.append(
     el('div', { className: 'modal-header' },
       el('h2', { className: 'modal-title' }, title),
-      el('button', { className: 'icon-btn-close', type: 'button', 'aria-label': '닫기', onclick: close }, '×'),
+      el('button', { className: 'icon-btn-close', type: 'button', 'aria-label': '닫기', onclick: close }, closeIcon()),
     ),
     body,
     el('div', { className: 'modal-actions' }, actions),

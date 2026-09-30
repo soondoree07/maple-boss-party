@@ -7,6 +7,7 @@
 import { el } from '../utils.js';
 import { getLootImage } from '../data.js';
 import { isExternalCharacter } from './members.js';
+import { closeIcon } from './icons.js';
 
 let datalistSeq = 0;
 
@@ -105,7 +106,7 @@ function createRow(item, datalistId, getParticipants, onRemove) {
 
   const node = el('div', { className: 'v2-loot-row' },
     nameInput, priceInput, modeSelect, takerSelect,
-    el('button', { className: 'icon-btn icon-btn-sm', type: 'button', title: '이 줄 지우기', onclick: onRemove }, '×'),
+    el('button', { className: 'icon-btn icon-btn-sm', type: 'button', title: '이 줄 지우기', 'aria-label': '이 줄 지우기', onclick: onRemove }, closeIcon()),
   );
 
   const read = () => {
