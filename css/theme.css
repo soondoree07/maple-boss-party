@@ -177,3 +177,11 @@ select.select-input:disabled { cursor: not-allowed; opacity: 0.55; border-style:
 }
 .icon-btn-close { width: 34px; height: 34px; }
 .icon-btn-close svg { width: 14px; height: 14px; }
+
+/* ── 하위 보스 태그 — 회색 단색 (주요 보스 색은 js/v2/boss-tag.js) ── */
+.v2-boss-tag-plain { background: #E5E8EB; color: #4E5968; }
+:root[data-theme="dark"] .v2-boss-tag-plain { background: #3A3A45; color: #C3C8CF; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .v2-boss-tag-plain { background: #3A3A45; color: #C3C8CF; }
+}
+.run-boss-badge { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; font-weight: 700; white-space: nowrap; }

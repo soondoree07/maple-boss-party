@@ -9,6 +9,7 @@ import { getBoss, difficultyLabel, getLootImage } from '../data.js';
 import { deleteRun } from './store.js';
 import { formatEok, runTotal, lootPrice } from './calc.js';
 import { characterName, memberLabels } from './members.js';
+import { renderBossTag } from './boss-tag.js';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -62,10 +63,7 @@ function renderBossEntry(run, showDate, { onEdit, onDeleted }) {
   return el('section', { className: 'v2-boss-entry' },
     el('div', { className: 'v2-run-head' },
       showDate ? el('span', { className: 'v2-run-diff' }, cardDateLabel(run.date)) : null,
-      el('span', {
-        className: 'run-boss-badge',
-        style: { background: boss?.color || 'var(--accent-aqua)' },
-      }, boss?.name || run.boss),
+      renderBossTag(run.boss),
       el('span', { className: 'v2-run-diff' }, difficultyLabel(run.difficulty)),
       el('span', { className: 'v2-entry-crystal' }, `결정석 ${formatEok(run.crystal)}`),
       el('span', { className: 'v2-entry-total' }, formatEok(runTotal(run))),
