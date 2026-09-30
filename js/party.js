@@ -4,6 +4,13 @@ import * as Storage from './storage.js';
 import { el, clear, pinInput, isPin, isMobile, buildMobileMenu, confirmDialog, toast, inlineMsg } from './utils.js';
 import { exportToFile, importFromFile } from './backup.js';
 
+// 메인 목록에서 잠시 빼둔 파티 (데이터는 서버에 그대로, #/party/:id 직접 접속은 가능).
+// 다시 보이게 하려면 여기서 id 를 지운다.
+const HIDDEN_PARTY_IDS = new Set([
+  '0f265ffa5d80', // 밈곰잉
+  'd262cb9edd94', // 쭈진
+]);
+
 /**
  * 메인 화면 전체 그리기.
  * @param {HTMLElement} container - 보통 #app
@@ -11,7 +18,7 @@ import { exportToFile, importFromFile } from './backup.js';
 export function renderPartyList(container) {
   clear(container);
 
-  const parties = Storage.getParties();
+  const parties = Storage.getParties().filter(p => !HIDDEN_PARTY_IDS.has(p.id));
 
   buildHeader(container);
 
