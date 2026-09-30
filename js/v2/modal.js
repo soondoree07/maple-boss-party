@@ -31,8 +31,8 @@ export function openModal({ title, body, actions = [], wide = false }) {
       el('button', { className: 'icon-btn-close', type: 'button', 'aria-label': '닫기', onclick: close }, closeIcon()),
     ),
     body,
-    actions.length > 0 ? el('div', { className: 'modal-actions' }, actions) : null,
   );
+  if (actions.length > 0) modal.appendChild(el('div', { className: 'modal-actions' }, actions));
   overlay.appendChild(modal);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   document.body.appendChild(overlay);
