@@ -84,9 +84,9 @@ function todayMonth() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-/** "전체 보기" 창 — 달마다 합계와 목록. */
+/** "전체 보기" 창 — 달마다 합계와 목록. 닫기는 위쪽 X · 바깥 클릭 · ESC. */
 function openAllMonths(months) {
-  const close = openModal({
+  openModal({
     title: '월별 전리품',
     wide: true,
     body: el('div', { className: 'v2-loot-months' },
@@ -98,6 +98,5 @@ function openAllMonths(months) {
         renderList(list),
       )),
     ),
-    actions: [el('button', { className: 'btn btn-ghost', type: 'button', onclick: () => close() }, '닫기')],
   });
 }

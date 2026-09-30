@@ -7,11 +7,11 @@ import { closeIcon } from './icons.js';
  * @param {object} opts
  * @param {string} opts.title
  * @param {HTMLElement} opts.body
- * @param {HTMLElement[]} opts.actions - 아래 버튼들
+ * @param {HTMLElement[]} [opts.actions] - 아래 버튼들 (없으면 버튼 줄을 안 그린다)
  * @param {boolean} [opts.wide]
  * @returns {() => void} close 함수
  */
-export function openModal({ title, body, actions, wide = false }) {
+export function openModal({ title, body, actions = [], wide = false }) {
   const overlay = el('div', { className: 'modal-overlay' });
   const modal = el('div', { className: `modal${wide ? ' modal-wide' : ''}` });
 
@@ -31,7 +31,7 @@ export function openModal({ title, body, actions, wide = false }) {
       el('button', { className: 'icon-btn-close', type: 'button', 'aria-label': '닫기', onclick: close }, closeIcon()),
     ),
     body,
-    el('div', { className: 'modal-actions' }, actions),
+    actions.length > 0 ? el('div', { className: 'modal-actions' }, actions) : null,
   );
   overlay.appendChild(modal);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
