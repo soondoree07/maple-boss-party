@@ -109,3 +109,38 @@
   .page-title { font-size: 22px; }
   .v2-section { padding: 18px 16px; border-radius: 20px; }
 }
+
+/* ── 크기 통일 — 칩·작은 버튼·헤더 버튼은 어디에 있든 같은 높이 (그리드에 늘어나지 않게) ── */
+.member-chip, .btn-mini, .v2-run-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  height: 28px;
+  padding: 0 12px;
+  line-height: 1;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.member-chip { height: 26px; padding: 0 11px; }
+.v2-run-members, .v2-run-actions { align-items: center; }
+.v2-run-card, .v2-boss-entry { align-content: start; }
+.v2-run-add { justify-self: start; }
+
+.header-actions { align-items: center; }
+.header-actions > .icon-btn, .header-actions > .btn {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .header-actions > .icon-btn, .header-actions > .btn { height: 34px; padding: 0 12px; font-size: 13px; }
+}
+
+/* 캐릭터 이름 옆 직업 글씨 간격 */
+.v2-pick-char small, .v2-manage-row small, .v2-manage-card-head small { margin-left: 5px; font-size: 11px; color: var(--text-tertiary); }
+.v2-pick-char.active small { color: var(--on-accent); opacity: 0.8; }
