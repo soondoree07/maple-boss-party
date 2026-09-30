@@ -59,13 +59,13 @@
 .v2-rank-no { color: var(--text-tertiary); font-weight: 700; text-align: center; }
 .v2-rank-row:first-child .v2-rank-no { color: var(--accent-gold); }
 .v2-rank-name { color: var(--text-primary); font-weight: 600; }
-.v2-rank-bar, .v2-weekly-bar {
+.v2-rank-bar {
   height: 8px;
   border-radius: 999px;
   background: rgba(var(--hairline-rgb), 0.06);
   overflow: hidden;
 }
-.v2-rank-fill, .v2-weekly-fill {
+.v2-rank-fill {
   display: block;
   height: 100%;
   border-radius: 999px;
@@ -73,43 +73,6 @@
 }
 .v2-rank-total { color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; }
 .v2-rank-grand { margin-top: 12px; text-align: right; font-size: 13px; color: var(--text-secondary); }
-
-/* ── 이번 주 현황 ─────────────────────────────────────── */
-
-.v2-weekly-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.v2-weekly-user {
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  display: grid;
-  align-content: start;
-  gap: 8px;
-}
-.v2-weekly-user-name { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
-.v2-weekly-char {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 56px 40px 52px;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-.v2-weekly-char-name { color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.v2-weekly-char-name small, .v2-pick-char small, .v2-manage-row small, .v2-manage-card-head small {
-  margin-left: 5px;
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-.v2-weekly-char:not(:has(.v2-weekly-monthly)) { grid-template-columns: minmax(0, 1fr) 56px 40px 52px; }
-.v2-weekly-monthly {
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  border: 1px solid var(--accent-purple);
-  color: var(--accent-purple);
-}
-.v2-weekly-count { text-align: right; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
-.v2-weekly-char.full .v2-weekly-count { color: var(--accent-gold); font-weight: 700; }
-.v2-weekly-earned { text-align: right; color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ── 기록 카드 ────────────────────────────────────────── */
 
@@ -134,7 +97,8 @@
 .v2-loot-img { width: 18px; height: 18px; object-fit: contain; }
 .v2-run-actions { display: flex; justify-content: flex-end; gap: 6px; }
 .v2-boss-entry { display: grid; gap: 6px; padding-top: 10px; border-top: 1px dashed var(--border-subtle); }
-.v2-entry-total { margin-left: auto; color: var(--text-primary); font-weight: 700; }
+.v2-entry-crystal { margin-left: auto; color: var(--text-tertiary); font-size: 12px; }
+.v2-entry-total { color: var(--text-primary); font-weight: 700; }
 .v2-run-add { justify-self: start; }
 .v2-more { width: 100%; margin-top: 12px; }
 

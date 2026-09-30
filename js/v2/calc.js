@@ -6,10 +6,7 @@
 //           mode 'solo' : price 전액을 takerCharacterId 캐릭터에게.
 //  - 유저 수익 = 그 유저 캐릭터 수익의 합. 외부 유저(기타)는 순위에서 뺀다.
 
-import { getBoss } from '../data.js';
 import { getWeekRange, getMonthRange, todayStr, parseDateStr } from '../utils.js';
-
-export const WEEKLY_LIMIT = 12;
 
 /** 억 단위 숫자 → "23.8억" / "0.04억" / "0억". */
 export function formatEok(eok) {
@@ -76,40 +73,6 @@ export function userTotals(runs, users, characters) {
     .filter(u => totals.has(u.id))
     .map(user => ({ user, total: totals.get(user.id) }))
     .sort((a, b) => b.total - a.total);
-}
-
-/**
- * 이번 주 캐릭터별 주간 보스 처치 수 (월간 보스는 빼고 센다).
- * @returns {Map<string, number>} characterId → 처치 수
- */
-export function weeklyCounts(runs, today = todayStr()) {
-  const counts = new Map();
-  for (const run of runsInPeriod(runs, 'week', today)) {
-    if (getBoss(run.boss)?.cycle === 'monthly') continue;
-    run.characterIds.forEach(id => counts.set(id, (counts.get(id) || 0) + 1));
-  }
-  return counts;
-}
-
-/** 이번 달 월간 보스를 잡은 캐릭터 id 모음. */
-export function monthlyClears(runs, today = todayStr()) {
-  const cleared = new Set();
-  for (const run of runsInPeriod(runs, 'month', today)) {
-    if (getBoss(run.boss)?.cycle === 'monthly') run.characterIds.forEach(id => cleared.add(id));
-  }
-  return cleared;
-}
-
-/**
- * 캐릭터별 수익 합계.
- * @returns {Map<string, number>} characterId → 억
- */
-export function characterTotals(runs) {
-  const totals = new Map();
-  for (const run of runs) {
-    for (const [charId, eok] of runShares(run)) totals.set(charId, (totals.get(charId) || 0) + eok);
-  }
-  return totals;
 }
 
 /**

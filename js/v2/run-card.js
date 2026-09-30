@@ -1,7 +1,7 @@
 // v2/run-card.js — 기록 카드 한 장 = 같은 주 · 같은 파티가 잡은 보스들
 //
 // 카드 머리: 파티원 · 날짜 · 카드 전체 수익.
-// 보스 한 줄마다: 보스 · 난이도 · 수익 · 결정석 · 드랍템 · 수정/삭제.
+// 보스 한 줄마다: 보스 · 난이도 · 결정석 · 수익 / 드랍템 / 수정·삭제.
 // 맨 아래 "+ 이 파티로 보스 추가" 는 같은 파티를 골라 둔 채로 기록 창을 연다.
 
 import { el, parseDateStr, confirmDialog } from '../utils.js';
@@ -67,11 +67,8 @@ function renderBossEntry(run, showDate, { onEdit, onDeleted }) {
         style: { background: boss?.color || 'var(--accent-aqua)' },
       }, boss?.name || run.boss),
       el('span', { className: 'v2-run-diff' }, difficultyLabel(run.difficulty)),
+      el('span', { className: 'v2-entry-crystal' }, `결정석 ${formatEok(run.crystal)}`),
       el('span', { className: 'v2-entry-total' }, formatEok(runTotal(run))),
-    ),
-    el('div', { className: 'v2-run-line' },
-      el('span', { className: 'v2-run-label' }, '결정석'),
-      el('span', null, `${formatEok(run.crystal)} · 1인 ${formatEok(run.crystal / headcount)}`),
     ),
     run.loot.map(item => renderLootLine(item, headcount)),
     el('div', { className: 'v2-run-actions' },
@@ -85,13 +82,13 @@ function renderLootLine(item, headcount) {
   const img = getLootImage(item.name);
   const price = lootPrice(item);
   const how = item.mode === 'solo'
-    ? `독식 · ${characterName(item.takerCharacterId)}`
-    : `분배 · 1인 ${formatEok(price / headcount)}`;
+    ? `${formatEok(price)} ${characterName(item.takerCharacterId)} 독식`
+    : `${formatEok(price)} 1인당 ${formatEok(price / headcount)} 분배`;
   return el('div', { className: 'v2-run-line' },
     el('span', { className: 'v2-run-label v2-loot-name' },
       img ? el('img', { className: 'v2-loot-img', src: img, alt: '' }) : null,
       item.name,
     ),
-    el('span', null, `${formatEok(price)} · ${how}`),
+    el('span', null, how),
   );
 }

@@ -74,8 +74,8 @@ function createRow(item, datalistId, getParticipants, onRemove) {
   });
   nameInput.setAttribute('list', datalistId); // input.list 는 읽기 전용이라 속성으로 건다
   const priceInput = el('input', {
-    className: 'text-input v2-price-input', type: 'number', inputmode: 'decimal',
-    step: '0.01', min: '0', placeholder: '가격(억)', value: item.price ?? '',
+    className: 'text-input v2-price-input', type: 'text', inputmode: 'decimal',
+    autocomplete: 'off', placeholder: '가격(억)', value: item.price ?? '',
   });
   const modeSelect = el('select', { className: 'select-input' },
     el('option', { value: 'split' }, '분배'),
@@ -111,7 +111,8 @@ function createRow(item, datalistId, getParticipants, onRemove) {
   const read = () => {
     const name = nameInput.value.trim();
     if (!name) return { item: null }; // 빈 줄은 무시
-    const price = priceInput.value === '' ? 0 : Number(priceInput.value);
+    const raw = priceInput.value.trim().replace(/억$/, '').replace(/,/g, '');
+    const price = raw === '' ? 0 : Number(raw);
     if (!Number.isFinite(price) || price < 0) return { error: `${name}의 판매가를 숫자로 적어 주세요.` };
     if (modeSelect.value === 'solo' && !takerSelect.value) {
       return { error: `${name}을(를) 가져간 사람을 골라 주세요.` };

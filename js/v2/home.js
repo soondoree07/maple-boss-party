@@ -1,9 +1,8 @@
-// v2/home.js — 메인 화면: 수익 순위 · 이번 주 현황 · 기록 카드 목록
+// v2/home.js — 메인 화면: 수익 순위 · 기록 카드 목록
 
 import { el, clear } from '../utils.js';
 import { getRuns } from './store.js';
 import { renderRanking } from './ranking.js';
-import { renderWeekly } from './weekly.js';
 import { renderRunGroupCard } from './run-card.js';
 import { groupRunsByParty } from './calc.js';
 import { openRunForm } from './run-form.js';
@@ -33,7 +32,6 @@ export function renderHome(container, rerender) {
 
   container.appendChild(el('main', { className: 'v2-home' },
     renderRanking(),
-    renderWeekly(),
     renderRunList(rerender, addRun),
   ));
 }
