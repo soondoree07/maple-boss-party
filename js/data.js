@@ -17,10 +17,8 @@ export const DIFFICULTY_LABEL = {
 };
 
 // 난이도 정렬 순서 (이지 < 노멀 < 하드 < 카오스 < 익스트림)
-const DIFFICULTY_RANK = { easy: 0, normal: 1, hard: 2, chaos: 3, extreme: 4 };
 
 export const difficultyLabel = (key) => DIFFICULTY_LABEL[key] || key;
-export const difficultyRank  = (key) => DIFFICULTY_RANK[key] ?? 99;
 
 // ── 전리품 그룹 (항목 이름 → 그룹) ───────────────────
 //
@@ -71,39 +69,6 @@ export function sortLoot(list) {
     return ka[0] - kb[0] || ka[1] - kb[1];
   });
 }
-
-/**
- * 전리품 색상 그룹.
- *  - unique:  유니크 (각 항목별로 LOOT_NAME_COLOR에서 개별 지정 — 그룹 색은 fallback)
- *  - hammer:  해머 5종
- *  - epic:    에픽 — 연마석/신마석/장신망상자/영달포
- *  - purple:  퍼플코어 8종
- *  - soul:    소울 에테르 (1~4단계)
- *  - default: 그 외 — 검정(글자색 미적용)
- */
-export const LOOT_COLORS = {
-  hammer:  '#D4A056',
-  epic:    '#22C55E',
-  purple:  '#9B5DE5',
-  soul:    '#F97316',
-  unique:  '#E0C9A6',
-  default: '#1A1A1A',
-};
-
-/**
- * 항목별 글자색 override.
- * 유니크 전리품은 각 아이콘에서 추출한 도미넌트 컬러로 지정.
- */
-export const LOOT_NAME_COLOR = {
-  '황홀한 악몽':   '#FE9500',
-  '근원의 속삭임': '#A500A6',
-  '죽음의 맹세':   '#00FEFD',
-  '불멸의 유산':   '#FFA700',
-  '창세의 뱃지':   '#FB0400',
-  '오만의 원죄':   '#C9B58E',
-  '굶주리는 핏빛 원혼': '#E11D48',
-  '언컨':          '#D04040',
-};
 
 // ── 보스 ──────────────────────────────────────────────
 //
@@ -412,22 +377,6 @@ export function getBossDifficulty(bossId, difficultyKey) {
 }
 
 /**
- * 회차의 난이도를 확정한다.
- *  1) run에 저장된 difficulty가 그 보스에 유효하면 그대로
- *  2) 아니면 사용자 기본 난이도 설정(defaults map)
- *  3) 그것도 없으면 보스의 첫(가장 낮은) 난이도
- * @returns {string|null} 난이도 key (보스가 없으면 null)
- */
-export function resolveDifficultyKey(bossId, runDifficulty, defaults = {}) {
-  const diffs = getBossDifficulties(bossId);
-  if (diffs.length === 0) return null;
-  if (runDifficulty && diffs.some(d => d.key === runDifficulty)) return runDifficulty;
-  const dft = defaults[bossId];
-  if (dft && diffs.some(d => d.key === dft)) return dft;
-  return diffs[0].key;
-}
-
-/**
  * 결정석 가격(억). 난이도가 유효하지 않으면 첫 난이도로 fallback.
  * @param {string} bossId
  * @param {string} difficultyKey
@@ -456,48 +405,13 @@ export const isBossVisible = (bossId, visible = {}) => {
   if (boss && boss.defaultHidden) return false;
   return visible[bossId] !== false;
 };
-export const getVisibleBosses = (visible = {}) => BOSSES.filter(b => isBossVisible(b.id, visible));
 
-/** 보스 이름 가나다순 정렬된 복사본. */
-export const bossesByName = () =>
-  [...BOSSES].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+/** 보스의 가장 비싼 난이도 결정석(억). */
+const topCrystal = (boss) => Math.max(0, ...boss.difficulties.map(d => Number(d.crystal) || 0));
 
-// 보스 표시 순서 (사용자 지정). 이 목록에 없는 보스는 아래에 이름 가나다순.
-const BOSS_ORDER = [
-  'blackmage', 'suu', 'seren', 'kalos', 'kaling', 'adversary', 'lotus',
-  'limbo', 'baldrix', 'jupiter', 'jinhilla', 'dunkel', 'dusk', 'will',
-  'lucid', 'gas', 'damien',
-];
-
-/** 사용자 지정 순서 → 나머지 가나다순. 보스 목록 노출은 전부 이걸 사용. */
+/** 보스 목록 순서: 결정석이 가장 비싼 난이도 기준으로 비싼 보스가 위, 같으면 이름 가나다순. */
 export function bossesInOrder() {
-  const rank = new Map(BOSS_ORDER.map((id, i) => [id, i]));
-  const fixed = [];
-  const rest  = [];
-  for (const b of BOSSES) (rank.has(b.id) ? fixed : rest).push(b);
-  fixed.sort((a, b) => rank.get(a.id) - rank.get(b.id));
-  rest.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-  return [...fixed, ...rest];
+  return [...BOSSES].sort((a, b) => (topCrystal(b) - topCrystal(a)) || a.name.localeCompare(b.name, 'ko'));
 }
 
-/** 표시 순서 인덱스 (목록에 없으면 큰 값). 회차 보스 select 정렬용. */
-export function bossOrderIndex(bossId) {
-  const ordered = bossesInOrder();
-  const i = ordered.findIndex(b => b.id === bossId);
-  return i < 0 ? 9999 : i;
-}
-
-export const getLootColor = (group) => LOOT_COLORS[group] || LOOT_COLORS.default;
 export const getLootImage = (itemName) => LOOT_IMAGE[itemName] || null;
-
-/**
- * 표시용 색: 항목별 override가 있으면 그걸, 없으면 그룹 색.
- * dark fallback(#1A1A1A)은 null로 반환 → 호출부에서 기본 색 그대로 사용.
- */
-export function getDisplayLootColor(itemName, group) {
-  if (LOOT_NAME_COLOR[itemName]) return LOOT_NAME_COLOR[itemName];
-  const g = group || getLootGroup(itemName);
-  const groupColor = LOOT_COLORS[g];
-  if (!groupColor || groupColor === '#1A1A1A') return null;
-  return groupColor;
-}

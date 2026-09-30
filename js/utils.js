@@ -52,32 +52,6 @@ export function getMonthRange(date) {
   return { start: toDateStr(start), end: toDateStr(end) };
 }
 
-/**
- * "YYYY-MM-DD a" - "YYYY-MM-DD b" 의 일수 차이 (b - a).
- */
-export function dayDiff(aStr, bStr) {
-  const a = parseDateStr(aStr);
-  const b = parseDateStr(bStr);
-  return Math.round((b - a) / 86_400_000);
-}
-
-/**
- * "2026-05-04" → "5/4"
- */
-export function shortMD(dateStr) {
-  const [, m, d] = dateStr.split('-');
-  return `${+m}/${+d}`;
-}
-
-/**
- * "2026-05-04" → "2026년 5월 4일 (월)"
- */
-export function longDateLabel(dateStr) {
-  const d = parseDateStr(dateStr);
-  const dow = ['일','월','화','수','목','금','토'][d.getDay()];
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${dow})`;
-}
-
 // ── 메소 포맷 ─────────────────────────────────────────
 //
 // 입력은 "억" 단위 number (소수점 허용). 표시는 소수부를 만 단위로 풀어서.
@@ -99,34 +73,6 @@ function formatManwon(manwon) {
   const rest   = manwon % 1000;
   if (cheon > 0 && rest === 0) return `${cheon}천만`;
   return `${manwon}만`;
-}
-
-export function formatMeso(eok) {
-  if (eok == null || isNaN(eok)) return '0';
-
-  // 소수점 부동소수 오차 흡수 — 만 단위까지만 의미 있음.
-  const totalManwon = Math.round(Number(eok) * 10_000);
-  if (totalManwon === 0) return '0';
-
-  const sign     = totalManwon < 0 ? '-' : '';
-  const abs      = Math.abs(totalManwon);
-  const eokPart  = Math.floor(abs / 10_000);
-  const manPart  = abs % 10_000;
-
-  const parts = [];
-  if (eokPart > 0) parts.push(`${eokPart}억`);
-  const manStr = formatManwon(manPart);
-  if (manStr) parts.push(manStr);
-
-  return sign + parts.join(' ');
-}
-
-/**
- * 합계를 인원수로 나눈 1인 분배액 (단위: 억, 소수점 2자리 반올림).
- */
-export function divideMeso(totalEok, headcount) {
-  if (!headcount || headcount <= 0) return 0;
-  return Math.round((totalEok / headcount) * 100) / 100;
 }
 
 // ── DOM 헬퍼 ──────────────────────────────────────────
@@ -188,41 +134,7 @@ export function clear(node) {
 
 // ── 모바일 햄버거 메뉴 ────────────────────────────────
 
-/** 모바일 폭 여부 (헤더 액션·룰렛·사다리를 햄버거로 접는 기준). */
-export const isMobile = () => window.matchMedia('(max-width: 720px)').matches;
-
-/**
- * 모바일 햄버거 토글 + 드로어. nodes 를 드로어에 담아 반환.
- * 데스크톱에선 호출 안 함(렌더 분기) — 순수 모바일 전용.
- * 아이콘은 이모지 없이 CSS 3선(span) 으로 그린다.
- * @returns {{toggle: HTMLElement, drawer: HTMLElement}}
- */
-export function buildMobileMenu(nodes, label = '메뉴') {
-  const drawer = el('div', { className: 'mobile-drawer' }, nodes);
-  const toggle = el('button', {
-    className: 'nav-toggle',
-    type: 'button',
-    'aria-label': label,
-    'aria-expanded': 'false',
-    onclick: () => {
-      const open = drawer.classList.toggle('open');
-      toggle.classList.toggle('open', open);
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    },
-  },
-    el('span', { className: 'nav-toggle-bar' }),
-    el('span', { className: 'nav-toggle-bar' }),
-    el('span', { className: 'nav-toggle-bar' }),
-  );
-  return { toggle, drawer };
-}
-
 // ── 파티 비밀번호 = 숫자 4자리 PIN ─────────────────────
-
-/** 값이 정확히 숫자 4자리인지. */
-export function isPin(v) {
-  return /^\d{4}$/.test(String(v ?? ''));
-}
 
 /**
  * 숫자 4자리 PIN 입력 칸. 마스킹(password) + 모바일 숫자 키패드 +
@@ -375,55 +287,7 @@ export function toast(message, kind = 'err', ms = 3500) {
 
 // ── 인라인 폼 안내 (저장 버튼 위 한 줄) ───────────────
 
-/**
- * 폼 인라인 안내 한 줄. node + show 클로저 반환.
- * @returns {{ node: HTMLElement,
- *             show(text:string, ok?:boolean, focusEl?:HTMLElement):void }}
- */
-export function inlineMsg() {
-  const node = el('div', { className: 'inline-msg' });
-  const show = (text, ok = false, focusEl = null) => {
-    node.textContent = text;
-    node.className = 'inline-msg inline-msg-' + (ok ? 'ok' : 'err');
-    focusEl?.focus();
-  };
-  return { node, show };
-}
-
 // ── 해시 ──────────────────────────────────────────────
 //
 // 파티 비밀번호 저장용. localStorage 기반이라 진짜 보안은 아니고
 // (개발자도구로 우회 가능) 평문 저장만 피하는 가벼운 게이트 용도.
-
-/**
- * 문자열 → SHA-256 hex. crypto.subtle은 보안 컨텍스트(https/localhost)에서만
- * 동작하므로, 없으면 단순 sync 해시(FNV-1a류)로 폴백.
- * @returns {Promise<string>}
- */
-export async function sha256Hex(str) {
-  const s = String(str);
-  try {
-    if (globalThis.crypto?.subtle) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-  } catch { /* fall through */ }
-  // 폴백 (비보안 컨텍스트) — 충돌 가능하나 게이트 용도엔 충분.
-  let h1 = 0x811c9dc5, h2 = 0x1000193;
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0;
-    h2 = Math.imul(h2 ^ c, 0x85ebca6b) >>> 0;
-  }
-  return 'fb' + h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
-}
-
-/** HTML 이스케이프 (innerHTML이 꼭 필요할 때만). */
-export function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}

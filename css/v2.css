@@ -105,7 +105,7 @@
 /* ── 기록 창 ──────────────────────────────────────────── */
 
 .v2-form { display: grid; gap: 4px; }
-.v2-form .form-row { grid-template-columns: 1.2fr 1.4fr 1fr; }
+
 .modal-wide:has(.v2-form) { max-width: 680px; }
 
 .v2-picker { display: grid; gap: 8px; }
@@ -224,8 +224,8 @@
 
 @media (max-width: 720px) {
   .v2-section { padding: 14px; }
-  .v2-form .form-row { grid-template-columns: 1fr 1fr; }
-  .v2-form .form-row .form-group:first-child { grid-column: 1 / -1; }
+  
+  
   /* 1줄: 아이템 이름 · 지우기 / 2줄: 판매가 · 분배/독식 · 가져간 사람 */
   .v2-loot-row { grid-template-columns: repeat(3, minmax(0, 1fr)) 28px; }
   .v2-run-form .v2-loot-row .text-input, .v2-run-form .v2-loot-row .select-input { padding: 9px 8px; font-size: 14px; }
