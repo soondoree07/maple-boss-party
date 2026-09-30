@@ -1,109 +1,61 @@
-# 메이플 보스 파티 기록
+# 메이플 보스 기록
 
-메이플스토리 본진 파티의 주간/월간 보스 클리어 현황과 전리품 분배를 기록·조회하는 1인용 정적 웹사이트.
+친구들끼리 메이플스토리 주간·월간 보스를 잡은 기록과 수익(결정석 + 드랍템)을 함께 남기고 보는 사이트.
 
-Vanilla HTML + ES Module + localStorage. 빌드 시스템 없음, 외부 의존성은 Pretendard 폰트 CDN뿐.
+- 사이트: https://maplebossparty.vercel.app (사이트 비밀번호 필요)
+- Vanilla HTML + ES Module, 빌드 없음. 데이터는 Supabase(Postgres + Realtime)에 두고 모두가 같이 본다.
+- `git push` 하면 Vercel 이 자동 배포한다.
 
-## 기능
+## 무엇을 하나
 
-- **파티 관리** — 파티 생성/삭제, 한 명의 파티원이 여러 파티에 중복 소속 가능
-- **캘린더 뷰** — 메이플 주차에 맞춘 목→수 시작, 보스별 색상 pill, 오늘 강조
-- **이번 주 / 이번 달 진행도** — 클리어한 보스만 색상 활성화, 1인 분배액 자동 계산
-- **회차 기록 추가/조회** — 보스 선택에 따라 전리품 드롭다운이 동적으로 갈림
-- **JSON 백업/복원** — 한 번에 다운로드/업로드
+- **유저 · 캐릭터** — 유저(잉짱, 곰범 …) 밑에 캐릭터 여러 개. "기타" 유저는 외부 인원 자리(수익 순위에서 빠짐).
+- **기록 추가** — 날짜 → 참여 캐릭터(외부 인원은 "기타 − n +") → 보스 칸 여러 개(보스 · 난이도 · 그 보스 드랍템).
+  보스 칸 하나가 기록(run) 하나로 저장된다. 드랍템은 분배(÷ n) 또는 독식(한 명 전액).
+- **기록 카드** — 같은 주(목요일 0시 초기화) · 같은 파티 기록을 카드 한 장으로 묶는다.
+- **수익 순위** — 이번 주 / 이번 달 / 전체, 유저별(캐릭터 합).
+- **월별 전리품** — 메인은 이번 달, "전체 보기"로 달마다 누가 뭘 얼마에.
+- **과거 기록** — 2026-09 개편 전 옛 파티(밈곰잉 · 쭈진) 기록을 달별로 정리한 읽기 전용 페이지.
+- **채널 룰렛**, **라이트 / 다크 모드**.
 
-## 시작하기
+## 돈 계산 규칙
 
-ES Module은 `file://`에서는 못 돌아가요. 로컬 서버 띄우고 접속:
+- 결정석: 기록할 때의 가격표 값(`js/data.js`)을 기록에 같이 저장 → 가격표가 바뀌어도 지난 기록은 그대로.
+  캐릭터마다 `결정석 ÷ 참여 인원 n` (n 에는 외부 인원 포함).
+- 드랍템: 분배면 `가격 ÷ n` 씩, 독식이면 가져간 사람이 전액.
+- 금액 표기는 억 단위, 0.1억 이상은 소수 1자리(`23.8억`), 그 아래는 2자리(`0.04억`).
+
+## 폴더
+
+```
+index.html            진입 (head 스크립트가 라이트/다크를 첫 화면 전에 정함)
+css/style.css         기본 토큰 · 공용 컴포넌트(버튼, 창, 입력칸, 토스트, 룰렛)
+css/v2.css            화면별 레이아웃 (순위, 카드, 기록 창, 전리품, 관리, 과거 기록)
+css/theme.css         무드: 화이트 + 토스 느낌 박스, [data-theme="dark"] 다크 색
+js/app.js             해시 라우터 (#/ · #/manage · #/archive)
+js/config.js          Supabase 연결 (공개용 publishable 키)
+js/data.js            보스 · 난이도 · 결정석 가격 · 드랍템 목록 · 아이템 이미지
+js/utils.js           날짜, DOM 헬퍼(el), 확인 창, 토스트, 비밀번호 입력칸
+js/theme.js           라이트/다크 전환 버튼
+js/roulette.js        채널 룰렛
+js/v2/                화면 모듈 (store 데이터 · calc 계산 · home · run-form · run-card …)
+data/archive-2026.json   과거 기록 요약 (scripts/build-archive.mjs 로 만든 고정 파일)
+sql/v2-schema.sql     Supabase 테이블 · RLS · 비밀번호 RPC · 시드
+png/                  드랍템 이미지
+```
+
+## 로컬에서 보기
+
+ES Module 이라 `file://` 로는 안 열린다. 로컬 서버로 연다.
 
 ```bash
-# Python
-python3 -m http.server 8000
-
-# Node
-npx serve .
+python3 -m http.server 8765
+# http://localhost:8765
 ```
 
-`http://localhost:8000` 접속.
+로컬도 실제 Supabase 데이터를 그대로 읽고 쓴다(테스트 기록은 꼭 지울 것).
 
-### GitHub Pages 배포
+## 가격표 · 드랍템 바꾸기
 
-이 폴더를 GitHub repo로 push → Settings → Pages → Source: `main` branch / `/ (root)` 선택.
-1~2분 후 `https://<username>.github.io/<repo>/` 에서 접근 가능.
-
-## 데이터 저장
-
-- 모든 데이터는 브라우저 **localStorage**에 단일 JSON으로 저장 (key: `maple-boss-v1`)
-- 브라우저/기기마다 따로 저장되니, 정기적으로 `↓ 백업` 버튼으로 JSON을 내보내두세요
-- 시크릿 모드에서는 탭 닫으면 사라집니다
-
-## 데이터 모델
-
-```js
-Party {
-  id, name,
-  members:   string[],   // 닉네임
-  createdAt: ISO string
-}
-
-BossRun {
-  id, partyId,
-  date,                  // "YYYY-MM-DD"
-  boss,                  // 'seren' | 'kalos' | ... | 'blackmage'
-  channel,               // "1" | "20세이상" | "2" | ... | "39"
-  opener,                // 닉네임
-  memberSnapshot: string[],  // 그 회차 시점의 파티원 명단 (정산용)
-  loot: [
-    { item, taker, price }   // price 단위: 억 (number | null)
-  ]
-}
-```
-
-## 주간/월간 리셋
-
-- **주간**: 목요일 0시 (목/금/토/일/월/화/수가 한 주)
-- **월간**: 매월 1일 0시
-- 리셋되어도 과거 회차는 그대로 보존. 진행도 위젯은 **현재 시점**의 주/월에 해당하는 회차만 집계.
-- 1인 분배액 = (이번 주차 회차의 결정석 합) ÷ (현재 파티원 수)
-
-## 도메인 상수 수정
-
-`js/data.js` 한 군데에서 관리.
-
-```js
-// 보스 추가/활성화 — 유피테르 켜고 싶으면 enabled: true로 변경
-{ id: 'jupiter', name: '유피테르', cycle: 'weekly', crystal: 17.0, enabled: false, color: '#FB923C' },
-
-// 전리품 색상 — 유니크 5종 색상이 정해지면 LOOT_COLORS.unique 변경
-LOOT_COLORS = {
-  hammer:  '#D4A056',  // 해머류
-  purple:  '#9B5DE5',  // 퍼플코어류
-  unique:  '#1A1A1A',  // 황홀한 악몽 / 근원의 속삭임 / 죽음의 맹세 / 불멸의 유산 / 창세의 뱃지
-  default: '#1A1A1A',
-}
-```
-
-## 폴더 구조
-
-```
-maple-boss/
-├── index.html
-├── css/style.css
-└── js/
-    ├── app.js          # 해시 라우팅 + 파티 상세
-    ├── data.js         # 보스/채널/전리품 상수
-    ├── storage.js      # localStorage CRUD
-    ├── utils.js        # 날짜/메소 포맷/DOM 헬퍼
-    ├── party.js        # 메인 (파티 목록 + 만들기 모달)
-    ├── progress.js     # 이번 주/달 진행도 위젯
-    ├── calendar.js     # 월간 캘린더 (목요일 시작)
-    ├── record.js       # 날짜 모달 + 기록 추가 폼
-    └── backup.js       # JSON 내보내기/불러오기
-```
-
-## 추후 확장
-
-- 유피테르 활성화 — `data.js`에서 `enabled: true`로 바꾸면 즉시 드롭다운에 노출 (전리품 채워야 의미 있음)
-- 유니크 5종 색상 지정 — `LOOT_COLORS.unique` 또는 항목별 개별 색
-- 통계 (멤버별 누적 가치, 자동 정산)
-- 다중 디바이스 동기화 (Firebase / GitHub Gist 백업)
+- 결정석 가격, 보스 난이도, 드랍템 목록은 `js/data.js` 의 `BOSSES` 에서 고친다.
+- 새 드랍템 이미지는 `png/` 에 넣고 `LOOT_IMAGE` 에 이름 → 경로를 추가한다.
+- 기록 창 보스 목록은 가장 비싼 난이도 결정석 순으로 자동 정렬된다.
