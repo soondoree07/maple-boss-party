@@ -181,8 +181,8 @@ export const BOSSES = [
   {
     id: 'limbo', name: '림보', cycle: 'weekly', color: '#60A5FA',
     difficulties: [
-      { key: 'normal', crystal: 9.9, loot: ['루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '신마석', ...COMMON] },
-      { key: 'hard',   crystal: 23.8, loot: [...LEGACY_LOOT.limbo] },
+      { key: 'normal', crystal: 9.9, loot: ['3단계 소울 에테르', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '신마석', ...COMMON] },
+      { key: 'hard',   crystal: 23.8, loot: ['3단계 소울 에테르', ...LEGACY_LOOT.limbo] },
     ],
   },
   {
@@ -200,8 +200,8 @@ export const BOSSES = [
   {
     id: 'baldrix', name: '발드릭스', cycle: 'weekly', color: '#34D399',
     difficulties: [
-      { key: 'normal', crystal: 13.2, loot: ['신마석', ...PURPLE_CORE, ...COMMON] },
-      { key: 'hard',   crystal: 30.7, loot: ['죽음의 맹세', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'normal', crystal: 13.2, loot: ['3단계 소울 에테르', '신마석', ...PURPLE_CORE, ...COMMON] },
+      { key: 'hard',   crystal: 30.7, loot: ['3단계 소울 에테르', '죽음의 맹세', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
@@ -261,8 +261,8 @@ export const BOSSES = [
   {
     id: 'jupiter', name: '유피테르', cycle: 'weekly', color: '#FB923C',
     difficulties: [
-      { key: 'normal', crystal: 15.6, loot: ['신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',   crystal: 48.4, loot: ['오만의 원죄', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'normal', crystal: 15.6, loot: ['4단계 소울 에테르', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 48.4, loot: ['4단계 소울 에테르', '오만의 원죄', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
@@ -281,26 +281,26 @@ export const BOSSES = [
   {
     id: 'lotus', name: '찬란한 흉성', cycle: 'weekly', color: '#F87171',
     difficulties: [
-      { key: 'normal', crystal: 5.7,  loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',   crystal: 26.7, loot: [...LEGACY_LOOT.lotus] },
+      { key: 'normal', crystal: 5.7,  loot: ['2단계 소울 에테르', '연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 26.7, loot: ['2단계 소울 에테르', ...LEGACY_LOOT.lotus] },
     ],
   },
   {
     id: 'adversary', name: '최초의 대적자', cycle: 'weekly', color: '#FFD93D',
     difficulties: [
       { key: 'easy',    crystal: 2.6, loot: ['연마석', ...COMMON] },
-      { key: 'normal',  crystal: 5.3, loot: ['연마석', ...COMMON] },
-      { key: 'hard',    crystal: 13.9, loot: ['불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON] },
-      { key: 'extreme', crystal: 47.1, loot: ['해머(훈장)', '불멸의 유산', '에테상자', '영달포', '연마석', ...COMMON] },
+      { key: 'normal',  crystal: 5.3, loot: ['1단계 소울 에테르', '연마석', ...COMMON] },
+      { key: 'hard',    crystal: 13.9, loot: ['1단계 소울 에테르', '불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON] },
+      { key: 'extreme', crystal: 47.1, loot: ['1단계 소울 에테르', '해머(훈장)', '불멸의 유산', '에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
     id: 'kaling', name: '카링', cycle: 'weekly', color: '#A78BFA',
     difficulties: [
       { key: 'easy',    crystal: 3.2, loot: [] },
-      { key: 'normal',  crystal: 5.9, loot: ['연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',    crystal: 15.6, loot: ['신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'extreme', crystal: 53.8, loot: ['해머(귀고리)', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
+      { key: 'normal',  crystal: 5.9, loot: ['1단계 소울 에테르', '연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',    crystal: 15.6, loot: ['1단계 소울 에테르', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'extreme', crystal: 53.8, loot: ['1단계 소울 에테르', '해머(귀고리)', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
     ],
   },
   {
