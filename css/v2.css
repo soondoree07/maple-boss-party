@@ -76,7 +76,7 @@
 
 /* ── 기록 카드 ────────────────────────────────────────── */
 
-.v2-run-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.v2-run-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; } /* 옆 카드가 길어도 내용이 늘어나지 않게 */
 .v2-run-card {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
