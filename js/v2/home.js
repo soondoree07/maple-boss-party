@@ -38,7 +38,9 @@ export function renderHome(container, rerender) {
     renderLootHistory(),
     renderRunList(rerender, addRun),
     el('footer', { className: 'v2-home-footer' },
-      el('a', { href: '#/archive', className: 'btn btn-ghost' }, '과거 기록 보기')),
+      el('a', { href: '#/archive', className: 'btn btn-ghost' }, '과거 기록 보기'),
+      // 넥슨 오픈 API 이용 조건: 서비스에 출처 문구를 그대로 표기해야 한다.
+      el('small', { className: 'v2-api-credit' }, 'Data based on NEXON Open API')),
   ));
 }
 
