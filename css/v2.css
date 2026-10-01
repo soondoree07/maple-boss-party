@@ -227,7 +227,7 @@
 .v2-nexon-result[hidden] { display: none; }
 .v2-nexon-result.is-error { color: var(--danger); }
 .v2-nexon-result strong { color: var(--text-primary); margin-right: 6px; }
-.v2-nexon-avatar { width: 40px; height: 40px; object-fit: cover; object-position: center 30%; border-radius: 8px; }
+.v2-nexon-avatar { width: 56px; height: 56px; object-fit: none; object-position: 50% 60%; border-radius: 8px; flex-shrink: 0; }
 
 /* ── 모바일 ───────────────────────────────────────────── */
 
