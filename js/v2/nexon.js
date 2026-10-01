@@ -21,13 +21,13 @@ let inFlight = 0;
 const waiting = [];
 
 async function request(path, options = {}) {
-  if (inFlight >= MAX_IN_FLIGHT) await new Promise(resolve => waiting.push(resolve));
-  inFlight += 1;
+  if (inFlight >= MAX_IN_FLIGHT) await new Promise(resolve => waiting.push(resolve)); // 자리는 끝난 요청이 넘겨준다
+  else inFlight += 1;
   try {
     return await send(path, options);
   } finally {
-    inFlight -= 1;
-    waiting.shift()?.();
+    const next = waiting.shift();
+    if (next) next(); else inFlight -= 1;
   }
 }
 
