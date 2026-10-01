@@ -31,7 +31,7 @@ const EPIC    = ['연마석', '신마석', '장신망상자', '영달포'];
 const PURPLE  = ['루컨마', '마깃안', '몽벨', '마도서', '거공', '고근', '커포링', '미트라의 분노'];
 // 소울 에테르는 1~4단계가 있다. 등급 자리는 임시로 퍼플코어 바로 아래 (사용자 결정 2026-09-30).
 const SOUL    = ['1단계 소울 에테르', '2단계 소울 에테르', '3단계 소울 에테르', '4단계 소울 에테르'];
-const DEFAULT = ['리3', '리4', '컨3', '컨4', '에테상자'];
+const DEFAULT = ['리3', '리4', '컨3', '컨4', '반지 꽝', '에테상자'];
 
 // 전리품 그룹 표시 순서: 유니크 → 해머 → 에픽 → 퍼플코어 → 소울 에테르 → 기본
 const LOOT_GROUP_ORDER = ['unique', 'hammer', 'epic', 'purple', 'soul', 'default'];
@@ -79,7 +79,50 @@ export function sortLoot(list) {
 // jupiter/blackmage) — 기존에 기록된 BossRun이 그대로 해석되도록.
 
 // 리3·컨3 은 사실상 가치가 없어 드랍 목록에서 뺐다 (2026-09-30). 옛 기록 표시용으로 그룹·이미지는 남겨 둔다.
+// COMMON(리4·컨4) 자리는 아래 RING_BOX_BY_DIFFICULTY 가 보스마다 다른 반지 상자 하나로 바꾼다.
 const COMMON = ['리4', '컨4'];
+
+// ── 보스 반지 상자 ───────────────────────────────────
+//
+// 반지는 상자를 열어 나온다. 기록 창에서 상자를 누르면 RING_BOX_CONTENTS 중에서 고른다.
+// 리레 4 · 컨티 4 만 값이 있고 나머지 반지는 모두 "반지 꽝"(0메소)으로 기록한다 (사용자 결정 2026-10-01).
+// 녹옥 상자는 1~3레벨만 나와 리4 · 컨4 가 없으므로 드랍 목록에 넣지 않는다.
+export const RING_BOX = {
+  red:   '홍옥의 보스 반지 상자',
+  black: '흑옥의 보스 반지 상자',
+  white: '백옥의 보스 반지 상자',
+  life:  '생명의 보스 반지 상자',
+};
+export const RING_MISS = '반지 꽝';
+export const RING_BOX_CONTENTS = [
+  { name: '리4', label: '리스트레인트 링 4' },
+  { name: '컨4', label: '컨티뉴어스 링 4' },
+  { name: RING_MISS, label: '꽝 (그 외 반지)' },
+];
+const RING_BOX_NAMES = new Set(Object.values(RING_BOX));
+export const isRingBox = (name) => RING_BOX_NAMES.has(name);
+
+// 보스 · 난이도별 반지 상자. 출처: 메이플스토리 공식 "보스별 주요 보상" + 인벤 · 나무위키 난이도 구분.
+// 카링 · 벨로나는 하드 이상 = 생명, 그 아래 = 백옥 (사용자 확인 2026-10-01).
+const RING_BOX_BY_DIFFICULTY = {
+  suu:       { hard: RING_BOX.red, extreme: RING_BOX.white },
+  damien:    { hard: RING_BOX.red },
+  lucid:     { hard: RING_BOX.red },
+  will:      { hard: RING_BOX.red },
+  jinhilla:  { hard: RING_BOX.black },
+  dunkel:    { hard: RING_BOX.black },
+  dusk:      { chaos: RING_BOX.black },
+  seren:     { normal: RING_BOX.black, hard: RING_BOX.white, extreme: RING_BOX.white },
+  blackmage: { hard: RING_BOX.white, extreme: RING_BOX.white },
+  lotus:     { normal: RING_BOX.white, hard: RING_BOX.white },
+  kaling:    { easy: RING_BOX.white, normal: RING_BOX.white, hard: RING_BOX.life, extreme: RING_BOX.life },
+  bellona:   { easy: RING_BOX.white, normal: RING_BOX.white, hard: RING_BOX.life },
+  kalos:     { easy: RING_BOX.life, normal: RING_BOX.life, chaos: RING_BOX.life, extreme: RING_BOX.life },
+  adversary: { easy: RING_BOX.life, normal: RING_BOX.life, hard: RING_BOX.life, extreme: RING_BOX.life },
+  limbo:     { normal: RING_BOX.life, hard: RING_BOX.life },
+  baldrix:   { normal: RING_BOX.life, hard: RING_BOX.life },
+  jupiter:   { normal: RING_BOX.life, hard: RING_BOX.life },
+};
 const PURPLE_CORE = ['거공', '몽벨', '마깃안', '루컨마', '고근', '마도서', '커포링'];
 
 // 기존(v0.4) 보스별 전리품 — 이름 매칭해서 그대로 가져옴.
@@ -301,6 +344,15 @@ export const BOSSES = [
   },
 ];
 
+// 드랍 목록의 리4 · 컨4 를 빼고, 그 보스 · 난이도의 반지 상자를 맨 뒤에 넣는다.
+for (const boss of BOSSES) {
+  for (const difficulty of boss.difficulties) {
+    const box = RING_BOX_BY_DIFFICULTY[boss.id]?.[difficulty.key];
+    difficulty.loot = difficulty.loot.filter(name => !COMMON.includes(name));
+    if (box) difficulty.loot.push(box);
+  }
+}
+
 // ── 채널 ──────────────────────────────────────────────
 //
 // 채널 40개. 인게임 채널 선택창 순서:
@@ -361,6 +413,11 @@ export const LOOT_IMAGE = {
   '컨4':            'png/컨4.png',
   '리3':            'png/리3.png',
   '컨3':            'png/컨3.png',
+  // 보스 반지 상자 (드랍 목록에만 나오고, 기록은 안에서 나온 반지로 남는다)
+  [RING_BOX.red]:   'png/홍옥의 보스 반지 상자.png',
+  [RING_BOX.black]: 'png/흑옥의 보스 반지 상자.webp',
+  [RING_BOX.white]: 'png/백옥의 보스 반지 상자.webp',
+  [RING_BOX.life]:  'png/생명의 보스 반지 상자.webp',
 };
 
 // ── 헬퍼 ──────────────────────────────────────────────

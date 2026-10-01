@@ -158,6 +158,13 @@
 }
 .v2-loot-chip:hover { border-color: var(--accent-gold); color: var(--text-primary); }
 .v2-loot-chip .v2-loot-img { width: 16px; height: 16px; }
+/* 반지 상자: 누르면 안에서 나온 반지를 고르는 줄이 펼쳐진다 */
+.v2-loot-chip-box { border-style: dashed; }
+.v2-ring-picker { display: grid; gap: 8px; width: 100%; padding: 10px; border-radius: var(--radius-sm); background: var(--bg-card-hover); }
+.v2-ring-picker[hidden] { display: none; }
+.v2-ring-picker-head { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+.v2-ring-picker-head .btn-mini { margin-left: auto; }
+.v2-ring-picker-options { display: flex; flex-wrap: wrap; gap: 4px; }
 
 .v2-loot-editor { display: grid; gap: 8px; justify-items: start; }
 .v2-loot-rows { display: grid; gap: 6px; width: 100%; }
