@@ -79,6 +79,14 @@ const ACTIONS = {
     ]);
     return { ocid, basic, stat, equipment };
   },
+
+  /** 스케줄러 원본 — 키 주인 계정의 캐릭터만 열린다. (임시: 사이트 키로 시험) */
+  async scheduler(query) {
+    const name = query.get('name')?.trim();
+    if (!name) throw new NexonError('BAD_REQUEST', 400, '닉네임을 적어 주세요.');
+    const ocid = await findOcid(name);
+    return callNexon('/scheduler/character-state', { ocid });
+  },
 };
 
 // 로컬 개발 서버(python http.server)에서 배포된 중계 함수를 부를 수 있게 localhost 만 다른 출처 요청을 허용한다.
