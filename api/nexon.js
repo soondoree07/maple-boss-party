@@ -5,12 +5,14 @@
 //
 // 요청: GET /api/nexon?action=character&name=닉네임
 //       GET /api/nexon?action=spec&name=닉네임
+//       GET /api/nexon?action=profile&name=닉네임   (유저 캐릭터 창)
 //       GET /api/nexon?action=scheduler&characterId=c-xxx
 // 응답: 성공 { ok: true, data } / 실패 { ok: false, code, message } (message 는 화면에 그대로 띄우는 문구)
 
 import { ApiError, json, respond } from './_lib/http.js';
 import { callNexon, findOcid } from './_lib/nexon-client.js';
 import { getCharacter, getUserNexonKey } from './_lib/db.js';
+import { loadProfile } from './_lib/profile.js';
 
 const requireParam = (query, key, message) => {
   const value = query.get(key)?.trim();
@@ -49,6 +51,12 @@ const ACTIONS = {
       ]);
       return { ocid, basic, stat, equipment };
     },
+  },
+
+  /** 유저 캐릭터 창: 기본 정보 · 전투력 · 포스 · 유니온 · 챔피언 · 링크 · 어빌리티 · 장비 프리셋 */
+  profile: {
+    cache: 600,
+    run: (query) => loadProfile(requireParam(query, 'name', '닉네임을 적어 주세요.')),
   },
 
   /**
