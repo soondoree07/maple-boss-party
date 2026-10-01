@@ -66,6 +66,19 @@ const ACTIONS = {
       image: basic.character_image,
     };
   },
+
+  /** 장비 점수 계산용 원본: 최종 스탯 + 장착 장비(넥슨 응답 그대로). 계산은 사이트 쪽에서 한다. */
+  async spec(query) {
+    const name = query.get('name')?.trim();
+    if (!name) throw new NexonError('BAD_REQUEST', 400, '닉네임을 적어 주세요.');
+    const ocid = await findOcid(name);
+    const [basic, stat, equipment] = await Promise.all([
+      callNexon('/character/basic', { ocid }),
+      callNexon('/character/stat', { ocid }),
+      callNexon('/character/item-equipment', { ocid }),
+    ]);
+    return { ocid, basic, stat, equipment };
+  },
 };
 
 // 로컬 개발 서버(python http.server)에서 배포된 중계 함수를 부를 수 있게 localhost 만 다른 출처 요청을 허용한다.
