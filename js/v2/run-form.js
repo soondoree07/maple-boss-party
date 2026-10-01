@@ -11,6 +11,7 @@ import { openModal, field } from './modal.js';
 import { createCharacterPicker } from './character-picker.js';
 import { createBossBlock } from './boss-block.js';
 import { takerChoices } from './members.js';
+import { createSchedulerSource, scheduleHint } from './scheduler-bosses.js';
 
 /**
  * @param {object|null} existing - 수정할 기록 (새 기록이면 null)
@@ -25,16 +26,26 @@ export function openRunForm(existing, onSaved, prefill = {}) {
   const blocksBox = el('div', { className: 'v2-boss-blocks' });
   const refreshBlocks = () => blocks.forEach(block => block.refresh());
 
+  // 고른 캐릭터들의 스케줄러 등록 보스 → 보스 칸 목록 묶음 · 등록 난이도
+  const scheduleHintNode = el('p', { className: 'form-hint v2-schedule-hint', hidden: true });
+  const schedule = createSchedulerSource((state) => {
+    blocks.forEach(block => block.refreshSchedule());
+    scheduleHintNode.textContent = scheduleHint(state);
+    scheduleHintNode.hidden = !scheduleHintNode.textContent;
+  });
+
   const picker = createCharacterPicker({
     initial: existing?.characterIds || prefill.characterIds || [],
-    onChange: refreshBlocks,
+    onChange: () => { refreshBlocks(); schedule.update(picker.getSelected()); },
   });
+  schedule.update(picker.getSelected());
 
   const addBlock = (existingRun = null) => {
     const block = createBossBlock({
       existing: existingRun,
       getParticipants: () => takerChoices(picker.getSelected()),
       getHeadcount: () => picker.getSelected().length,
+      getSchedule: schedule.get,
       onRemove: existing ? null : () => {
         if (blocks.length === 1) return; // 보스 칸은 하나 이상 남긴다
         blocks.splice(blocks.indexOf(block), 1);
@@ -53,7 +64,7 @@ export function openRunForm(existing, onSaved, prefill = {}) {
       field('참여 캐릭터', picker.node),
     ),
     el('div', { className: 'v2-run-form-main' },
-      field(existing ? '보스' : '보스 (잡은 순서대로 추가)', blocksBox,
+      field(existing ? '보스' : '보스 (잡은 순서대로 추가)', scheduleHintNode, blocksBox,
         existing ? null : el('button', { className: 'btn btn-ghost v2-add-boss', type: 'button', onclick: () => addBlock() }, '+ 보스 추가')),
       errMsg,
     ),

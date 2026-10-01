@@ -19,14 +19,19 @@ import { closeIcon } from './icons.js';
  * @param {() => {id, name}[]} opts.getParticipants - 독식 대상 목록
  * @param {() => number} opts.getHeadcount          - 나눌 인원 n
  * @param {(() => void) | null} [opts.onRemove]     - 없으면 지우기 버튼을 안 보인다
+ * @param {() => {loadedCount: number, bosses: Map<string, {difficulty, completedCount}>}} [opts.getSchedule]
+ *        고른 캐릭터들의 스케줄러 등록 보스 (scheduler-bosses.js). 있으면 등록 보스를 위에 묶는다.
  */
-export function createBossBlock({ existing = null, getParticipants, getHeadcount, onRemove = null }) {
+export function createBossBlock({ existing = null, getParticipants, getHeadcount, onRemove = null, getSchedule = null }) {
   const bosses = bossesInOrder().filter(b => isBossVisible(b.id) || b.id === existing?.boss);
   // 새 칸은 비어 있는 "보스 선택"에서 시작한다 (수정일 때만 원래 보스).
-  const bossSelect = el('select', { className: 'select-input' },
-    el('option', { value: '', disabled: true }, '보스 선택'),
-    bosses.map(b => el('option', { value: b.id }, b.name)));
-  bossSelect.value = existing?.boss || '';
+  const bossSelect = el('select', { className: 'select-input' });
+  const fillBossOptions = () => {
+    const keep = bossSelect.value || existing?.boss || '';
+    bossSelect.replaceChildren(el('option', { value: '', disabled: true }, '보스 선택'), ...bossOptionNodes(bosses, getSchedule?.()));
+    bossSelect.value = keep;
+  };
+  fillBossOptions();
   const diffSelect = el('select', { className: 'select-input' });
   const crystalInfo = el('span', { className: 'v2-boss-crystal' });
 
@@ -63,7 +68,12 @@ export function createBossBlock({ existing = null, getParticipants, getHeadcount
       ? `결정석 ${formatEok(crystal)} · 1인 ${formatEok(crystal / headcount)}`
       : `결정석 ${formatEok(crystal)}`;
   };
-  bossSelect.addEventListener('change', () => { fillDifficulties(diffSelect.value); refresh(); });
+  // 스케줄러에 등록한 보스면 등록 난이도를 먼저 고른다 (직접 바꿀 수 있다).
+  bossSelect.addEventListener('change', () => {
+    const scheduled = getSchedule?.()?.bosses.get(bossSelect.value);
+    fillDifficulties(scheduled?.difficulty || diffSelect.value);
+    refresh();
+  });
   diffSelect.addEventListener('change', refresh);
   refresh();
 
@@ -87,5 +97,24 @@ export function createBossBlock({ existing = null, getParticipants, getHeadcount
     return { boss: bossSelect.value, difficulty: diffSelect.value, crystal: currentCrystal(), loot: loot.items };
   };
 
-  return { node, refresh, read };
+  // 스케줄러 결과가 바뀌면 목록 묶음만 다시 만든다. 이미 고른 보스 · 난이도는 그대로 둔다.
+  return { node, refresh, read, refreshSchedule: fillBossOptions };
+}
+
+/** 스케줄러 등록 보스가 있으면 "등록 보스 / 다른 보스" 두 묶음, 없으면 지금처럼 한 줄 목록. */
+function bossOptionNodes(bosses, schedule) {
+  const scheduled = schedule?.bosses;
+  if (!scheduled || scheduled.size === 0) return bosses.map(b => el('option', { value: b.id }, b.name));
+
+  const option = (b) => {
+    const entry = scheduled.get(b.id);
+    if (!entry) return el('option', { value: b.id }, b.name);
+    // 연결된 캐릭터가 모두 이번 주에 잡았으면 표시만 한다 (파티 클리어는 넥슨 반영이 늦을 수 있다).
+    const done = entry.completedCount > 0 && entry.completedCount >= schedule.loadedCount ? ' · 처치함' : '';
+    return el('option', { value: b.id }, `${b.name} (${difficultyLabel(entry.difficulty)})${done}`);
+  };
+  return [
+    el('optgroup', { label: '스케줄러 등록 보스' }, bosses.filter(b => scheduled.has(b.id)).map(option)),
+    el('optgroup', { label: '다른 보스' }, bosses.filter(b => !scheduled.has(b.id)).map(option)),
+  ];
 }

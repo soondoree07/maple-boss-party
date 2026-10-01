@@ -7,6 +7,7 @@ import {
 } from './store.js';
 import { openModal, field } from './modal.js';
 import { createNexonCheck } from './nexon-check.js';
+import { createSchedulerButton } from './scheduler-connect.js';
 
 export function renderManage(container, rerender) {
   clear(container);
@@ -33,6 +34,7 @@ function renderUserCard(user, rerender) {
     el('div', { className: 'v2-manage-card-head' },
       el('strong', null, user.name),
       user.isExternal ? el('small', null, '수익 합계에서 빠져요') : null,
+      user.isExternal ? null : createSchedulerButton(user, rerender),
       el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openUserForm(user, rerender) }, '수정'),
     ),
     // 외부 인원은 기록할 때 인원 수로만 고르므로 자리표 캐릭터를 보여 주지 않는다.

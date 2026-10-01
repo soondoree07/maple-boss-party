@@ -229,6 +229,16 @@
 .v2-nexon-result strong { color: var(--text-primary); margin-right: 6px; }
 .v2-nexon-avatar { width: 56px; height: 56px; object-fit: none; object-position: 50% 60%; border-radius: 8px; flex-shrink: 0; }
 
+/* 스케줄러 연결 (유저 관리 카드 머리 버튼 · 연결 창 안내) */
+.v2-scheduler-btn.is-connected { color: var(--accent); border-color: var(--accent); }
+.v2-key-guide { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.v2-key-guide a { color: var(--accent); }
+.v2-key-guide code { font-size: 12px; word-break: break-all; }
+
+/* 기록 창: 스케줄러 안내 한 줄 */
+.v2-schedule-hint { margin: 0 0 8px; }
+.v2-schedule-hint[hidden] { display: none; }
+
 /* ── 모바일 ───────────────────────────────────────────── */
 
 @media (max-width: 720px) {
