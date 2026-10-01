@@ -12,6 +12,7 @@ import { recentDrops } from './user-stats.js';
 import { cardDateLabel } from './run-card.js';
 
 const PRESETS = ['1', '2', '3'];
+const RECENT_DROP_COUNT = 16; // 한 줄에 8개씩 두 줄
 
 /** 2억 4,257만 */
 function formatPower(power) {
@@ -61,7 +62,7 @@ function renderInfo(profile, characterId) {
     ['유니온', profile.unionLevel ? `Lv.${profile.unionLevel.toLocaleString()}` : '-'],
     ['아케인포스', profile.arcane.toLocaleString()], ['어센틱포스', profile.authentic.toLocaleString()],
   ];
-  const drops = recentDrops(characterId, 20);
+  const drops = recentDrops(characterId, RECENT_DROP_COUNT);
   return el('div', null,
     el('div', { className: 'v2-profile' },
       el('div', { className: 'v2-profile-avatar' }, el('img', { src: profile.image, alt: '' })),

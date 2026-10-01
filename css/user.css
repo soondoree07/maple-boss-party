@@ -31,7 +31,7 @@
 .v2-char-tab.on { background: var(--accent-gold); color: #fff; }
 
 /* ── 캐릭터 정보 ───────────────────────────────────── */
-.v2-profile { display: flex; gap: 16px; align-items: center; }
+.v2-profile { display: flex; justify-content: center; gap: 36px; align-items: center; padding: 4px 0 6px; }
 /* 넥슨 캐릭터 이미지는 300x300 에 캐릭터가 가운데 아래 — 머리 · 몸만 원래 크기로 */
 .v2-profile-avatar { width: 110px; height: 120px; flex-shrink: 0; overflow: hidden; border-radius: 16px; background: var(--fill-1); }
 .v2-profile-avatar img { display: block; width: 300px; height: 300px; max-width: none; margin: -105px 0 0 -95px; }
@@ -39,7 +39,7 @@
 .v2-profile-list { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
 .v2-profile-list dt { color: var(--text-tertiary); }
 .v2-profile-list dd { margin: 0; font-weight: 600; color: var(--text-primary); }
-.v2-recent-drops { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.v2-recent-drops { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; max-width: 420px; margin: 0 auto; }
 .v2-recent-drop { aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px; background: var(--fill-1); font-size: 10px; color: var(--text-tertiary); }
 .v2-recent-drop img { width: 70%; height: 70%; object-fit: contain; }
 
@@ -105,7 +105,8 @@ a.v2-rank-name:hover, .v2-manage-user-link:hover { text-decoration: underline; }
 /* ── 좁은 화면 ─────────────────────────────────────── */
 @media (max-width: 760px) {
   .v2-user-grid { grid-template-columns: minmax(0, 1fr); }
-  .v2-recent-drops { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .v2-recent-drops { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; }
+  .v2-profile { gap: 18px; }
   .v2-equip-grid { grid-template-columns: repeat(5, 46px); gap: 5px; }
   .v2-equip-slot { width: 46px; height: 46px; }
 }

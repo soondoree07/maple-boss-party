@@ -2,7 +2,7 @@
 //
 // 위: 이번 주 수익(캐릭터별 + 합계) · 파티별 수익(이번 주 / 이번 달) — 우리 기록 기준
 // 아래: 캐릭터 탭 → 캐릭터 정보 · 장비 · 스케줄러 · 유니온 챔피언 · 링크 · 어빌리티 — 넥슨 기준
-// 넥슨 데이터를 보여 주므로 맨 아래에 출처 문구를 단다(넥슨 이용 조건).
+// 넥슨 출처 문구는 index.html 의 공통 footer 가 모든 화면 맨 아래에 단다.
 
 import { el, clear } from '../utils.js';
 import { getUser, getCharactersOf } from './store.js';
@@ -45,7 +45,6 @@ export function renderUserPage(container, userId) {
     el('div', { className: 'v2-user-grid' }, renderWeekIncome(user), renderPartyIncome(user)),
     characters.length ? tabs : el('p', { className: 'form-hint' }, '아직 캐릭터가 없어요. 유저 관리에서 캐릭터를 추가해 주세요.'),
     panelBox,
-    el('footer', { className: 'v2-home-footer' }, el('small', { className: 'v2-api-credit' }, 'Data based on NEXON Open API')),
   ));
 
   const remembered = selectedCharacter.get(user.id);

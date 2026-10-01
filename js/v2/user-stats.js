@@ -46,7 +46,7 @@ export function partyIncome(userId, period) {
 }
 
 /** @returns {{ name: string, date: string }[]} 최신순 최대 limit 개 */
-export function recentDrops(characterId, limit = 20) {
+export function recentDrops(characterId, limit = 16) {
   const drops = [];
   for (const run of getRuns()) { // getRuns() 는 최신순
     for (const item of run.loot) {
