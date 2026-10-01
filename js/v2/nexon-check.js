@@ -39,7 +39,10 @@ function showProfile(result, profile) {
   clear(result);
   result.hidden = false;
   result.classList.remove('is-error');
-  if (profile.image) result.appendChild(el('img', { className: 'v2-nexon-avatar', src: profile.image, alt: '', loading: 'lazy' }));
+  if (profile.image) {
+    result.appendChild(el('span', { className: 'v2-nexon-avatar-box' },
+      el('img', { className: 'v2-nexon-avatar', src: profile.image, alt: '', loading: 'lazy' })));
+  }
   result.appendChild(
     el('span', null,
       el('strong', null, profile.name),

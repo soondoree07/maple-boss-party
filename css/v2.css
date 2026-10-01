@@ -227,7 +227,10 @@
 .v2-nexon-result[hidden] { display: none; }
 .v2-nexon-result.is-error { color: var(--danger); }
 .v2-nexon-result strong { color: var(--text-primary); margin-right: 6px; }
-.v2-nexon-avatar { width: 56px; height: 56px; object-fit: none; object-position: 50% 60%; border-radius: 8px; flex-shrink: 0; }
+/* 넥슨 캐릭터 이미지는 300x300 에 캐릭터가 가운데 아래(대략 가로 20~250, 세로 95~260)에 있다.
+   0.5배(150px)로 줄이고 그 영역만 보이게 잘라 무기 · 망토까지 다 들어오게 한다. */
+.v2-nexon-avatar-box { width: 115px; height: 82px; overflow: hidden; flex-shrink: 0; border-radius: 8px; }
+.v2-nexon-avatar { display: block; width: 150px; height: 150px; max-width: none; margin: -47px 0 0 -10px; }
 
 /* 스케줄러 연결 (유저 관리 카드 머리 버튼 · 연결 창 안내) */
 .v2-scheduler-btn.is-connected { color: var(--accent); border-color: var(--accent); }
