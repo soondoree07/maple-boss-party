@@ -219,6 +219,15 @@
 .v2-manage-card-head { display: flex; align-items: center; gap: 6px; width: 100%; color: var(--text-primary); }
 .v2-manage-card-head .btn-mini:first-of-type { margin-left: auto; }
 .v2-manage-row { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 13px; color: var(--text-primary); }
+.v2-manage-char { display: grid; gap: 6px; width: 100%; }
+.v2-manage-row-actions { display: flex; gap: 4px; flex-shrink: 0; margin-left: 8px; }
+
+/* 넥슨 확인 결과 (유저 관리 캐릭터 줄 아래) */
+.v2-nexon-result { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); background: var(--bg-card-hover); font-size: 12px; color: var(--text-secondary); }
+.v2-nexon-result[hidden] { display: none; }
+.v2-nexon-result.is-error { color: var(--danger); }
+.v2-nexon-result strong { color: var(--text-primary); margin-right: 6px; }
+.v2-nexon-avatar { width: 40px; height: 40px; object-fit: cover; object-position: center 30%; border-radius: 8px; }
 
 /* ── 모바일 ───────────────────────────────────────────── */
 

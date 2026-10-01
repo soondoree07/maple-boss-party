@@ -38,6 +38,9 @@ js/utils.js           날짜, DOM 헬퍼(el), 확인 창, 토스트, 비밀번�
 js/theme.js           라이트/다크 전환 버튼
 js/roulette.js        채널 룰렛
 js/v2/                화면 모듈 (store 데이터 · calc 계산 · home · run-form · run-card …)
+js/v2/nexon.js        넥슨 조회 도우미 (/api/nexon 을 부른다, 로컬에서는 배포된 함수를 부른다)
+js/v2/nexon-check.js  유저 관리 캐릭터 줄의 "넥슨 확인" 버튼
+api/nexon.js          넥슨 오픈 API 중계 (Vercel 서버 함수, 키는 환경변수 NEXON_API_KEY)
 data/archive-2026.json   과거 기록 요약 (scripts/build-archive.mjs 로 만든 고정 파일)
 sql/v2-schema.sql     Supabase 테이블 · RLS · 비밀번호 RPC · 시드
 png/                  드랍템 이미지
@@ -53,6 +56,15 @@ python3 -m http.server 8765
 ```
 
 로컬도 실제 Supabase 데이터를 그대로 읽고 쓴다(테스트 기록은 꼭 지울 것).
+
+## 넥슨 오픈 API
+
+- 브라우저는 넥슨을 직접 부르지 않고 `/api/nexon?action=...` 을 부른다. API 키는 Vercel 환경변수 `NEXON_API_KEY` 에만 둔다(코드 · 브라우저에 넣지 않는다).
+- 허용한 조회는 `api/nexon.js` 의 `ACTIONS` 에만 있다. 지금은 `character`(닉네임 → 레벨 · 직업 · 월드 · 이미지). 새 조회는 여기에 함수를 추가한다.
+- 성공 결과는 Vercel CDN 에 10분 캐시한다. 넥슨 에러 코드는 해요체 안내 문구로 바꿔 돌려준다.
+- 로컬(localhost)에서는 배포된 함수를 부르므로, 함수를 고쳤으면 배포한 뒤에 로컬에서 확인된다. localhost 출처만 허용한다.
+- 중계 함수 주소는 비밀번호 게이트 밖이라 누구나 부를 수 있다. 피해는 넥슨 하루 호출 한도를 쓰는 정도라 지인 사이트 수준에서는 그대로 둔다.
+- 로드맵: 1단계 연결 확인(완료) → 2단계 장비 점수 · 스펙 랭킹 → 3단계 스케줄러 보스 목록.
 
 ## 가격표 · 드랍템 바꾸기
 

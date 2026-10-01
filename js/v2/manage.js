@@ -6,6 +6,7 @@ import {
   saveUser, deleteUser, saveCharacter, deleteCharacter, makeId,
 } from './store.js';
 import { openModal, field } from './modal.js';
+import { createNexonCheck } from './nexon-check.js';
 
 export function renderManage(container, rerender) {
   clear(container);
@@ -38,12 +39,23 @@ function renderUserCard(user, rerender) {
     user.isExternal
       ? el('p', { className: 'form-hint' }, `기록할 때 외부 인원 수(최대 ${getCharactersOf(user.id).length}명)만 골라요.`)
       : [
-          ...getCharactersOf(user.id).map(ch => el('div', { className: 'v2-manage-row' },
-            el('span', null, ch.name, ch.job ? el('small', null, ch.job) : null),
-            el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(ch, user.id, rerender) }, '수정'),
-          )),
+          ...getCharactersOf(user.id).map(ch => renderCharacterRow(ch, user.id, rerender)),
           el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(null, user.id, rerender) }, '+ 캐릭터'),
         ],
+  );
+}
+
+function renderCharacterRow(character, userId, rerender) {
+  const nexon = createNexonCheck(character);
+  return el('div', { className: 'v2-manage-char' },
+    el('div', { className: 'v2-manage-row' },
+      el('span', null, character.name, character.job ? el('small', null, character.job) : null),
+      el('span', { className: 'v2-manage-row-actions' },
+        nexon.button,
+        el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openCharacterForm(character, userId, rerender) }, '수정'),
+      ),
+    ),
+    nexon.result,
   );
 }
 
