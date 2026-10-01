@@ -6,7 +6,7 @@
 
 import { el, parseDateStr, confirmDialog, todayStr, getWeekRange } from '../utils.js';
 import { getBoss, difficultyLabel, getLootImage } from '../data.js';
-import { deleteRun } from './store.js';
+import { removeRun, isAutoRun } from './auto-runs.js';
 import { formatEok, runTotal, lootPrice } from './calc.js';
 import { characterName, memberLabels } from './members.js';
 import { renderBossTag } from './boss-tag.js';
@@ -67,7 +67,7 @@ function renderBossEntry(run, showDate, { onEdit, onDeleted }) {
       confirmText: '삭제하기',
       danger: true,
     });
-    if (ok && await deleteRun(run.id)) onDeleted();
+    if (ok && await removeRun(run)) onDeleted();
   };
 
   return el('section', { className: 'v2-boss-entry' },
@@ -75,6 +75,7 @@ function renderBossEntry(run, showDate, { onEdit, onDeleted }) {
       showDate ? el('span', { className: 'v2-run-diff' }, cardDateLabel(run.date)) : null,
       renderBossTag(run.boss),
       el('span', { className: 'v2-run-diff' }, difficultyLabel(run.difficulty)),
+      isAutoRun(run) ? el('span', { className: 'v2-auto-badge', title: '스케줄러에서 자동으로 넣은 기록이에요. 파티 · 드랍템을 확인하고 수정해 주세요.' }, '자동') : null,
       el('span', { className: 'v2-entry-crystal' }, `결정석 ${formatEok(run.crystal)}`),
       el('span', { className: 'v2-entry-total' }, formatEok(runTotal(run))),
     ),

@@ -5,6 +5,7 @@ import { getRuns } from './store.js';
 import { renderRanking } from './ranking.js';
 import { renderLootHistory } from './loot-history.js';
 import { renderRunWeeks } from './run-weeks.js';
+import { syncFromScheduler } from './auto-runs.js';
 import { groupRunsByParty } from './calc.js';
 import { openRunForm } from './run-form.js';
 import { openModal } from './modal.js';
@@ -67,6 +68,7 @@ function renderRunList(rerender, addRun) {
     el('div', { className: 'v2-section-head' },
       el('h2', { className: 'v2-section-title' }, '보스 기록'),
       el('span', { className: 'v2-section-sub' }, `보스 ${runs.length}건`),
+      syncButton(),
       el('button', { className: 'btn btn-primary btn-mini', type: 'button', onclick: addRun }, '+ 기록 추가'),
     ),
     renderRunWeeks(shown, handlers),
@@ -77,6 +79,22 @@ function renderRunList(rerender, addRun) {
         }, `더 보기 (${groups.length - visibleCount}장 남음)`)
       : null,
   );
+}
+
+/** 스케줄러에서 잡은 보스를 지금 가져오기 (사이트를 열 때도 10분에 한 번 자동으로 가져온다) */
+function syncButton() {
+  const button = el('button', {
+    className: 'btn btn-ghost btn-mini', type: 'button', title: '스케줄러에서 이번 주에 잡은 보스를 혼자 잡은 기록으로 넣어요',
+    onclick: async () => {
+      button.disabled = true;
+      button.textContent = '가져오는 중..';
+      try { await syncFromScheduler({ manual: true }); } finally {
+        button.disabled = false;
+        button.textContent = '스케줄러에서 가져오기';
+      }
+    },
+  }, '스케줄러에서 가져오기');
+  return button;
 }
 
 function openRouletteModal() {

@@ -57,6 +57,33 @@ export async function listNexonKeyOwners() {
   return rows.map(r => ({ userId: r.user_id, updatedAt: r.updated_at }));
 }
 
+/** 키를 등록한 유저와 키 — 서버 안에서만 쓴다. @returns {Promise<{userId, apiKey}[]>} */
+export async function listNexonKeys() {
+  const rows = await request('/rest/v1/nexon_keys?select=user_id,api_key');
+  return rows.map(r => ({ userId: r.user_id, apiKey: r.api_key }));
+}
+
+/** date(YYYY-MM-DD) 이후 기록의 보스 · 참여 캐릭터 (자동 기록 중복 확인용) */
+export async function getRunsSince(date) {
+  return request(`/rest/v1/runs?date=gte.${date}&select=id,date,boss,character_ids`);
+}
+
+/** 다시 만들지 않을 자동 기록 id 들 */
+export async function getAutoRunSkips(ids) {
+  if (ids.length === 0) return new Set();
+  const list = ids.map(id => `"${id}"`).join(',');
+  const rows = await request(`/rest/v1/auto_run_skips?id=in.(${encodeURIComponent(list)})&select=id`);
+  return new Set(rows.map(r => r.id));
+}
+
+/** 자동 기록 저장. 같은 id 가 이미 있으면 건너뛴다(여러 사람이 동시에 가져와도 한 번만 생긴다). */
+export async function insertRunsIgnoringDuplicates(rows) {
+  if (rows.length === 0) return;
+  await request('/rest/v1/runs?on_conflict=id', {
+    method: 'POST', body: rows, prefer: 'resolution=ignore-duplicates,return=minimal',
+  });
+}
+
 export async function saveUserNexonKey(userId, apiKey) {
   await request('/rest/v1/nexon_keys?on_conflict=user_id', {
     method: 'POST',

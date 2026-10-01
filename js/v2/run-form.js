@@ -12,6 +12,7 @@ import { createCharacterPicker } from './character-picker.js';
 import { createBossBlock } from './boss-block.js';
 import { takerChoices } from './members.js';
 import { createSchedulerSource, scheduleHint } from './scheduler-bosses.js';
+import { isAutoRun, removeAutoRun, removeMergedAutoRuns } from './auto-runs.js';
 
 /**
  * @param {object|null} existing - 수정할 기록 (새 기록이면 null)
@@ -87,13 +88,28 @@ export function openRunForm(existing, onSaved, prefill = {}) {
     button.disabled = true;
     let ok = false;
     try {
-      ok = existing
-        ? await saveRun({ ...existing, date: dateInput.value, characterIds, ...entries[0] })
-        : await saveNewRuns(entries.map(entry => ({ id: makeId('r'), date: dateInput.value, characterIds, ...entry })));
+      ok = await saveEntries(entries, characterIds);
     } finally {
       button.disabled = false; // 어떤 경우에도 버튼이 잠긴 채 남지 않게
     }
     if (ok) { close(); onSaved(); }
+  };
+
+  // 저장 규칙: 자동 기록을 고치면 새 일반 기록으로 바꾸고 자동 기록은 지운다("자동" 표시가 사라진다).
+  // 저장한 뒤에는 파티원의 같은 기간 · 같은 보스 자동 기록을 지워 결정석이 두 번 잡히지 않게 한다.
+  const saveEntries = async (entries, characterIds) => {
+    const date = dateInput.value;
+    let saved;
+    if (existing && !isAutoRun(existing)) {
+      saved = [{ ...existing, date, characterIds, ...entries[0] }];
+      if (!(await saveRun(saved[0]))) return false;
+    } else {
+      saved = entries.map(entry => ({ id: makeId('r'), date, characterIds, ...entry }));
+      if (!(await saveNewRuns(saved))) return false;
+      if (existing) await removeAutoRun(existing);
+    }
+    await removeMergedAutoRuns(saved, saved.map(run => run.id));
+    return true;
   };
 
   const close = openModal({

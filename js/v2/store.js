@@ -99,6 +99,12 @@ function reloadFromRemote() {
   }, 150);
 }
 
+/** 서버 함수(스케줄러 자동 기록 등)가 바꾼 기록을 바로 다시 불러와 화면까지 갱신한다. */
+export async function reloadAll() {
+  await loadAll();
+  if (remoteCb) remoteCb();
+}
+
 // ── 읽기 ──────────────────────────────────────────────
 
 export const getUsers = () => cache.users;

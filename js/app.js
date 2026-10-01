@@ -15,6 +15,7 @@ import { renderHome } from './v2/home.js';
 import { renderManage } from './v2/manage.js';
 import { renderArchive } from './v2/archive.js';
 import { renderUserPage } from './v2/user-page.js';
+import { syncFromScheduler } from './v2/auto-runs.js';
 
 const root = document.getElementById('app');
 
@@ -39,4 +40,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 다른 사람이 고치면 Realtime 으로 다시 불러와 지금 화면을 다시 그린다.
   Store.onRemoteChange(route);
   route();
+  // 스케줄러에서 잡은 보스를 자동 기록으로 가져온다 (이 브라우저에서 10분에 한 번까지, 화면은 기다리지 않는다)
+  if (isSiteUnlocked()) syncFromScheduler();
 });
