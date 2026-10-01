@@ -77,6 +77,11 @@
 /* ── 기록 카드 ────────────────────────────────────────── */
 
 .v2-run-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; } /* 옆 카드가 길어도 내용이 늘어나지 않게 */
+/* 보스 기록 주차별 묶음 (목요일 리셋 기준) */
+.v2-run-weeks { display: grid; gap: 22px; }
+.v2-run-week-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.v2-run-week-head h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-primary); }
+.v2-run-week-head span { font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
 .v2-run-card {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);

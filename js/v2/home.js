@@ -1,10 +1,10 @@
-// v2/home.js — 메인 화면: 수익 순위 · 이번 달 전리품 · 기록 카드 목록
+// v2/home.js — 메인 화면: 수익 순위 · 이번 달 전리품 · 기록 카드 목록(주차별)
 
 import { el, clear } from '../utils.js';
 import { getRuns } from './store.js';
 import { renderRanking } from './ranking.js';
 import { renderLootHistory } from './loot-history.js';
-import { renderRunGroupCard } from './run-card.js';
+import { renderRunWeeks } from './run-weeks.js';
 import { groupRunsByParty } from './calc.js';
 import { openRunForm } from './run-form.js';
 import { openModal } from './modal.js';
@@ -71,7 +71,7 @@ function renderRunList(rerender, addRun) {
       el('span', { className: 'v2-section-sub' }, `보스 ${runs.length}건`),
       el('button', { className: 'btn btn-primary btn-mini', type: 'button', onclick: addRun }, '+ 기록 추가'),
     ),
-    el('div', { className: 'v2-run-list' }, shown.map(group => renderRunGroupCard(group, handlers))),
+    renderRunWeeks(shown, handlers),
     groups.length > visibleCount
       ? el('button', {
           className: 'btn btn-ghost v2-more', type: 'button',

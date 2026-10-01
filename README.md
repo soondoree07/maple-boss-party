@@ -43,6 +43,7 @@ js/v2/nexon-check.js  유저 관리 캐릭터 줄의 "넥슨 확인" 버튼
 js/v2/scheduler-connect.js  유저 관리의 "스케줄러 연결" 버튼 · 키 등록 창
 js/v2/scheduler-bosses.js   기록 창: 고른 캐릭터들의 스케줄러 등록 보스를 모은다
 js/v2/ring-box-picker.js    기록 창: 반지 상자를 누르면 나온 반지(리4 · 컨4 · 꽝)를 고르는 줄
+js/v2/run-weeks.js          메인 보스 기록을 주차별(목요일 리셋)로 묶어 제목 · 보스 수 · 합계를 단다
 api/nexon.js          넥슨 조회 중계 (character · spec · scheduler)
 api/nexon-keys.js     유저별 넥슨 키 등록 · 해제 · 상태
 api/_lib/             서버 함수 공용 (http 응답 · 넥슨 호출 · Supabase 접근). 밑줄 폴더라 주소로 열리지 않는다
