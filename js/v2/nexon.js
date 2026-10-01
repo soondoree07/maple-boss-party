@@ -15,7 +15,23 @@ const profileCache = new Map();   // 닉네임 → 성공한 조회 결과 (새�
 const schedulerCache = new Map(); // 캐릭터 id → { at, promise }
 let keyOwnersPromise = null;      // 스케줄러를 연결한 유저 id 목록 (등록 · 해제하면 다시 받는다)
 
-async function request(path, { method = 'GET', params, body } = {}) {
+// 넥슨 개발 단계 키는 초당 5건이라, 서버 함수 요청을 한 번에 MAX_IN_FLIGHT 개씩만 보낸다.
+const MAX_IN_FLIGHT = 2;
+let inFlight = 0;
+const waiting = [];
+
+async function request(path, options = {}) {
+  if (inFlight >= MAX_IN_FLIGHT) await new Promise(resolve => waiting.push(resolve));
+  inFlight += 1;
+  try {
+    return await send(path, options);
+  } finally {
+    inFlight -= 1;
+    waiting.shift()?.();
+  }
+}
+
+async function send(path, { method = 'GET', params, body } = {}) {
   const query = params ? `?${new URLSearchParams(params)}` : '';
   try {
     const res = await fetch(`${API_ROOT}${path}${query}`, {

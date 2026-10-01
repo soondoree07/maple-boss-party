@@ -21,6 +21,11 @@ const NEXON_ERRORS = {
 };
 const UNKNOWN_ERROR = { status: 502, message: '넥슨 조회에 실패했어요. 잠시 후 다시 시도해 주세요.' };
 
+const RATE_LIMITED = 'OPENAPI00007';
+const RATE_LIMIT_RETRIES = 2;
+const RATE_LIMIT_WAIT_MS = 1000;
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * 넥슨 API 한 번 호출. 실패하면 ApiError(code = 넥슨 에러 코드)를 던진다.
  * @param {string} path - 예: '/character/basic'
@@ -30,13 +35,19 @@ const UNKNOWN_ERROR = { status: 502, message: '넥슨 조회에 실패했어요.
 export async function callNexon(path, params = {}, apiKey = process.env.NEXON_API_KEY) {
   if (!apiKey) throw new ApiError('NO_KEY', 500, '넥슨 API 키가 아직 설정되지 않았어요.');
   const query = new URLSearchParams(params).toString();
-  const res = await fetch(`${NEXON_BASE}${path}${query ? `?${query}` : ''}`, { headers: { 'x-nxopen-api-key': apiKey } });
-  const body = await res.json().catch(() => null);
-  if (res.ok && body && !body.error) return body;
+  const url = `${NEXON_BASE}${path}${query ? `?${query}` : ''}`;
 
-  const code = body?.error?.name || `HTTP${res.status}`;
-  const known = NEXON_ERRORS[code] || UNKNOWN_ERROR;
-  throw new ApiError(code, known.status, known.message);
+  // 개발 단계 키는 초당 5건이다. "몰렸다"(00007)면 잠깐 쉬고 다시 시도한다.
+  for (let attempt = 0; ; attempt += 1) {
+    const res = await fetch(url, { headers: { 'x-nxopen-api-key': apiKey } });
+    const body = await res.json().catch(() => null);
+    if (res.ok && body && !body.error) return body;
+
+    const code = body?.error?.name || `HTTP${res.status}`;
+    if (code === RATE_LIMITED && attempt < RATE_LIMIT_RETRIES) { await sleep(RATE_LIMIT_WAIT_MS * (attempt + 1)); continue; }
+    const known = NEXON_ERRORS[code] || UNKNOWN_ERROR;
+    throw new ApiError(code, known.status, known.message);
+  }
 }
 
 /** 닉네임 → ocid(넥슨 캐릭터 식별자). 사이트 키로 찾는다. */
