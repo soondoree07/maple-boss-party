@@ -18,7 +18,9 @@ async function request(path, { method = 'GET', body, prefer } = {}) {
     console.error('[db]', method, path, res.status, await res.text().catch(() => ''));
     throw new ApiError('DB_ERROR', 500, '저장소에 연결하지 못했어요. 조금 뒤에 다시 시도해 주세요.');
   }
-  return res.status === 204 ? null : res.json();
+  // return=minimal 요청은 201 · 204 에 빈 본문이 온다.
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 /** 사이트 비밀번호 확인 (verify_site_pw RPC) */
