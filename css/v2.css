@@ -300,6 +300,9 @@
 .v2-loot-month-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
 .v2-loot-month-head h3 { margin: 0; font-size: 17px; font-weight: 800; color: var(--text-primary); }
 .v2-loot-month-head span { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+/* 반지 상자 집계 한 줄 (전리품 칸 · 월별 전리품) */
+.v2-ring-summary { margin: 0 0 10px; font-size: 13px; color: var(--text-secondary); }
+.v2-ring-summary strong { color: var(--text-primary); }
 
 @media (max-width: 720px) {
   /* 1줄: 아이템 · 가격 / 2줄: 날짜 · 누가 */

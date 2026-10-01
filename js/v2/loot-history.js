@@ -2,9 +2,10 @@
 //
 // 기록(run)마다 들어 있는 드랍템을 한 줄씩 펼쳐 달별로 묶는다.
 // 한 줄 = 날짜 · 아이템 · 보스 · 누가(독식이면 그 사람, 분배면 파티원 전체) · 가격(나누기 전).
+// 달마다 반지 상자를 몇 번 먹었는지(= 리4 · 컨4 · 반지 꽝 줄 수)와 리레4 · 컨티4 개수도 따로 보여 준다.
 
 import { el, todayStr } from '../utils.js';
-import { getBoss, difficultyLabel, getLootImage } from '../data.js';
+import { getBoss, difficultyLabel, getLootImage, RING_MISS } from '../data.js';
 import { getRuns } from './store.js';
 import { formatEok, lootPrice } from './calc.js';
 import { characterName, memberLabels } from './members.js';
@@ -28,6 +29,24 @@ function groupByMonth(entries) {
     months.get(entry.month).push(entry);
   }
   return [...months].map(([month, list]) => ({ month, list, total: list.reduce((s, e) => s + lootPrice(e.item), 0) }));
+}
+
+/** 반지 상자에서 나온 줄 수 — 상자 하나를 열면 리4 · 컨4 · 반지 꽝 중 한 줄이 생긴다. */
+function ringBoxCounts(list) {
+  const count = (name) => list.filter(e => e.item.name === name).length;
+  const restraint = count('리4');
+  const continuous = count('컨4');
+  const miss = count(RING_MISS);
+  return { boxes: restraint + continuous + miss, restraint, continuous, miss };
+}
+
+/** "반지 상자 5개 · 리레4 1 · 컨티4 0 · 꽝 4" (상자를 한 번도 안 먹었으면 null) */
+function renderRingSummary(list) {
+  const c = ringBoxCounts(list);
+  if (c.boxes === 0) return null;
+  return el('p', { className: 'v2-ring-summary' },
+    el('strong', null, `반지 상자 ${c.boxes}개`),
+    ` · 리레4 ${c.restraint} · 컨티4 ${c.continuous} · 꽝 ${c.miss}`);
 }
 
 const monthLabel = (month) => {
@@ -73,6 +92,7 @@ export function renderLootHistory() {
         ? el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openAllMonths(months) }, '전체 보기')
         : null,
     ),
+    current ? renderRingSummary(current.list) : null,
     current
       ? renderList(current.list)
       : el('p', { className: 'form-hint' }, '이번 달엔 아직 드랍템이 없어요. 기록에 드랍템을 넣으면 여기에 모여요.'),
@@ -90,6 +110,7 @@ function openAllMonths(months) {
           el('h3', null, monthLabel(month)),
           el('span', null, `${list.length}개 · ${formatEok(total)}`),
         ),
+        renderRingSummary(list),
         renderList(list),
       )),
     ),

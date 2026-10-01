@@ -14,6 +14,9 @@ import { createRingBoxPicker } from './ring-box-picker.js';
 
 let datalistSeq = 0;
 
+// "+ 직접 입력" 줄 추가 버튼. 목록에 있는 아이템만 쓰도록 꺼 둔다 (사용자 결정 2026-10-01). 다시 켜려면 true.
+const ALLOW_MANUAL_LOOT = false;
+
 /**
  * @param {object} opts
  * @param {() => string[]} opts.getCandidates   - 지금 보스·난이도의 드랍 아이템 이름들
@@ -61,7 +64,7 @@ export function createLootEditor({ getCandidates, getParticipants, initial = [] 
     quickBox,
     ringPicker.node,
     rowsBox,
-    el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => addRow() }, '+ 직접 입력'),
+    ALLOW_MANUAL_LOOT ? el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => addRow() }, '+ 직접 입력') : null,
   );
 
   const readItems = () => {
@@ -98,13 +101,20 @@ function createRow(item, datalistId, getParticipants, onRemove) {
     priceInput.value = '0';
     priceInput.disabled = true;
     modeSelect.value = 'split';
-    modeSelect.disabled = true;
   }
   const takerSelect = el('select', { className: 'select-input' });
   let takerId = item.takerCharacterId || '';
+  let forcedSolo = false;
 
   const syncTakers = () => {
     const people = getParticipants();
+    // 파티원 없이 혼자면 무조건 그 사람 독식이다 (사용자 결정 2026-10-01). 두 명 이상이 되면 다시 고를 수 있다.
+    // 혼자라서 자동으로 독식이 된 줄은, 파티원이 생기면 기본값(분배)으로 되돌린다.
+    const alone = people.length === 1;
+    if (alone) { modeSelect.value = 'solo'; takerId = people[0].id; forcedSolo = true; }
+    else if (forcedSolo) { modeSelect.value = 'split'; takerId = ''; forcedSolo = false; }
+    modeSelect.disabled = alone || isMiss;
+    takerSelect.disabled = alone;
     // 외부 인원은 "기타" 하나로 합쳐 보이므로, 다른 자리표로 저장된 값도 그 칸으로 맞춘다.
     const externalChoice = people.find(p => isExternalCharacter(p.id));
     if (externalChoice && takerId && !people.some(p => p.id === takerId) && isExternalCharacter(takerId)) {
@@ -129,7 +139,11 @@ function createRow(item, datalistId, getParticipants, onRemove) {
   const read = () => {
     const name = nameInput.value.trim();
     if (!name) return { item: null }; // 빈 줄은 무시
-    if (isMiss) return { item: { name, price: 0, mode: 'split' } };
+    if (isMiss) {
+      return { item: modeSelect.value === 'solo' && takerSelect.value
+        ? { name, price: 0, mode: 'solo', takerCharacterId: takerSelect.value }
+        : { name, price: 0, mode: 'split' } };
+    }
     const raw = priceInput.value.trim().replace(/억$/, '').replace(/,/g, '');
     const price = raw === '' ? 0 : Number(raw);
     if (!Number.isFinite(price) || price < 0) return { error: `${name}의 판매가를 숫자로 적어 주세요.` };
