@@ -1,0 +1,111 @@
+/* user.css — 유저 캐릭터 창 (#/user/<id>)
+ * 사이트 색 토큰(theme.css)을 그대로 쓴다. 장비창 · 툴팁만 인게임 느낌의 어두운 고정색.
+ */
+
+/* ── 배치 ─────────────────────────────────────────── */
+.v2-user-page { display: grid; gap: 16px; }
+.v2-user-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.v2-user-card { min-width: 0; }
+.v2-user-big { margin: 0 0 12px; font-size: 28px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.v2-user-rows { display: grid; gap: 6px; }
+.v2-user-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--fill-1); font-size: 14px; color: var(--text-primary); }
+.v2-user-row small { margin-left: 6px; font-size: 12px; color: var(--text-tertiary); }
+.v2-user-row strong { font-variant-numeric: tabular-nums; }
+.v2-user-subtitle { margin: 18px 0 8px; font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.v2-user-subhead { display: flex; align-items: center; gap: 8px; }
+.v2-user-subhead .v2-user-subtitle { margin-right: auto; }
+
+/* 파티별 수익 */
+.v2-user-party { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: var(--fill-1); }
+.v2-user-party-head { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--text-primary); }
+.v2-user-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.v2-user-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--bg-card); font-size: 12px; color: var(--text-secondary); }
+.v2-user-empty { font-size: 12px; color: var(--text-tertiary); }
+.v2-link-chip { background: var(--fill-1); }
+.v2-link-chip img { width: 18px; height: 18px; }
+
+/* 캐릭터 탭 */
+.v2-char-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.v2-char-tab { border: 0; border-radius: 14px; padding: 8px 16px; background: var(--bg-card); color: var(--text-secondary); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.v2-char-tab small { margin-left: 6px; font-size: 12px; font-weight: 500; opacity: 0.75; }
+.v2-char-tab.on { background: var(--accent-gold); color: #fff; }
+
+/* ── 캐릭터 정보 ───────────────────────────────────── */
+.v2-profile { display: flex; gap: 16px; align-items: center; }
+/* 넥슨 캐릭터 이미지는 300x300 에 캐릭터가 가운데 아래 — 머리 · 몸만 원래 크기로 */
+.v2-profile-avatar { width: 110px; height: 120px; flex-shrink: 0; overflow: hidden; border-radius: 16px; background: var(--fill-1); }
+.v2-profile-avatar img { display: block; width: 300px; height: 300px; max-width: none; margin: -105px 0 0 -95px; }
+.v2-profile-name { margin: 0 0 6px; font-size: 22px; font-weight: 800; color: var(--text-primary); }
+.v2-profile-list { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
+.v2-profile-list dt { color: var(--text-tertiary); }
+.v2-profile-list dd { margin: 0; font-weight: 600; color: var(--text-primary); }
+.v2-recent-drops { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.v2-recent-drop { aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px; background: var(--fill-1); font-size: 10px; color: var(--text-tertiary); }
+.v2-recent-drop img { width: 70%; height: 70%; object-fit: contain; }
+
+/* ── 장비창 (인게임 배치 + 오른쪽 위 프리셋 버튼) ───── */
+.v2-equip { position: relative; display: flex; justify-content: center; padding: 14px 64px 14px 14px; border-radius: 16px; background: #2b2f3a; }
+.v2-equip-grid { display: grid; grid-template-columns: repeat(5, 52px); gap: 6px; }
+.v2-equip-slot { position: relative; width: 52px; height: 52px; display: grid; place-items: center; border: 2px solid transparent; border-radius: 8px; background: #3a3f4c; }
+.v2-equip-slot.empty { background: transparent; }
+.v2-equip-slot img { max-width: 40px; max-height: 40px; }
+.v2-equip-slot[data-grade="레어"] { border-color: #66c2ff; }
+.v2-equip-slot[data-grade="에픽"] { border-color: #b072ff; }
+.v2-equip-slot[data-grade="유니크"] { border-color: #ffcc33; }
+.v2-equip-slot[data-grade="레전드리"] { border-color: #7bdc5a; }
+.v2-equip-label { position: absolute; inset: auto 0 1px; font-size: 9px; text-align: center; color: #9aa3b2; }
+.v2-equip-presets { position: absolute; top: 14px; right: 12px; display: grid; gap: 6px; }
+.v2-equip-preset { width: 42px; height: 34px; border: 1px solid #4a5060; border-radius: 8px; background: #3a3f4c; color: #c9cfda; font: inherit; font-size: 12px; font-weight: 700; line-height: 1.1; cursor: pointer; }
+.v2-equip-preset small { display: block; font-size: 9px; font-weight: 500; opacity: 0.8; }
+.v2-equip-preset.on { border-color: var(--accent-gold); background: var(--accent-gold); color: #fff; }
+
+/* 툴팁 (body 에 하나만 붙는다) */
+.v2-equip-tip { position: fixed; z-index: 1000; width: 280px; padding: 12px 14px; border: 1px solid #3a3f4b; border-radius: 10px; background: rgba(20, 22, 30, 0.96); color: #e8ebf1; font-size: 12px; line-height: 1.5; pointer-events: none; }
+.v2-equip-tip[hidden] { display: none; }
+.v2-equip-tip h4 { margin: 0 0 8px; text-align: center; font-size: 14px; }
+.v2-equip-tip p { margin: 1px 0; }
+.v2-tip-sec { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #3a3f4b; }
+.v2-tip-grade { margin-bottom: 2px; font-weight: 700; }
+.v2-tip-grade[data-grade="레어"] { color: #66c2ff; }
+.v2-tip-grade[data-grade="에픽"] { color: #b072ff; }
+.v2-tip-grade[data-grade="유니크"] { color: #ffcc33; }
+.v2-tip-grade[data-grade="레전드리"] { color: #7bdc5a; }
+.v2-stars { display: grid; gap: 1px; margin-bottom: 6px; color: #ffd84a; font-size: 11px; }
+.v2-star-row { display: flex; justify-content: center; gap: 8px; }
+.v2-star-group { display: inline-flex; }
+.v2-star-group i { width: 10px; font-style: normal; text-align: center; }
+.v2-star-group i.pad { visibility: hidden; }
+
+/* ── 스케줄러 카드 (한 줄에 4개, 잡은 보스는 회색) ───── */
+.v2-sched-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.v2-sched-card { display: grid; justify-items: center; gap: 2px; padding: 8px; border-radius: 14px; background: var(--fill-1); text-align: center; }
+.v2-sched-card strong { font-size: 13px; line-height: 1.3; color: var(--text-primary); }
+.v2-sched-card span { font-size: 12px; color: var(--text-tertiary); }
+.v2-sched-card.done { filter: grayscale(1); opacity: 0.45; }
+.v2-sched-img { width: 100%; aspect-ratio: 160 / 153; overflow: hidden; border-radius: 10px; }
+.v2-sched-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.v2-sched-fallback { display: grid; place-items: center; width: 100%; height: 100%; color: #fff; font-size: 20px; font-weight: 800; }
+
+/* ── 유니온 챔피언 · 어빌리티 ──────────────────────── */
+.v2-champions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.v2-ability { display: grid; gap: 6px; }
+.v2-ability-line { padding: 8px 12px; border-left: 4px solid var(--text-tertiary); border-radius: 10px; background: var(--fill-1); font-size: 13px; color: var(--text-primary); }
+.v2-ability-line[data-grade="레전드리"] { border-left-color: #48b030; }
+.v2-ability-line[data-grade="유니크"] { border-left-color: #e8a800; }
+.v2-ability-line[data-grade="에픽"] { border-left-color: #8a4fd6; }
+.v2-ability-line[data-grade="레어"] { border-left-color: #3d8fe0; }
+.v2-ability-presets { display: inline-flex; gap: 4px; }
+.v2-ability-preset { min-width: 34px; height: 28px; border: 0; border-radius: 8px; background: var(--fill-1); color: var(--text-secondary); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.v2-ability-preset.on { background: var(--accent-gold); color: #fff; }
+
+/* 유저 이름 → 캐릭터 창 링크 (수익 순위 · 유저 관리) */
+a.v2-rank-name, .v2-manage-user-link { color: inherit; font-weight: 700; text-decoration: none; }
+a.v2-rank-name:hover, .v2-manage-user-link:hover { text-decoration: underline; }
+
+/* ── 좁은 화면 ─────────────────────────────────────── */
+@media (max-width: 760px) {
+  .v2-user-grid { grid-template-columns: minmax(0, 1fr); }
+  .v2-recent-drops { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .v2-equip-grid { grid-template-columns: repeat(5, 46px); gap: 5px; }
+  .v2-equip-slot { width: 46px; height: 46px; }
+}

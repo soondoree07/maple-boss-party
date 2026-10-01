@@ -35,7 +35,7 @@ export function renderRanking() {
       el('ol', { className: 'v2-rank-list' },
         rows.map(({ user, total }, i) => el('li', { className: 'v2-rank-row' },
           el('span', { className: 'v2-rank-no' }, String(i + 1)),
-          el('span', { className: 'v2-rank-name' }, user.name),
+          el('a', { className: 'v2-rank-name', href: `#/user/${encodeURIComponent(user.id)}`, title: `${user.name} 캐릭터 창 보기` }, user.name),
           el('span', { className: 'v2-rank-bar' },
             el('span', { className: 'v2-rank-fill', style: { width: `${top > 0 ? (total / top) * 100 : 0}%` } })),
           el('span', { className: 'v2-rank-total' }, formatEok(total)),

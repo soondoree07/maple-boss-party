@@ -32,7 +32,8 @@ export function renderManage(container, rerender) {
 function renderUserCard(user, rerender) {
   return el('div', { className: 'v2-manage-card' },
     el('div', { className: 'v2-manage-card-head' },
-      el('strong', null, user.name),
+      user.isExternal ? el('strong', null, user.name)
+        : el('a', { className: 'v2-manage-user-link', href: `#/user/${encodeURIComponent(user.id)}`, title: `${user.name} 캐릭터 창 보기` }, user.name),
       user.isExternal ? el('small', null, '수익 합계에서 빠져요') : null,
       user.isExternal ? null : createSchedulerButton(user, rerender),
       el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openUserForm(user, rerender) }, '수정'),

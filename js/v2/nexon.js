@@ -12,6 +12,7 @@ const OFFLINE_MESSAGE = '넥슨 조회에 연결하지 못했어요. 인터넷 �
 const SCHEDULER_TTL_MS = 60 * 1000; // 서버 캐시와 같게. 기록 창을 다시 열면 1분 지난 것만 새로 받는다
 
 const profileCache = new Map();   // 닉네임 → 성공한 조회 결과 (새로고침 전까지)
+const fullProfileCache = new Map(); // 닉네임 → 유저 캐릭터 창 조회 promise (새로고침 전까지)
 const schedulerCache = new Map(); // 캐릭터 id → { at, promise }
 let keyOwnersPromise = null;      // 스케줄러를 연결한 유저 id 목록 (등록 · 해제하면 다시 받는다)
 
@@ -56,6 +57,20 @@ export async function fetchCharacterProfile(name) {
   const result = await request('/nexon', { params: { action: 'character', name: key } });
   if (result.ok) profileCache.set(key, result);
   return result;
+}
+
+/**
+ * 유저 캐릭터 창용 정보 (api/_lib/profile.js 의 loadProfile 결과). 넥슨 호출이 8번이라 한 번 받으면 새로고침 전까지 쓴다.
+ * @returns {Promise<{ok: true, data: object} | {ok: false, message: string}>}
+ */
+export function fetchProfile(name) {
+  const key = name.trim();
+  if (!fullProfileCache.has(key)) {
+    const promise = request('/nexon', { params: { action: 'profile', name: key } });
+    fullProfileCache.set(key, promise);
+    promise.then(r => { if (!r.ok) fullProfileCache.delete(key); }); // 실패는 다음에 다시 시도
+  }
+  return fullProfileCache.get(key);
 }
 
 /**
