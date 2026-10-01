@@ -13,20 +13,22 @@ const BOSS_COLOR = new Map(BOSSES.map(b => [compact(b.name), b.color]));
 
 /**
  * @param {{ id: string }} character
- * @param {boolean} connected - 이 캐릭터 주인 유저가 스케줄러 키를 연결했는지
+ * @param {Promise<boolean>} connected - 이 캐릭터 주인 유저가 스케줄러 키를 연결했는지
  */
 export function renderUserScheduler(character, connected) {
-  const body = el('div', { className: 'v2-sched-body' });
+  const body = el('div', { className: 'v2-sched-body' }, el('p', { className: 'form-hint' }, '스케줄러 불러오는 중..'));
   const section = el('section', { className: 'v2-section v2-user-card' },
     el('div', { className: 'v2-section-head' }, el('h2', { className: 'v2-section-title' }, '스케줄러')),
     body);
 
-  if (!connected) {
-    body.appendChild(el('p', { className: 'form-hint' }, '스케줄러를 연결하면 등록한 보스가 보여요. 유저 관리에서 연결할 수 있어요.'));
-    return section;
-  }
-  body.appendChild(el('p', { className: 'form-hint' }, '스케줄러 불러오는 중..'));
-  fetchScheduler(character.id).then(result => {
+  connected.then(isConnected => {
+    if (!isConnected) {
+      body.replaceChildren(el('p', { className: 'form-hint' }, '스케줄러를 연결하면 등록한 보스가 보여요. 유저 관리에서 연결할 수 있어요.'));
+      return null;
+    }
+    return fetchScheduler(character.id);
+  }).then(result => {
+    if (!result) return;
     if (!result.ok) { body.replaceChildren(el('p', { className: 'form-hint' }, result.message)); return; }
     const bosses = result.data.bosses;
     body.replaceChildren(bosses.length

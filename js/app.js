@@ -19,12 +19,27 @@ import { syncFromScheduler } from './v2/auto-runs.js';
 
 const root = document.getElementById('app');
 
+/** 주소의 유저 id. 깨진 주소(%E0 등)면 빈 값 → "찾는 유저가 없어요" 화면 */
+function userIdFromHash(hash) {
+  try { return decodeURIComponent(hash.slice('#/user/'.length)); } catch (_) { return ''; }
+}
+
+// 스케줄러에서 잡은 보스를 자동 기록으로 가져온다 (비밀번호를 통과한 뒤 첫 화면에서 한 번, 화면은 기다리지 않는다.
+// 이 브라우저에서 10분에 한 번까지는 auto-runs.js 가 막는다)
+let syncStarted = false;
+function startSchedulerSync() {
+  if (syncStarted) return;
+  syncStarted = true;
+  syncFromScheduler();
+}
+
 function route() {
   const hash = location.hash || '#/';
   if (!isSiteUnlocked()) { renderSiteGate(root, route); return; }
+  startSchedulerSync();
   if (hash === '#/manage') { renderManage(root, route); return; }
   if (hash === '#/archive') { renderArchive(root); return; }
-  if (hash.startsWith('#/user/')) { renderUserPage(root, decodeURIComponent(hash.slice('#/user/'.length))); return; }
+  if (hash.startsWith('#/user/')) { renderUserPage(root, userIdFromHash(hash)); return; }
   renderHome(root, route);
 }
 
@@ -40,6 +55,4 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 다른 사람이 고치면 Realtime 으로 다시 불러와 지금 화면을 다시 그린다.
   Store.onRemoteChange(route);
   route();
-  // 스케줄러에서 잡은 보스를 자동 기록으로 가져온다 (이 브라우저에서 10분에 한 번까지, 화면은 기다리지 않는다)
-  if (isSiteUnlocked()) syncFromScheduler();
 });

@@ -14,6 +14,15 @@ const OPTION_LABELS = [
 ];
 
 const lines = (...values) => values.filter(Boolean);
+const PRESET_NOS = ['1', '2', '3'];
+/** 넥슨의 프리셋 번호를 '1' · '2' · '3' 중 하나로 (모르는 값이면 1) */
+const presetNo = (value) => (PRESET_NOS.includes(String(value)) ? String(value) : '1');
+
+/** 없어도 화면을 그릴 수 있는 조회 — 실패하면 빈 값으로 두고 나머지는 보여 준다(유니온 없는 캐릭터 등). */
+const optional = (request) => request.catch((e) => {
+  console.error('[profile] 선택 조회 실패:', e.code || e);
+  return {};
+});
 
 function toItem(raw) {
   const total = raw.item_total_option || {};
@@ -35,9 +44,9 @@ function toItem(raw) {
 }
 
 function toEquipment(raw) {
-  const current = String(raw.preset_no || 1);
+  const current = presetNo(raw.preset_no);
   const presets = {};
-  for (const no of ['1', '2', '3']) {
+  for (const no of PRESET_NOS) {
     // 프리셋 칸이 비어 오면(프리셋을 안 쓰는 캐릭터) 지금 착용 장비로 채운다.
     const list = raw[`item_equipment_preset_${no}`] || (no === current ? raw.item_equipment : null) || [];
     presets[no] = list.map(toItem);
@@ -47,11 +56,11 @@ function toEquipment(raw) {
 
 function toAbility(raw) {
   const presets = {};
-  for (const no of ['1', '2', '3']) {
+  for (const no of PRESET_NOS) {
     const preset = raw[`ability_preset_${no}`];
     presets[no] = (preset?.ability_info || []).map(a => ({ grade: a.ability_grade, value: a.ability_value }));
   }
-  return { current: String(raw.preset_no || 1), presets };
+  return { current: presetNo(raw.preset_no), presets };
 }
 
 const finalStat = (stat, name) => stat.final_stat?.find(s => s.stat_name === name)?.stat_value ?? null;
@@ -63,12 +72,12 @@ export async function loadProfile(name) {
     callNexon('/character/basic', { ocid }),
     callNexon('/character/stat', { ocid }),
     callNexon('/character/item-equipment', { ocid }),
-    callNexon('/user/union', { ocid }),
+    optional(callNexon('/user/union', { ocid })),
   ]);
   const [champion, link, ability] = await Promise.all([
-    callNexon('/user/union-champion', { ocid }),
-    callNexon('/character/link-skill', { ocid }),
-    callNexon('/character/ability', { ocid }),
+    optional(callNexon('/user/union-champion', { ocid })),
+    optional(callNexon('/character/link-skill', { ocid })),
+    optional(callNexon('/character/ability', { ocid })),
   ]);
 
   return {

@@ -104,15 +104,19 @@ function createRow(item, datalistId, getParticipants, onRemove) {
   }
   const takerSelect = el('select', { className: 'select-input' });
   let takerId = item.takerCharacterId || '';
-  let forcedSolo = false;
+  let beforeForced = null; // 혼자라서 독식으로 바꾸기 전의 분배 방식 · 가져간 사람
 
   const syncTakers = () => {
     const people = getParticipants();
     // 파티원 없이 혼자면 무조건 그 사람 독식이다 (사용자 결정 2026-10-01). 두 명 이상이 되면 다시 고를 수 있다.
-    // 혼자라서 자동으로 독식이 된 줄은, 파티원이 생기면 기본값(분배)으로 되돌린다.
+    // 혼자라서 자동으로 독식이 된 줄은, 파티원이 다시 생기면 그 전 값으로 되돌린다(잠깐 껐다 켜도 독식 · 분배가 안 바뀐다).
     const alone = people.length === 1;
-    if (alone) { modeSelect.value = 'solo'; takerId = people[0].id; forcedSolo = true; }
-    else if (forcedSolo) { modeSelect.value = 'split'; takerId = ''; forcedSolo = false; }
+    if (alone) {
+      if (!beforeForced) beforeForced = { mode: modeSelect.value, takerId };
+      modeSelect.value = 'solo'; takerId = people[0].id;
+    } else if (beforeForced) {
+      modeSelect.value = beforeForced.mode; takerId = beforeForced.takerId; beforeForced = null;
+    }
     modeSelect.disabled = alone || isMiss;
     takerSelect.disabled = alone;
     // 외부 인원은 "기타" 하나로 합쳐 보이므로, 다른 자리표로 저장된 값도 그 칸으로 맞춘다.

@@ -23,7 +23,7 @@ function formatPower(power) {
 
 /**
  * @param {{ id, name, job }} character
- * @param {boolean} connected - 스케줄러 연결 여부
+ * @param {Promise<boolean>} connected - 스케줄러 연결 여부
  */
 export function renderCharacterPanel(character, connected) {
   const infoCard = card('캐릭터 정보', el('p', { className: 'form-hint' }, '넥슨에서 불러오는 중..'));
@@ -36,9 +36,16 @@ export function renderCharacterPanel(character, connected) {
       return;
     }
     const profile = result.data;
-    infoCard.setBody(renderInfo(profile, character.id));
-    equipCard.setBody(createEquipWindow(profile.equipment));
-    extraCard.setBody(renderExtras(profile));
+    // 넥슨 데이터 모양이 예상과 달라 한 카드가 실패해도, 그 카드만 안내를 띄우고 나머지는 그린다.
+    const fill = (target, render) => {
+      try { target.setBody(render()); } catch (e) {
+        console.error('[character-panel] 그리기 실패:', e);
+        target.setBody(el('p', { className: 'form-hint' }, '이 정보를 보여 주지 못했어요. 새로고침해 주세요.'));
+      }
+    };
+    fill(infoCard, () => renderInfo(profile, character.id));
+    fill(equipCard, () => createEquipWindow(profile.equipment));
+    fill(extraCard, () => renderExtras(profile));
   });
 
   return el('div', { className: 'v2-user-grid' },
@@ -88,7 +95,7 @@ function renderExtras(profile) {
       className: `v2-ability-preset${n === no ? ' on' : ''}`, type: 'button', onclick: () => showAbility(n),
       title: n === profile.ability.current ? '지금 적용 중' : '',
     }, n === profile.ability.current ? `${n}·적용` : n)));
-    const lines = profile.ability.presets[no];
+    const lines = profile.ability.presets[no] || [];
     abilityBox.replaceChildren(...(lines.length
       ? lines.map(a => el('div', { className: 'v2-ability-line', dataset: { grade: a.grade } }, a.value))
       : [el('p', { className: 'form-hint' }, '이 프리셋엔 어빌리티가 없어요.')]));

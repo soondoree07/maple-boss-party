@@ -24,6 +24,8 @@ const UNKNOWN_ERROR = { status: 502, message: '넥슨 조회에 실패했어요.
 const RATE_LIMITED = 'OPENAPI00007';
 const RATE_LIMIT_RETRIES = 2;
 const RATE_LIMIT_WAIT_MS = 1000;
+const REQUEST_TIMEOUT_MS = 8000; // 넥슨이 응답하지 않으면 함수 제한시간까지 기다리지 않고 그 조회만 실패시킨다
+const TIMEOUT = { status: 504, message: '넥슨 응답이 늦어요. 잠시 후 다시 시도해 주세요.' };
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
@@ -39,7 +41,12 @@ export async function callNexon(path, params = {}, apiKey = process.env.NEXON_AP
 
   // 개발 단계 키는 초당 5건이다. "몰렸다"(00007)면 잠깐 쉬고 다시 시도한다.
   for (let attempt = 0; ; attempt += 1) {
-    const res = await fetch(url, { headers: { 'x-nxopen-api-key': apiKey } });
+    let res;
+    try {
+      res = await fetch(url, { headers: { 'x-nxopen-api-key': apiKey }, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    } catch (e) {
+      throw new ApiError('TIMEOUT', TIMEOUT.status, TIMEOUT.message);
+    }
     const body = await res.json().catch(() => null);
     if (res.ok && body && !body.error) return body;
 

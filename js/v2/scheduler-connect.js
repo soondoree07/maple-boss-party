@@ -17,12 +17,14 @@ const SITE_URL = 'https://maplebossparty.vercel.app';
  * @param {() => void} rerender
  */
 export function createSchedulerButton(user, rerender) {
-  const button = el('button', { className: 'btn btn-ghost btn-mini v2-scheduler-btn', type: 'button' }, '스케줄러 연결');
+  // 연결 여부를 받기 전에 누르면 이미 연결한 유저에게 "연결하기" 창이 열리므로, 받을 때까지 잠가 둔다.
+  const button = el('button', { className: 'btn btn-ghost btn-mini v2-scheduler-btn', type: 'button', disabled: true }, '스케줄러 확인 중..');
   let connected = false;
   fetchConnectedUserIds().then(ids => {
     connected = ids.has(user.id);
     button.textContent = connected ? '스케줄러 연결됨' : '스케줄러 연결';
     button.classList.toggle('is-connected', connected);
+    button.disabled = false;
   });
   button.addEventListener('click', () => openConnectDialog(user, connected, rerender));
   return button;

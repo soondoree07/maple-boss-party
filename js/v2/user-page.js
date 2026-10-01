@@ -30,11 +30,11 @@ export function renderUserPage(container, userId) {
   const panelBox = el('div');
   const tabs = el('div', { className: 'v2-char-tabs' });
 
-  const select = async (characterId) => {
+  const select = (characterId) => {
     selectedCharacter.set(user.id, characterId);
     tabs.querySelectorAll('.v2-char-tab').forEach(tab => tab.classList.toggle('on', tab.dataset.id === characterId));
-    const connected = (await fetchConnectedUserIds()).has(user.id);
-    if (selectedCharacter.get(user.id) !== characterId) return; // 그새 다른 탭을 눌렀으면 버린다
+    // 패널은 바로 그리고, 스케줄러 연결 여부는 스케줄러 카드만 기다린다
+    const connected = fetchConnectedUserIds().then(ids => ids.has(user.id));
     panelBox.replaceChildren(renderCharacterPanel(characters.find(c => c.id === characterId), connected));
   };
   tabs.append(...characters.map(c => el('button', {

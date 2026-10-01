@@ -25,12 +25,14 @@ export function createEquipWindow(equipment) {
   const node = el('div', { className: 'v2-equip' }, grid, presetBox);
 
   const show = (presetNo) => {
-    const bySlot = new Map(equipment.presets[presetNo].map(item => [item.slot, item]));
+    hideTooltip(); // 프리셋을 바꾸면 이전 칸의 툴팁은 닫는다
+    const bySlot = new Map((equipment.presets[presetNo] || []).map(item => [item.slot, item]));
     grid.replaceChildren(...LAYOUT.flat().map(slot => slotNode(slot, bySlot.get(slot))));
     presetBox.replaceChildren(...PRESETS.map(no => el('button', {
       className: `v2-equip-preset${no === presetNo ? ' on' : ''}`, type: 'button', onclick: () => show(no),
     }, no, el('small', null, no === equipment.current ? '착용' : '프리셋'))));
   };
+  hideTooltip(); // 다른 캐릭터 · 다시 그린 화면에서 이전 툴팁이 남지 않게
   show(equipment.current);
   return node;
 }
@@ -47,6 +49,7 @@ function slotNode(slot, item) {
 // ── 툴팁 ─────────────────────────────────────────────
 
 let tooltip = null;
+let tooltipOwner = null; // 지금 툴팁을 띄운 장비 (터치로 같은 칸을 다시 누르면 닫는다)
 const getTooltip = () => {
   if (!tooltip || !tooltip.isConnected) {
     tooltip = el('div', { className: 'v2-equip-tip', hidden: true });
@@ -54,6 +57,15 @@ const getTooltip = () => {
   }
   return tooltip;
 };
+const hideTooltip = () => {
+  if (tooltip) tooltip.hidden = true;
+  tooltipOwner = null;
+};
+// 툴팁은 body 에 붙어 있어 칸이 화면에서 사라져도 남는다 → 화면을 옮기거나 다른 곳을 누르면 닫는다.
+window.addEventListener('hashchange', hideTooltip);
+document.addEventListener('pointerdown', (e) => {
+  if (tooltipOwner && !e.target.closest?.('.v2-equip-slot')) hideTooltip();
+});
 
 function bindTooltip(node, item) {
   const place = (x, y) => {
@@ -65,10 +77,10 @@ function bindTooltip(node, item) {
     const tip = getTooltip();
     tip.replaceChildren(...tooltipContent(item));
     tip.hidden = false;
-    tip.dataset.owner = item.slot;
+    tooltipOwner = item;
     place(x, y);
   };
-  const close = () => { getTooltip().hidden = true; };
+  const close = hideTooltip;
 
   // 마우스는 올리면 열고 벗어나면 닫는다.
   const isMouse = (e) => e.pointerType === 'mouse';
@@ -79,7 +91,7 @@ function bindTooltip(node, item) {
   node.addEventListener('pointerup', (e) => {
     if (isMouse(e)) return;
     const tip = getTooltip();
-    if (!tip.hidden && tip.dataset.owner === item.slot) { close(); return; }
+    if (!tip.hidden && tooltipOwner === item) { close(); return; }
     open(e.clientX, e.clientY);
   });
 }

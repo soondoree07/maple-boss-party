@@ -7,7 +7,9 @@
 //    연결 안 한 사람 · 외부 인원은 지난 기간대로 넣는다. 지난 기록이 없으면 혼자.
 //  - 그 기간에 그 캐릭터가 들어간 같은 보스 기록이 이미 있으면 만들지 않는다(직접 기록 · 먼저 만든 파티 기록 우선).
 //  - 사용자가 지우거나 합친 자동 기록은 다시 만들지 않는다(auto_run_skips 의 캐릭터별 id).
-//  - id 는 보스 · 기간 · 파티로 정해져 여러 사람이 동시에 불러도 한 번만 생긴다.
+//  - 가져오기는 한 번에 하나만 돈다(sync_locks 잠금). 끝나면 잠깐 쉬는 시간을 둔다. id 도 보스 · 기간 · 파티로 정해진다.
+//  - 스케줄러를 연결했는데 이번에 조회에 실패한 캐릭터가 파티에 들면 그 기록은 다음 가져오기로 미룬다
+//    (갔는지 모르는 사람을 넣었다 빼면서 같은 보스 기록이 두 번 생기지 않게).
 //  - 날짜는 처음 발견한 날(KST). 스케줄러는 잡은 날짜를 주지 않는다.
 // 가격표는 사이트와 같은 js/data.js 를 그대로 쓴다.
 
@@ -15,7 +17,12 @@ import { BOSSES, getBossDifficulty, getEffectiveCrystal } from '../../js/data.js
 import { callNexon, findOcid } from './nexon-client.js';
 import {
   listNexonKeys, getCharactersOfUser, getAllCharacterIds, getRunsSince, getAutoRunSkips, insertRunsIgnoringDuplicates,
+  trySyncLock, setSyncLockUntil,
 } from './db.js';
+
+const LOCK_NAME = 'scheduler-sync';
+const LOCK_SECONDS = 120;   // 가져오기 한 번이 이보다 오래 걸리지 않는다고 본다(넥슨 조회마다 8초 제한)
+const COOLDOWN_SECONDS = 30; // 끝난 뒤 이만큼은 다시 돌지 않는다
 
 export const AUTO_RUN_PREFIX = 'r-auto-';
 
@@ -59,9 +66,10 @@ async function completedBosses(character, apiKey, periods) {
  * 만든 기록은 runs 에 바로 더해 다음 파티원이 같은 기록을 또 만들지 않게 한다.
  * @param {{ characterId, boss, difficulty, period: { start, prevStart } }[]} candidates
  * @param {Map<string, Set<string>>} completedBy - 스케줄러를 확인한 캐릭터 → 이번 기간 처치 보스
+ * @param {Set<string>} [unchecked] - 스케줄러를 연결했는데 이번에 조회에 실패한 캐릭터
  * @param {{ id, date, boss, character_ids }[]} runs - 지난 기간부터의 기록, 최신순 (이 함수가 앞에 더한다)
  */
-export function planAutoRuns({ candidates, completedBy, runs, skips, knownCharacters, today }) {
+export function planAutoRuns({ candidates, completedBy, unchecked = new Set(), runs, skips, knownCharacters, today }) {
   const hasRun = (characterId, boss, period) => runs.some(r => r.boss === boss && r.date >= period.start
     && (r.character_ids || []).includes(characterId));
   const dismissed = (characterId, boss, period) => skips.has(soloAutoRunId(characterId, boss, period.start));
@@ -71,6 +79,7 @@ export function planAutoRuns({ candidates, completedBy, runs, skips, knownCharac
     if (hasRun(c.characterId, c.boss, c.period) || dismissed(c.characterId, c.boss, c.period)) continue;
     const last = runs.find(r => r.boss === c.boss && r.date >= c.period.prevStart && r.date < c.period.start
       && (r.character_ids || []).includes(c.characterId)); // runs 는 최신순
+    if (last && last.character_ids.some(id => unchecked.has(id))) continue; // 갔는지 모르는 파티원 → 다음에
     const party = (last ? last.character_ids : [c.characterId]).filter(id => id === c.characterId || (
       knownCharacters.has(id)                                                     // 지운 캐릭터 빼기
       && !(completedBy.has(id) && !completedBy.get(id).has(c.boss))               // 연결했는데 처치 안 함 → 빼기
@@ -91,14 +100,25 @@ export function planAutoRuns({ candidates, completedBy, runs, skips, knownCharac
   return created;
 }
 
-/** 연결된 모든 유저의 캐릭터를 훑어 새 자동 기록을 만든다. @returns {{ created: object[], failures: object[] }} */
+/**
+ * 연결된 모든 유저의 캐릭터를 훑어 새 자동 기록을 만든다. 다른 가져오기가 돌고 있으면 아무것도 안 한다.
+ * @returns {{ busy?: boolean, created: object[], failures: object[] }}
+ */
 export async function syncSchedulers() {
+  if (!(await trySyncLock(LOCK_NAME, LOCK_SECONDS))) return { busy: true, created: [], failures: [] };
+  try {
+    return await syncLocked();
+  } finally {
+    await setSyncLockUntil(LOCK_NAME, COOLDOWN_SECONDS).catch(e => console.error('[scheduler-sync] 잠금 풀기 실패:', e));
+  }
+}
+
+async function syncLocked() {
   const periods = kstPeriods();
-  const runs = await getRunsSince(periods.monthly.prevStart < periods.weekly.prevStart ? periods.monthly.prevStart : periods.weekly.prevStart);
-  const [skips, knownCharacters] = await Promise.all([getAutoRunSkips(), getAllCharacterIds()]);
 
   // 1) 연결된 캐릭터마다 이번 기간 처치 보스를 모은다 (개발 단계 키 초당 5건이라 한 명씩)
   const completedBy = new Map(); // 캐릭터 id → Set(보스 id). 여기 있는 캐릭터 = 스케줄러를 확인할 수 있는 캐릭터
+  const unchecked = new Set();
   const candidates = [];
   const failures = [];
   for (const { userId, apiKey } of await listNexonKeys()) {
@@ -108,15 +128,22 @@ export async function syncSchedulers() {
         completedBy.set(character.id, new Set(done.map(d => d.boss)));
         done.forEach(d => candidates.push({ ...d, characterId: character.id }));
       } catch (e) {
+        unchecked.add(character.id);
         failures.push({ character: character.name, message: e.message }); // 계정에 없는 캐릭터 등은 건너뛴다
       }
     }
   }
 
-  const created = planAutoRuns({ candidates, completedBy, runs, skips, knownCharacters, today: periods.today });
-  await insertRunsIgnoringDuplicates(created);
+  // 2) 기록은 넥슨 조회가 끝난 뒤에 읽는다 — 그사이 직접 저장한 기록까지 보고 겹치지 않게
+  const [runs, skips, knownCharacters] = await Promise.all([
+    getRunsSince(periods.monthly.prevStart < periods.weekly.prevStart ? periods.monthly.prevStart : periods.weekly.prevStart),
+    getAutoRunSkips(),
+    getAllCharacterIds(),
+  ]);
+  const planned = planAutoRuns({ candidates, completedBy, unchecked, runs, skips, knownCharacters, today: periods.today });
+  const inserted = await insertRunsIgnoringDuplicates(planned);
   return {
-    created: created.map(r => ({ id: r.id, boss: r.boss, difficulty: r.difficulty, characterIds: r.character_ids })),
+    created: inserted.map(r => ({ id: r.id, boss: r.boss, difficulty: r.difficulty, characterIds: r.character_ids })),
     failures,
   };
 }

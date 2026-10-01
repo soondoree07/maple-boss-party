@@ -78,11 +78,23 @@ export async function getAutoRunSkips() {
   return new Set((await request('/rest/v1/auto_run_skips?select=id')).map(r => r.id));
 }
 
-/** 자동 기록 저장. 같은 id 가 이미 있으면 건너뛴다(여러 사람이 동시에 가져와도 한 번만 생긴다). */
+/** 자동 기록 저장. 같은 id 가 이미 있으면 건너뛴다. @returns {Promise<object[]>} 실제로 새로 들어간 행 */
 export async function insertRunsIgnoringDuplicates(rows) {
-  if (rows.length === 0) return;
-  await request('/rest/v1/runs?on_conflict=id', {
-    method: 'POST', body: rows, prefer: 'resolution=ignore-duplicates,return=minimal',
+  if (rows.length === 0) return [];
+  return (await request('/rest/v1/runs?on_conflict=id&select=id,boss,difficulty,character_ids', {
+    method: 'POST', body: rows, prefer: 'resolution=ignore-duplicates,return=representation',
+  })) || [];
+}
+
+/** 이름 붙은 잠금을 seconds 동안 잡는다. 누가 이미 잡고 있으면 false (sql/sync-lock.sql). */
+export async function trySyncLock(name, seconds) {
+  return (await request('/rest/v1/rpc/try_sync_lock', { method: 'POST', body: { p_name: name, p_seconds: seconds } })) === true;
+}
+
+/** 잠금 기한을 지금부터 seconds 뒤로 바꾼다 (끝난 뒤 잠깐 쉬는 시간을 두고 풀 때). */
+export async function setSyncLockUntil(name, seconds) {
+  await request(`/rest/v1/sync_locks?name=eq.${encodeURIComponent(name)}`, {
+    method: 'PATCH', body: { locked_until: new Date(Date.now() + seconds * 1000).toISOString() }, prefer: 'return=minimal',
   });
 }
 

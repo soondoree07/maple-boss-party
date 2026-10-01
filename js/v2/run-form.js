@@ -5,7 +5,7 @@
 // 메인 화면에서 카드 한 장으로 묶이므로, 나중에 같은 파티로 또 넣으면 그 카드에 더해진다.
 // 수정은 기록 하나만 고친다(보스 칸 하나, 추가 버튼 없음).
 
-import { el, todayStr } from '../utils.js';
+import { el, todayStr, toast } from '../utils.js';
 import { saveRun, saveNewRuns, makeId } from './store.js';
 import { openModal, field } from './modal.js';
 import { createCharacterPicker } from './character-picker.js';
@@ -96,19 +96,22 @@ export function openRunForm(existing, onSaved, prefill = {}) {
   };
 
   // 저장 규칙: 자동 기록을 고치면 새 일반 기록으로 바꾸고 자동 기록은 지운다("자동" 표시가 사라진다).
-  // 저장한 뒤에는 파티원의 같은 기간 · 같은 보스 자동 기록을 지워 결정석이 두 번 잡히지 않게 한다.
+  // 저장한 뒤에는 파티원을 같은 기간 · 같은 보스 자동 기록에서 빼서 결정석이 두 번 잡히지 않게 한다.
+  // 새 기록은 이미 저장됐으므로 정리가 실패해도 창은 닫고(다시 누르면 또 생긴다) 직접 지우도록 알린다.
   const saveEntries = async (entries, characterIds) => {
     const date = dateInput.value;
     let saved;
+    let cleaned = true;
     if (existing && !isAutoRun(existing)) {
       saved = [{ ...existing, date, characterIds, ...entries[0] }];
       if (!(await saveRun(saved[0]))) return false;
     } else {
       saved = entries.map(entry => ({ id: makeId('r'), date, characterIds, ...entry }));
       if (!(await saveNewRuns(saved))) return false;
-      if (existing) await removeAutoRun(existing);
+      if (existing) cleaned = await removeAutoRun(existing);
     }
-    await removeMergedAutoRuns(saved, saved.map(run => run.id));
+    if (!(await removeMergedAutoRuns(saved, saved.map(run => run.id)))) cleaned = false;
+    if (!cleaned) toast('기록은 저장했는데 겹치는 자동 기록을 정리하지 못했어요. 메인에서 "자동" 기록을 확인해 지워 주세요.', 'err', 8000);
     return true;
   };
 

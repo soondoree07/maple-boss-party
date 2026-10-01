@@ -3,13 +3,14 @@
 // 자동 기록 = 서버(api/scheduler-sync)가 스케줄러 처치 보스로 만든 기록(드랍템 없음, 지난 기간 같은 보스 파티를 따라감).
 // id 가 r-auto- 로 시작하고, 카드에 "자동" 표시가 붙는다. 사용자가 확인해 고치는 흐름:
 //  - 수정해서 저장 → 새 id 의 일반 기록으로 바꾸고 자동 기록은 지운다(그래서 "자동" 표시가 사라진다).
-//  - 파티 기록을 저장 → 그 파티원의 같은 기간 · 같은 보스 자동 기록을 지운다(결정석이 두 번 잡히지 않게).
+//  - 파티 기록을 저장 → 그 파티원을 같은 기간 · 같은 보스 자동 기록에서 뺀다(결정석이 두 번 잡히지 않게).
+//    남은 사람은 남은 인원끼리 간 기록으로 두고(결정석도 남은 인원으로 나눔), 아무도 안 남으면 자동 기록을 지운다.
 //  - 지운 자동 기록은 그 id 와 파티원마다의 캐릭터별 id 를 auto_run_skips 에 남겨 다음 가져오기에서 다시 만들지 않는다.
 
 import { supabase } from '../config.js';
 import { toast, parseDateStr, getWeekRange, getMonthRange } from '../utils.js';
 import { getBoss } from '../data.js';
-import { getRuns, deleteRun, reloadAll } from './store.js';
+import { getRuns, saveRun, deleteRun, reloadAll } from './store.js';
 
 export const AUTO_RUN_PREFIX = 'r-auto-';
 export const isAutoRun = (run) => String(run?.id || '').startsWith(AUTO_RUN_PREFIX);
@@ -26,13 +27,26 @@ const periodStart = (bossId, date) =>
 /** 캐릭터 한 명 몫의 자동 기록 id (api/_lib/scheduler-sync.js 의 soloAutoRunId 와 같은 모양) */
 const soloAutoRunId = (characterId, bossId, start) => `${AUTO_RUN_PREFIX}${characterId}-${bossId}-${start}`;
 
-/** 자동 기록을 지운다. 그 기록과 파티원 모두가 이번 기간에 다시 만들어지지 않게 먼저 건너뛰기 목록에 넣는다. */
-export async function removeAutoRun(run) {
+/** 이 캐릭터들의 그 기간 · 그 보스 자동 기록이 다시 만들어지지 않게 건너뛰기 목록에 넣는다. */
+async function addSkips(run, characterIds, extraIds = []) {
   const start = periodStart(run.boss, run.date);
-  const ids = [run.id, ...run.characterIds.map(id => soloAutoRunId(id, run.boss, start))];
+  const ids = [...extraIds, ...characterIds.map(id => soloAutoRunId(id, run.boss, start))];
   const { error } = await supabase.from('auto_run_skips').upsert([...new Set(ids)].map(id => ({ id })), { onConflict: 'id' });
   if (error) console.error('[auto-runs] 건너뛰기 목록 저장 실패:', error); // 지우기는 계속한다
+}
+
+/** 자동 기록을 지운다. 그 기록과 파티원 모두가 이번 기간에 다시 만들어지지 않게 먼저 건너뛰기 목록에 넣는다. */
+export async function removeAutoRun(run) {
+  await addSkips(run, run.characterIds, [run.id]);
   return deleteRun(run.id);
+}
+
+/** 자동 기록에서 몇 명만 뺀다. 남은 사람끼리 간 기록이 되고, 아무도 안 남으면 지운다. @returns {Promise<boolean>} */
+async function dropFromAutoRun(run, characterIds) {
+  const remaining = run.characterIds.filter(id => !characterIds.includes(id));
+  if (remaining.length === 0) return removeAutoRun(run);
+  await addSkips(run, characterIds);
+  return saveRun({ ...run, characterIds: remaining });
 }
 
 /** 기록 하나 지우기 — 자동 기록이면 건너뛰기 목록에도 남긴다. */
@@ -42,16 +56,19 @@ export const removeRun = (run) => (isAutoRun(run) ? removeAutoRun(run) : deleteR
 const samePeriod = (bossId, dateA, dateB) => periodStart(bossId, dateA) === periodStart(bossId, dateB);
 
 /**
- * 방금 저장한 기록의 파티원이 같은 기간 · 같은 보스로 가진 자동 기록을 지운다.
+ * 방금 저장한 기록의 파티원을 같은 기간 · 같은 보스 자동 기록에서 뺀다.
  * @param {{ boss, date, characterIds }[]} savedRuns
- * @param {string[]} keepIds - 지우면 안 되는 기록 (방금 저장한 것)
+ * @param {string[]} keepIds - 건드리면 안 되는 기록 (방금 저장한 것)
+ * @returns {Promise<boolean>} 모두 정리했으면 true
  */
 export async function removeMergedAutoRuns(savedRuns, keepIds = []) {
-  const targets = getRuns().filter(run => isAutoRun(run) && !keepIds.includes(run.id)
-    && savedRuns.some(saved => saved.boss === run.boss && samePeriod(run.boss, saved.date, run.date)
-      && run.characterIds.some(id => saved.characterIds.includes(id))));
-  for (const run of targets) await removeAutoRun(run);
-  return targets.length;
+  let allOk = true;
+  for (const run of getRuns().filter(r => isAutoRun(r) && !keepIds.includes(r.id))) {
+    const overlap = run.characterIds.filter(id => savedRuns.some(saved => saved.boss === run.boss
+      && samePeriod(run.boss, saved.date, run.date) && saved.characterIds.includes(id)));
+    if (overlap.length > 0 && !(await dropFromAutoRun(run, overlap))) allOk = false;
+  }
+  return allOk;
 }
 
 /**
@@ -76,11 +93,19 @@ export async function syncFromScheduler({ manual = false } = {}) {
   }
   if (!result.ok) { if (manual) toast(result.message, 'err'); return; }
 
-  const count = result.data.created.length;
+  if (result.data?.busy) {
+    if (manual) toast('방금 다른 곳에서 가져오고 있어요. 30초쯤 뒤에 다시 눌러 주세요.', 'ok');
+    return;
+  }
+  const count = result.data?.created?.length ?? 0;
+  const failedNames = (result.data?.failures || []).map(f => f.character);
   if (count > 0) {
     await reloadAll();
     toast(`스케줄러에서 잡은 보스 ${count}건을 기록했어요. 지난주와 같은 파티로 넣었으니, 바뀐 게 있으면 수정해 주세요.`, 'ok', 6000);
-  } else if (manual) {
+  } else if (manual && failedNames.length === 0) {
     toast('새로 잡은 보스가 없어요. 이미 기록했거나 스케줄러에 처치로 아직 안 바뀌었어요.', 'ok');
+  }
+  if (manual && failedNames.length > 0) {
+    toast(`${failedNames.join(', ')}의 스케줄러를 확인하지 못했어요. 잠시 후 다시 가져와 주세요.`, 'err', 6000);
   }
 }
