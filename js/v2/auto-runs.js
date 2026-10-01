@@ -1,10 +1,10 @@
 // v2/auto-runs.js — 스케줄러 자동 기록 (사이트 쪽)
 //
-// 자동 기록 = 서버(api/scheduler-sync)가 스케줄러 처치 보스로 만든 "혼자 · 드랍템 없음 · 결정석 100%" 기록.
+// 자동 기록 = 서버(api/scheduler-sync)가 스케줄러 처치 보스로 만든 기록(드랍템 없음, 지난 기간 같은 보스 파티를 따라감).
 // id 가 r-auto- 로 시작하고, 카드에 "자동" 표시가 붙는다. 사용자가 확인해 고치는 흐름:
 //  - 수정해서 저장 → 새 id 의 일반 기록으로 바꾸고 자동 기록은 지운다(그래서 "자동" 표시가 사라진다).
 //  - 파티 기록을 저장 → 그 파티원의 같은 기간 · 같은 보스 자동 기록을 지운다(결정석이 두 번 잡히지 않게).
-//  - 지운 자동 기록 id 는 auto_run_skips 에 남겨 다음 가져오기에서 다시 만들지 않는다.
+//  - 지운 자동 기록은 그 id 와 파티원마다의 캐릭터별 id 를 auto_run_skips 에 남겨 다음 가져오기에서 다시 만들지 않는다.
 
 import { supabase } from '../config.js';
 import { toast, parseDateStr, getWeekRange, getMonthRange } from '../utils.js';
@@ -19,9 +19,18 @@ const SYNC_URL = IS_LOCAL ? 'https://maplebossparty.vercel.app/api/scheduler-syn
 const SYNC_KEY = 'maple-scheduler-sync-at';
 const AUTO_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 
-/** 자동 기록을 지운다. 다시 만들어지지 않게 먼저 건너뛰기 목록에 넣는다. */
+/** 그 보스의 기간 시작일 — 월간 보스는 그달 1일, 나머지는 그 주 목요일 */
+const periodStart = (bossId, date) =>
+  (getBoss(bossId)?.cycle === 'monthly' ? getMonthRange : getWeekRange)(parseDateStr(date)).start;
+
+/** 캐릭터 한 명 몫의 자동 기록 id (api/_lib/scheduler-sync.js 의 soloAutoRunId 와 같은 모양) */
+const soloAutoRunId = (characterId, bossId, start) => `${AUTO_RUN_PREFIX}${characterId}-${bossId}-${start}`;
+
+/** 자동 기록을 지운다. 그 기록과 파티원 모두가 이번 기간에 다시 만들어지지 않게 먼저 건너뛰기 목록에 넣는다. */
 export async function removeAutoRun(run) {
-  const { error } = await supabase.from('auto_run_skips').upsert({ id: run.id }, { onConflict: 'id' });
+  const start = periodStart(run.boss, run.date);
+  const ids = [run.id, ...run.characterIds.map(id => soloAutoRunId(id, run.boss, start))];
+  const { error } = await supabase.from('auto_run_skips').upsert([...new Set(ids)].map(id => ({ id })), { onConflict: 'id' });
   if (error) console.error('[auto-runs] 건너뛰기 목록 저장 실패:', error); // 지우기는 계속한다
   return deleteRun(run.id);
 }
@@ -30,10 +39,7 @@ export async function removeAutoRun(run) {
 export const removeRun = (run) => (isAutoRun(run) ? removeAutoRun(run) : deleteRun(run.id));
 
 /** 월간 보스는 같은 달, 나머지는 같은 주(목요일 리셋)를 같은 기간으로 본다. */
-function samePeriod(bossId, dateA, dateB) {
-  const range = getBoss(bossId)?.cycle === 'monthly' ? getMonthRange : getWeekRange;
-  return range(parseDateStr(dateA)).start === range(parseDateStr(dateB)).start;
-}
+const samePeriod = (bossId, dateA, dateB) => periodStart(bossId, dateA) === periodStart(bossId, dateB);
 
 /**
  * 방금 저장한 기록의 파티원이 같은 기간 · 같은 보스로 가진 자동 기록을 지운다.
@@ -73,7 +79,7 @@ export async function syncFromScheduler({ manual = false } = {}) {
   const count = result.data.created.length;
   if (count > 0) {
     await reloadAll();
-    toast(`스케줄러에서 잡은 보스 ${count}건을 혼자 잡은 기록으로 넣었어요. 파티로 갔다면 수정해 주세요.`, 'ok', 6000);
+    toast(`스케줄러에서 잡은 보스 ${count}건을 기록했어요. 지난주와 같은 파티로 넣었으니, 바뀐 게 있으면 수정해 주세요.`, 'ok', 6000);
   } else if (manual) {
     toast('새로 잡은 보스가 없어요. 이미 기록했거나 스케줄러에 처치로 아직 안 바뀌었어요.', 'ok');
   }

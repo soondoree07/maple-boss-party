@@ -63,17 +63,19 @@ export async function listNexonKeys() {
   return rows.map(r => ({ userId: r.user_id, apiKey: r.api_key }));
 }
 
-/** date(YYYY-MM-DD) 이후 기록의 보스 · 참여 캐릭터 (자동 기록 중복 확인용) */
+/** date(YYYY-MM-DD) 이후 기록의 보스 · 참여 캐릭터, 최신순 (자동 기록 중복 확인 · 지난 파티 찾기용) */
 export async function getRunsSince(date) {
-  return request(`/rest/v1/runs?date=gte.${date}&select=id,date,boss,character_ids`);
+  return request(`/rest/v1/runs?date=gte.${date}&select=id,date,boss,character_ids,created_at&order=date.desc,created_at.desc`);
 }
 
-/** 다시 만들지 않을 자동 기록 id 들 */
-export async function getAutoRunSkips(ids) {
-  if (ids.length === 0) return new Set();
-  const list = ids.map(id => `"${id}"`).join(',');
-  const rows = await request(`/rest/v1/auto_run_skips?id=in.(${encodeURIComponent(list)})&select=id`);
-  return new Set(rows.map(r => r.id));
+/** 사이트에 있는 캐릭터 id 전부 (지운 캐릭터를 파티에서 빼는 데 쓴다) */
+export async function getAllCharacterIds() {
+  return new Set((await request('/rest/v1/characters?select=id')).map(r => r.id));
+}
+
+/** 다시 만들지 않을 자동 기록 id 전부 (작은 표라 통째로 읽는다) */
+export async function getAutoRunSkips() {
+  return new Set((await request('/rest/v1/auto_run_skips?select=id')).map(r => r.id));
 }
 
 /** 자동 기록 저장. 같은 id 가 이미 있으면 건너뛴다(여러 사람이 동시에 가져와도 한 번만 생긴다). */

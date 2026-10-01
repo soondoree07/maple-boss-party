@@ -84,7 +84,7 @@ function renderRunList(rerender, addRun) {
 /** 스케줄러에서 잡은 보스를 지금 가져오기 (사이트를 열 때도 10분에 한 번 자동으로 가져온다) */
 function syncButton() {
   const button = el('button', {
-    className: 'btn btn-ghost btn-mini', type: 'button', title: '스케줄러에서 이번 주에 잡은 보스를 혼자 잡은 기록으로 넣어요',
+    className: 'btn btn-ghost btn-mini', type: 'button', title: '스케줄러에서 이번 주에 잡은 보스를 지난주와 같은 파티로 기록해요',
     onclick: async () => {
       button.disabled = true;
       button.textContent = '가져오는 중..';
