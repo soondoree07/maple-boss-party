@@ -105,7 +105,8 @@
 /* 스케줄러 자동 기록 표시 (수정해서 저장하면 사라진다) */
 .v2-auto-badge { padding: 1px 7px; border-radius: 6px; background: var(--fill-2); color: var(--text-secondary); font-size: 11px; font-weight: 700; }
 .v2-entry-crystal { margin-left: auto; color: var(--text-tertiary); font-size: 12px; }
-.v2-entry-total { color: var(--text-primary); font-weight: 700; }
+.v2-entry-total { margin-left: auto; color: var(--text-primary); font-weight: 700; }
+.v2-entry-crystal + .v2-entry-total { margin-left: 0; }
 .v2-run-add { justify-self: start; }
 .v2-more { width: 100%; margin-top: 12px; }
 

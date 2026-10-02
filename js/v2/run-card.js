@@ -76,7 +76,8 @@ function renderBossEntry(run, showDate, { onEdit, onDeleted }) {
       renderBossTag(run.boss),
       el('span', { className: 'v2-run-diff' }, difficultyLabel(run.difficulty)),
       isAutoRun(run) ? el('span', { className: 'v2-auto-badge', title: '스케줄러에서 자동으로 넣은 기록이에요. 파티 · 드랍템을 확인하고 수정해 주세요.' }, '자동') : null,
-      el('span', { className: 'v2-entry-crystal' }, `결정석 ${formatEok(run.crystal)}`),
+      // 드랍템이 없으면 합계가 곧 결정석이라 결정석 가격은 따로 쓰지 않는다.
+      run.loot.length ? el('span', { className: 'v2-entry-crystal' }, `결정석 ${formatEok(run.crystal)}`) : null,
       el('span', { className: 'v2-entry-total' }, formatEok(runTotal(run))),
     ),
     run.loot.map(item => renderLootLine(item, headcount)),
