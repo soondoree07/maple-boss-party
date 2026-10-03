@@ -1,11 +1,15 @@
-# 메이플 보스 기록 — 진행 상황 (2026-10-01 KST 기준)
+# 메이플 보스 기록 — 진행 상황 (2026-10-03 KST 기준)
 
 ## 지금 상태
-- **10/1 운영 시작 + 넥슨 오픈 API 연결 완료, 배포됨.** 진행 중인 코드 작업 없음.
+- **운영 중. 진행 중인 코드 작업 없음.** 마지막 커밋 `16c7711`(push · Vercel 배포 · 운영 반영 확인, 사용자가 "잘 작동한다" 확인).
 - 사이트 https://maplebossparty.vercel.app · 사이트 비밀번호 `1212` · repo `soondoree07/maple-boss-party`
-- 마지막 커밋: `d93929d` 코드 리뷰 수정 (push · Vercel 배포 · 운영 확인 완료)
 
-## 오늘(2026-10-01) 완료한 것
+## 오늘(2026-10-03) 완료한 것
+- **아카이럼(일간 보스) 추가:** `js/data.js` `cycle: 'daily'`, 이지 · 노멀, 결정석 0억, 노멀 드랍 `도미네이터 펜던트`(이미지 `png/도미네이터 펜던트.png`). 서버(`api/nexon.js`, `api/_lib/scheduler-sync.js`)가 일간 보스 중 `DAILY_BOSS_NAMES`(아카이럼)만 통과 → 기록 창 스케줄러 묶음 · 캐릭터 창에 뜨고, 잡으면 매일 자동 기록(기간 = 그날, 파티는 어제 기록을 따라감). 사용자 실사용 확인 완료.
+- **기록 카드 2열:** `js/v2/run-weeks.js` `renderColumns` — 최신 카드부터 더 짧은 열에, 열마다 위에서 아래로. 640px 이하는 한 열(`display: contents` + order).
+- **파티원별 수익:** `js/v2/run-card.js` `memberShares` — 파티 카드 머리에 파티원마다 번 돈(외부 2명 이상은 "기타 ×n 1인당"), 혼자 카드는 합계 그대로. 카드 안 보스별 금액은 여전히 보스 총수익(바꿀지 사용자에게 열어 둠).
+
+## 2026-10-01 완료한 것
 - 넥슨 오픈 API 연결: `api/nexon.js`(character · spec · profile · scheduler), 유저별 키 등록 `api/nexon-keys.js`(Supabase `nexon_keys`, 서버만 읽음)
 - 기록 창 보스 목록을 스케줄러 등록 보스 기준으로 나눔 + 등록 난이도 자동 선택
 - 보스 반지 상자(리4 · 컨4 · 꽝 = 상자 이름 + 0억), 직접 입력 끔, 1명이면 독식 고정
@@ -21,15 +25,16 @@
 - 없음.
 
 ## 다음 액션
+0. (선택) 카드 안 보스별 금액도 1인당으로 바꿀지 — 사용자가 원하면.
 1. **실데이터 확인:** 자동 기록 [A,B,C] 가 있는 보스를 A가 다른 파티로 직접 기록 → A만 빠지고 B · C 2인 기록으로 남는지(아직 실제 DB로 못 돌려봄).
 2. 사용자가 운영하며 보고하는 버그 · 요청 대응.
 3. 장비 점수 랭킹(보류) — 결정 사항은 devlog 기획서 "장비 점수 (보류)" 절.
 4. 보안 보류 2건: 4자리 사이트 비밀번호 무차별 대입(`verify_site_pw` anon 공개), `/api/scheduler-sync` 인증 없음(잠금으로 30초 1회는 보장).
 
 ## push 완료
-- maple-boss 오늘 커밋 전부 push · 배포. Supabase SQL `nexon-keys.sql` · `auto-runs.sql` · `sync-lock.sql` 모두 실행됨.
+- maple-boss 커밋 전부 push · 배포(10/3 `16c7711` 포함). Supabase SQL `nexon-keys.sql` · `auto-runs.sql` · `sync-lock.sql` 모두 실행됨.
 - Vercel 환경변수 `NEXON_API_KEY`(잉짱 계정) · `SUPABASE_SECRET_KEY` 설정됨.
-- devlog `0eb6b6d` 까지 push.
+- devlog `e704faa` 까지 push.
 
 ## 구조 한눈에 (자세한 건 README.md)
 - 유저 → 캐릭터 여러 개. "기타" 유저 = 외부 인원 자리(c-ext1~5, 화면에선 "기타 − n +"), 수익 순위에서 제외.
