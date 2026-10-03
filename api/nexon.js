@@ -13,6 +13,9 @@ import { ApiError, json, respond } from './_lib/http.js';
 import { callNexon, findOcid } from './_lib/nexon-client.js';
 import { getCharacter, getUserNexonKey } from './_lib/db.js';
 import { loadProfile } from './_lib/profile.js';
+import { DAILY_BOSS_NAMES } from '../js/data.js';
+
+const compact = (name) => String(name).normalize('NFC').replace(/\s+/g, '');
 
 const requireParam = (query, key, message) => {
   const value = query.get(key)?.trim();
@@ -62,6 +65,7 @@ const ACTIONS = {
   /**
    * 스케줄러에 등록한 보스 — 그 캐릭터 주인 유저의 키로 부른다(넥슨이 키 주인 계정의 캐릭터만 열어 준다).
    * 보스를 잡으면 바로 바뀌는 값이라 캐시는 짧게 둔다.
+   * 일간 보스는 우리가 기록하는 보스(아카이럼)만 남긴다. daily 면 completed 는 "오늘 잡았는지"다.
    */
   scheduler: {
     cache: 60,
@@ -87,8 +91,10 @@ const ACTIONS = {
         clearCount: state.weekly_boss_clear_count,
         clearLimit: state.weekly_boss_clear_limit_count,
         bosses: (state.boss_contents || [])
-          .filter(b => b.registration_flag === 'true' && b.cycle !== 'bossDaily')
-          .map(b => ({ name: b.content_name, difficulty: b.difficulty, completed: b.complete_flag === 'true' })),
+          .filter(b => b.registration_flag === 'true' && (b.cycle !== 'bossDaily' || DAILY_BOSS_NAMES.has(compact(b.content_name))))
+          .map(b => ({
+            name: b.content_name, difficulty: b.difficulty, completed: b.complete_flag === 'true', daily: b.cycle === 'bossDaily',
+          })),
       };
     },
   },

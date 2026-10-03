@@ -2,6 +2,8 @@
 //
 // 메이플 주간 리셋(목요일 0시) 기준으로 카드를 주마다 묶고, 주마다 제목 줄을 단다.
 // 제목 = "이번 주 · 10/1 (목) ~ 10/7 (수)" + 그 주 보스 수 · 합계(결정석 + 드랍템, 나누기 전).
+// 카드는 2열. 줄을 맞추지 않고 열마다 위에서 아래로 이어 붙인다(짧은 카드 아래 빈칸이 생기지 않게).
+// 최신 카드부터 더 짧은 열에 넣는다. 좁은 화면에서는 한 열로 원래 순서대로 보인다(CSS order).
 
 import { el, todayStr, parseDateStr, toDateStr, getWeekRange } from '../utils.js';
 import { formatEok, runTotal } from './calc.js';
@@ -30,6 +32,21 @@ function weekTitle(weekStart) {
   return range;
 }
 
+/** 카드 높이 어림값(줄 수). 머리 · 파티원 · 추가 버튼 + 보스마다 머리 · 버튼 + 드랍템 줄. */
+const estimateHeight = (group) => 3 + group.runs.reduce((sum, run) => sum + 2 + run.loot.length, 0);
+
+/** 카드들을 두 열로 나눈다. 순서대로 더 짧은 열에 넣는다. */
+function renderColumns(cards) {
+  const columns = [{ node: el('div', { className: 'v2-run-col' }), height: 0 }, { node: el('div', { className: 'v2-run-col' }), height: 0 }];
+  cards.forEach((card, index) => {
+    const column = columns[0].height <= columns[1].height ? columns[0] : columns[1];
+    card.node.style.order = String(index); // 한 열로 접힐 때 원래 순서
+    column.node.append(card.node);
+    column.height += card.height;
+  });
+  return el('div', { className: 'v2-run-list' }, columns.map(c => c.node));
+}
+
 /**
  * @param {object[]} cardGroups - calc.groupRunsByParty 결과 (보여 줄 만큼 자른 것)
  * @param {object} handlers - run-card 의 onEdit · onDeleted · onAddMore
@@ -43,7 +60,7 @@ export function renderRunWeeks(cardGroups, handlers) {
         el('h3', null, weekTitle(weekStart)),
         el('span', null, `보스 ${runs.length}건 · ${formatEok(total)}`),
       ),
-      el('div', { className: 'v2-run-list' }, groups.map(group => renderRunGroupCard(group, handlers))),
+      renderColumns(groups.map(group => ({ node: renderRunGroupCard(group, handlers), height: estimateHeight(group) }))),
     );
   }));
 }

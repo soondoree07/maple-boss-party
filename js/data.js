@@ -336,6 +336,15 @@ export const BOSSES = [
       { key: 'hard', crystal: 0.0546, loot: [] },
     ],
   },
+  // 일간 보스지만 도미네이터 펜던트가 나와서 기록한다. 결정석은 사실상 없어 0억 (사용자 결정 2026-10-03).
+  // 스케줄러에서 잡으면 매일 자동 기록이 생긴다(기간 = 그날 하루).
+  {
+    id: 'akairum', name: '아카이럼', cycle: 'daily', color: '#6366F1',
+    difficulties: [
+      { key: 'easy',   crystal: 0, loot: [] },
+      { key: 'normal', crystal: 0, loot: ['도미네이터 펜던트'] },
+    ],
+  },
   {
     id: 'blackmage', name: '검은 마법사', cycle: 'monthly', color: '#C084FC',
     difficulties: [
@@ -409,6 +418,7 @@ export const LOOT_IMAGE = {
   '연마석':         'png/연마석.webp',
   '신마석':         'png/신마석.webp',
   '영달포':         'png/영달포.png',
+  '도미네이터 펜던트': 'png/도미네이터 펜던트.png',
   // 공통
   '리4':            'png/리4.png',
   '컨4':            'png/컨4.png',
@@ -481,5 +491,8 @@ export function bossesInOrder() {
     .sort((a, b) => (topCrystal(b) - topCrystal(a)) || a.name.localeCompare(b.name, 'ko'));
   return [...top, ...rest];
 }
+
+/** 스케줄러 일간 보스 중 우리가 기록하는 보스 이름(공백 뺀 것). 나머지 일간 보스는 버린다. */
+export const DAILY_BOSS_NAMES = new Set(BOSSES.filter(b => b.cycle === 'daily').map(b => b.name.replace(/\s+/g, '')));
 
 export const getLootImage = (itemName) => LOOT_IMAGE[itemName] || null;

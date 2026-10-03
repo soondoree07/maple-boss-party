@@ -20,9 +20,12 @@ const SYNC_URL = IS_LOCAL ? 'https://maplebossparty.vercel.app/api/scheduler-syn
 const SYNC_KEY = 'maple-scheduler-sync-at';
 const AUTO_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 
-/** 그 보스의 기간 시작일 — 월간 보스는 그달 1일, 나머지는 그 주 목요일 */
-const periodStart = (bossId, date) =>
-  (getBoss(bossId)?.cycle === 'monthly' ? getMonthRange : getWeekRange)(parseDateStr(date)).start;
+/** 그 보스의 기간 시작일 — 월간 보스는 그달 1일, 일간 보스는 그날, 나머지는 그 주 목요일 */
+function periodStart(bossId, date) {
+  const cycle = getBoss(bossId)?.cycle;
+  if (cycle === 'daily') return date;
+  return (cycle === 'monthly' ? getMonthRange : getWeekRange)(parseDateStr(date)).start;
+}
 
 /** 캐릭터 한 명 몫의 자동 기록 id (api/_lib/scheduler-sync.js 의 soloAutoRunId 와 같은 모양) */
 const soloAutoRunId = (characterId, bossId, start) => `${AUTO_RUN_PREFIX}${characterId}-${bossId}-${start}`;
@@ -52,7 +55,7 @@ async function dropFromAutoRun(run, characterIds) {
 /** 기록 하나 지우기 — 자동 기록이면 건너뛰기 목록에도 남긴다. */
 export const removeRun = (run) => (isAutoRun(run) ? removeAutoRun(run) : deleteRun(run.id));
 
-/** 월간 보스는 같은 달, 나머지는 같은 주(목요일 리셋)를 같은 기간으로 본다. */
+/** 월간 보스는 같은 달, 일간 보스는 같은 날, 나머지는 같은 주(목요일 리셋)를 같은 기간으로 본다. */
 const samePeriod = (bossId, dateA, dateB) => periodStart(bossId, dateA) === periodStart(bossId, dateB);
 
 /**
@@ -101,7 +104,7 @@ export async function syncFromScheduler({ manual = false } = {}) {
   const failedNames = (result.data?.failures || []).map(f => f.character);
   if (count > 0) {
     await reloadAll();
-    toast(`스케줄러에서 잡은 보스 ${count}건을 기록했어요. 지난주와 같은 파티로 넣었으니, 바뀐 게 있으면 수정해 주세요.`, 'ok', 6000);
+    toast(`스케줄러에서 잡은 보스 ${count}건을 기록했어요. 지난번과 같은 파티로 넣었으니, 바뀐 게 있으면 수정해 주세요.`, 'ok', 6000);
   } else if (manual && failedNames.length === 0) {
     toast('새로 잡은 보스가 없어요. 이미 기록했거나 스케줄러에 처치로 아직 안 바뀌었어요.', 'ok');
   }

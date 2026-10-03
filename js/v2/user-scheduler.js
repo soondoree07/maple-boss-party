@@ -1,7 +1,7 @@
 // v2/user-scheduler.js — 유저 캐릭터 창의 "스케줄러" 카드 목록
 //
 // 그 캐릭터가 스케줄러에 등록한 보스를 한 줄에 4개씩 카드로 보여 준다(초상화 · 이름 · 난이도).
-// 이번 주에 잡은 보스는 회색으로 흐리게. 스케줄러는 유저 본인 키가 있어야 열린다.
+// 이번 주에 잡은 보스(일간 보스 아카이럼은 오늘 잡은 것)는 회색으로 흐리게. 스케줄러는 유저 본인 키가 있어야 열린다.
 // 초상화는 png/boss/<공백 뺀 이름>초상화.webp. 없는 보스는 보스 색 네모에 첫 글자.
 
 import { el } from '../utils.js';
@@ -43,7 +43,8 @@ function bossCard(boss) {
   const fallback = el('span', { className: 'v2-sched-fallback', style: { background: BOSS_COLOR.get(key) || 'var(--text-tertiary)' } }, key.slice(0, 1));
   const img = el('img', { src: `png/boss/${key}초상화.webp`, alt: '', loading: 'lazy' });
   img.addEventListener('error', () => img.replaceWith(fallback)); // 초상화가 없는 보스
-  return el('div', { className: `v2-sched-card${boss.completed ? ' done' : ''}`, title: boss.completed ? '이번 주에 잡았어요' : '' },
+  const doneTitle = boss.daily ? '오늘 잡았어요' : '이번 주에 잡았어요';
+  return el('div', { className: `v2-sched-card${boss.completed ? ' done' : ''}`, title: boss.completed ? doneTitle : '' },
     el('div', { className: 'v2-sched-img' }, img),
     el('strong', null, boss.name),
     el('span', null, difficultyLabel(boss.difficulty)));

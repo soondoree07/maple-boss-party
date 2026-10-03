@@ -76,7 +76,15 @@
 
 /* ── 기록 카드 ────────────────────────────────────────── */
 
-.v2-run-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; } /* 옆 카드가 길어도 내용이 늘어나지 않게 */
+/* 2열, 열마다 위에서 아래로 이어 붙인다 (run-weeks.js 가 카드를 두 열에 나눠 담는다) */
+.v2-run-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.v2-run-col { display: grid; gap: inherit; }
+@media (max-width: 640px) {
+  .v2-run-list { display: flex; flex-direction: column; align-items: stretch; }
+  .v2-run-col { display: contents; } /* 한 열로 접으면 카드의 order 로 원래 순서 */
+}
+.v2-share-chip { display: inline-flex; align-items: center; gap: 6px; }
+.v2-share-chip strong { color: var(--accent-gold); font-weight: 700; }
 /* 보스 기록 주차별 묶음 (목요일 리셋 기준) */
 .v2-run-weeks { display: grid; gap: 22px; }
 .v2-run-week-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }

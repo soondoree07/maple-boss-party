@@ -1,8 +1,8 @@
 // api/_lib/scheduler-sync.js — 스케줄러에서 잡은 보스를 자동 기록으로 저장
 //
 // 규칙 (사용자 결정 2026-10-01)
-//  - 스케줄러에 이번 주(월간 보스는 이번 달) 처치로 나온 보스 → 드랍템 없이, 결정석은 보통 기록처럼 인원으로 나눈다.
-//  - 파티: 지난 기간(지난주 · 지난달)에 그 캐릭터가 들어간 같은 보스 기록의 파티를 그대로 쓴다(가장 최근 것).
+//  - 스케줄러에 이번 주(월간 보스는 이번 달, 일간 보스 아카이럼은 오늘) 처치로 나온 보스 → 드랍템 없이, 결정석은 보통 기록처럼 인원으로 나눈다.
+//  - 파티: 지난 기간(지난주 · 지난달 · 어제)에 그 캐릭터가 들어간 같은 보스 기록의 파티를 그대로 쓴다(가장 최근 것).
 //    단 스케줄러를 연결했는데 이번 기간 그 보스가 "처치 안 함"인 파티원은 뺀다(확실히 안 간 사람, 방법 B).
 //    연결 안 한 사람 · 외부 인원은 지난 기간대로 넣는다. 지난 기록이 없으면 혼자.
 //  - 그 기간에 그 캐릭터가 들어간 같은 보스 기록이 이미 있으면 만들지 않는다(직접 기록 · 먼저 만든 파티 기록 우선).
@@ -36,7 +36,7 @@ const BOSS_BY_NAME = new Map(BOSSES.map(b => [compact(b.name), b]));
 const ymd = (d) => d.toISOString().slice(0, 10);
 const addDays = (dateStr, days) => { const d = new Date(`${dateStr}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + days); return ymd(d); };
 
-/** KST 오늘 · 이번/지난 주 시작(목요일) · 이번/지난 달 1일, 모두 YYYY-MM-DD */
+/** KST 오늘 · 어제 · 이번/지난 주 시작(목요일) · 이번/지난 달 1일, 모두 YYYY-MM-DD */
 function kstPeriods(now = new Date()) {
   const today = ymd(new Date(now.getTime() + 9 * 60 * 60 * 1000)); // UTC 로 읽으면 KST 날짜
   const day = new Date(`${today}T00:00:00Z`).getUTCDay();
@@ -45,6 +45,7 @@ function kstPeriods(now = new Date()) {
   const prevMonth = new Date(`${monthStart}T00:00:00Z`); prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1);
   return {
     today,
+    daily: { start: today, prevStart: addDays(today, -1) },
     weekly: { start: weekStart, prevStart: addDays(weekStart, -7) },
     monthly: { start: monthStart, prevStart: ymd(prevMonth) },
   };
@@ -55,10 +56,18 @@ async function completedBosses(character, apiKey, periods) {
   const ocid = await findOcid(character.name);
   const state = await callNexon('/scheduler/character-state', { ocid }, apiKey);
   return (state.boss_contents || [])
-    .filter(b => b.complete_flag === 'true' && b.cycle !== 'bossDaily')
-    .map(b => ({ boss: BOSS_BY_NAME.get(compact(b.content_name)), difficulty: b.difficulty, monthly: b.cycle === 'bossMonthly' }))
+    .filter(b => b.complete_flag === 'true')
+    .map(b => ({ boss: BOSS_BY_NAME.get(compact(b.content_name)), difficulty: b.difficulty, cycle: b.cycle }))
     .filter(b => b.boss && getBossDifficulty(b.boss.id, b.difficulty)) // 우리 목록에 있는 보스 · 난이도만
-    .map(b => ({ boss: b.boss.id, difficulty: b.difficulty, period: b.monthly ? periods.monthly : periods.weekly }));
+    .filter(b => b.cycle !== 'bossDaily' || b.boss.cycle === 'daily')  // 일간 보스는 아카이럼만
+    .map(b => ({ boss: b.boss.id, difficulty: b.difficulty, period: periodOf(b.cycle, periods) }));
+}
+
+/** 넥슨 스케줄러 cycle → 그 보스의 기간 */
+function periodOf(cycle, periods) {
+  if (cycle === 'bossMonthly') return periods.monthly;
+  if (cycle === 'bossDaily') return periods.daily;
+  return periods.weekly;
 }
 
 /**

@@ -1,14 +1,14 @@
 // v2/run-card.js — 기록 카드 한 장 = 같은 주 · 같은 파티가 잡은 보스들
 //
-// 카드 머리: 파티원 · 날짜 · 카드 전체 수익.
+// 카드 머리: 날짜 · 파티원. 혼자면 카드 전체 수익, 파티면 파티원마다 번 돈(외부 인원은 "기타" 1인당).
 // 보스 한 줄마다: 보스 · 난이도 · 결정석 · 수익 / 드랍템 / 수정·삭제.
 // 맨 아래 "+ 이 파티로 보스 추가" 는 같은 파티를 골라 둔 채로 기록 창을 연다.
 
 import { el, parseDateStr, confirmDialog, todayStr, getWeekRange } from '../utils.js';
 import { getBoss, difficultyLabel, getLootImage } from '../data.js';
 import { removeRun, isAutoRun } from './auto-runs.js';
-import { formatEok, runTotal, lootPrice } from './calc.js';
-import { characterName, memberLabels } from './members.js';
+import { formatEok, runTotal, lootPrice, runShares } from './calc.js';
+import { characterName, memberLabels, isExternalCharacter, EXTERNAL_LABEL } from './members.js';
 import { renderBossTag } from './boss-tag.js';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -28,22 +28,45 @@ export function renderRunGroupCard(group, handlers) {
   const dateLabel = dates.length === 1
     ? cardDateLabel(dates[0])
     : `${cardDateLabel(dates[0])} ~ ${cardDateLabel(dates[dates.length - 1])}`;
+  const solo = group.characterIds.length <= 1;
   const groupTotal = group.runs.reduce((sum, run) => sum + runTotal(run), 0);
 
   return el('article', { className: 'v2-run-card' },
     el('header', { className: 'v2-run-head' },
       el('span', { className: 'v2-run-date' }, dateLabel),
-      el('span', { className: 'v2-run-total' }, formatEok(groupTotal)),
+      solo ? el('span', { className: 'v2-run-total' }, formatEok(groupTotal)) : null,
     ),
-    el('div', { className: 'v2-run-members' },
-      memberLabels(group.characterIds).map(name => el('span', { className: 'member-chip' }, name)),
-    ),
+    el('div', { className: 'v2-run-members' }, solo
+      ? memberLabels(group.characterIds).map(name => el('span', { className: 'member-chip' }, name))
+      : memberShares(group).map(({ label, eok }) => el('span', { className: 'member-chip v2-share-chip' },
+        label, el('strong', null, formatEok(eok))))),
     group.runs.map(run => renderBossEntry(run, dates.length > 1, handlers)),
     el('button', {
       className: 'btn btn-ghost btn-mini v2-run-add', type: 'button',
       onclick: () => handlers.onAddMore(group.characterIds, addMoreDate(group)),
     }, '+ 이 파티로 보스 추가'),
   );
+}
+
+/**
+ * 파티원마다 이 카드에서 번 돈. 우리 캐릭터는 한 명씩, 외부 인원은 "기타 ×n 1인당" 하나로 묶는다.
+ * @returns {{ label: string, eok: number }[]}
+ */
+function memberShares(group) {
+  const totals = new Map(group.characterIds.map(id => [id, 0]));
+  for (const run of group.runs) {
+    for (const [id, eok] of runShares(run)) totals.set(id, (totals.get(id) || 0) + eok);
+  }
+  const ours = group.characterIds.filter(id => !isExternalCharacter(id));
+  const externals = group.characterIds.filter(isExternalCharacter);
+  const shares = ours.map(id => ({ label: characterName(id), eok: totals.get(id) }));
+  if (externals.length > 0) {
+    const sum = externals.reduce((acc, id) => acc + totals.get(id), 0);
+    shares.push(externals.length === 1
+      ? { label: EXTERNAL_LABEL, eok: sum }
+      : { label: `${EXTERNAL_LABEL} ×${externals.length} 1인당`, eok: sum / externals.length });
+  }
+  return shares;
 }
 
 /**
