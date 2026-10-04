@@ -304,6 +304,10 @@
   background: rgba(var(--hairline-rgb), 0.045);
   font-size: 13px;
 }
+.v2-loot-entry-link { cursor: pointer; transition: background-color 0.15s ease; }
+.v2-loot-entry-link:hover { background: rgba(var(--hairline-rgb), 0.09); }
+.v2-loot-entry-link:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
+.v2-loot-card .v2-run-card { margin: 0; }
 .v2-loot-entry-date { color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
 .v2-loot-entry-item { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--text-primary); }
 .v2-loot-entry-item strong { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

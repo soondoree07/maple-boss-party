@@ -3,13 +3,14 @@
 // 기록(run)마다 들어 있는 드랍템을 한 줄씩 펼쳐 달별로 묶는다.
 // 한 줄 = 날짜 · 아이템 · 보스 · 누가(독식이면 그 사람, 분배면 파티원 전체) · 가격(나누기 전).
 // 달마다 반지 상자를 몇 번 먹었는지(= 리4 · 컨4 · 꽝(상자 이름) 줄 수)와 리레4 · 컨티4 개수도 따로 보여 준다.
+// 줄을 누르면 그 드랍템을 먹은 기록 카드(같은 주 · 같은 파티)가 창으로 열려 바로 수정 · 삭제할 수 있다.
 
 import { el, todayStr } from '../utils.js';
 import { getBoss, difficultyLabel, getLootImage, isRingBox } from '../data.js';
 import { getRuns } from './store.js';
-import { formatEok, lootPrice } from './calc.js';
+import { formatEok, lootPrice, groupRunsByParty } from './calc.js';
 import { characterName, memberLabels } from './members.js';
-import { cardDateLabel } from './run-card.js';
+import { cardDateLabel, renderRunGroupCard } from './run-card.js';
 import { openModal } from './modal.js';
 
 /** 모든 기록의 드랍템을 최신순 한 줄씩. */
@@ -60,11 +61,33 @@ function whoLabel({ run, item }) {
   return `${memberLabels(run.characterIds).join(' · ')} 분배`;
 }
 
-function renderEntry(entry) {
+/**
+ * 이 기록이 들어 있는 카드(같은 주 · 같은 파티)를 창으로 연다.
+ * 카드에서 수정 · 삭제 · 보스 추가를 누르면 이 창을 먼저 닫고 원래 동작을 한다(저장 뒤 화면을 새로 그리므로).
+ */
+function openRunCard(run, cardHandlers) {
+  const group = groupRunsByParty(getRuns()).find(g => g.runs.some(r => r.id === run.id));
+  if (!group) return;
+  const handlers = Object.fromEntries(Object.entries(cardHandlers)
+    .map(([key, handler]) => [key, (...args) => { close(); handler(...args); }]));
+  const close = openModal({
+    title: '보스 기록',
+    body: el('div', { className: 'v2-loot-card' }, renderRunGroupCard(group, handlers)),
+  });
+}
+
+/** @param {() => void} [beforeOpen] - 카드를 열기 전에 할 일 ("전체 보기" 창 닫기) */
+function renderEntry(entry, cardHandlers, beforeOpen) {
   const { run, item } = entry;
   const img = getLootImage(item.name);
   const boss = getBoss(run.boss);
-  return el('li', { className: 'v2-loot-entry' },
+  const open = () => { beforeOpen?.(); openRunCard(run, cardHandlers); };
+  return el('li', {
+    className: 'v2-loot-entry v2-loot-entry-link', tabIndex: 0, role: 'button',
+    title: '이 기록 카드 열기',
+    onclick: open,
+    onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } },
+  },
     el('span', { className: 'v2-loot-entry-date' }, cardDateLabel(run.date)),
     el('span', { className: 'v2-loot-entry-item' },
       img ? el('img', { className: 'v2-loot-img', src: img, alt: '' }) : null,
@@ -76,10 +99,14 @@ function renderEntry(entry) {
   );
 }
 
-const renderList = (list) => el('ul', { className: 'v2-loot-list' }, list.map(renderEntry));
+const renderList = (list, cardHandlers, beforeOpen) =>
+  el('ul', { className: 'v2-loot-list' }, list.map(entry => renderEntry(entry, cardHandlers, beforeOpen)));
 
-/** 메인 화면 칸 — 이번 달 전리품. */
-export function renderLootHistory() {
+/**
+ * 메인 화면 칸 — 이번 달 전리품.
+ * @param {{ onEdit, onDeleted, onAddMore }} cardHandlers - 줄을 눌러 연 기록 카드의 버튼 동작 (run-card.js 와 같은 모양)
+ */
+export function renderLootHistory(cardHandlers) {
   const months = groupByMonth(lootEntries(getRuns()));
   const thisMonth = todayStr().slice(0, 7);
   const current = months.find(m => m.month === thisMonth);
@@ -89,19 +116,19 @@ export function renderLootHistory() {
       el('h2', { className: 'v2-section-title' }, `${monthLabel(thisMonth)} 전리품`),
       el('span', { className: 'v2-section-sub' }, current ? `${current.list.length}개 · ${formatEok(current.total)}` : ''),
       months.length > 0
-        ? el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openAllMonths(months) }, '전체 보기')
+        ? el('button', { className: 'btn btn-ghost btn-mini', type: 'button', onclick: () => openAllMonths(months, cardHandlers) }, '전체 보기')
         : null,
     ),
     current ? renderRingSummary(current.list) : null,
     current
-      ? renderList(current.list)
+      ? renderList(current.list, cardHandlers)
       : el('p', { className: 'form-hint' }, '이번 달엔 아직 드랍템이 없어요. 기록에 드랍템을 넣으면 여기에 모여요.'),
   );
 }
 
 /** "전체 보기" 창 — 달마다 합계와 목록. 닫기는 위쪽 X · 바깥 클릭 · ESC. */
-function openAllMonths(months) {
-  openModal({
+function openAllMonths(months, cardHandlers) {
+  const close = openModal({
     title: '월별 전리품',
     wide: true,
     body: el('div', { className: 'v2-loot-months' },
@@ -111,7 +138,7 @@ function openAllMonths(months) {
           el('span', null, `${list.length}개 · ${formatEok(total)}`),
         ),
         renderRingSummary(list),
-        renderList(list),
+        renderList(list, cardHandlers, () => close()),
       )),
     ),
   });

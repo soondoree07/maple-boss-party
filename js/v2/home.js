@@ -23,6 +23,12 @@ export function renderHome(container, rerender) {
   clear(container);
 
   const addRun = () => openRunForm(null, rerender);
+  // 기록 카드의 수정 · 삭제 · 보스 추가 (보스 기록 목록과 전리품 줄에서 연 카드가 같이 쓴다)
+  const cardHandlers = {
+    onEdit: (run) => openRunForm(run, rerender),
+    onDeleted: rerender,
+    onAddMore: (characterIds, date) => openRunForm(null, rerender, { characterIds, date }),
+  };
 
   container.appendChild(el('header', { className: 'page-header' },
     el('h1', { className: 'page-title' }, '메이플 보스 기록'),
@@ -36,20 +42,15 @@ export function renderHome(container, rerender) {
 
   container.appendChild(el('main', { className: 'v2-home' },
     renderRanking(),
-    renderLootHistory(),
-    renderRunList(rerender, addRun),
+    renderLootHistory(cardHandlers),
+    renderRunList(rerender, addRun, cardHandlers),
     el('footer', { className: 'v2-home-footer' },
       el('a', { href: '#/archive', className: 'btn btn-ghost' }, '과거 기록 보기')),
   ));
 }
 
-function renderRunList(rerender, addRun) {
+function renderRunList(rerender, addRun, handlers) {
   const runs = getRuns();
-  const handlers = {
-    onEdit: (run) => openRunForm(run, rerender),
-    onDeleted: rerender,
-    onAddMore: (characterIds, date) => openRunForm(null, rerender, { characterIds, date }),
-  };
 
   if (runs.length === 0) {
     return el('section', { className: 'v2-section' },
