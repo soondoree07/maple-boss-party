@@ -1,7 +1,7 @@
 // v2/home.js — 메인 화면: 수익 순위 · 이번 달 전리품 · 기록 카드 목록(주차별)
 
-import { el, clear } from '../utils.js';
-import { getRuns } from './store.js';
+import { el, clear, toast } from '../utils.js';
+import { getRuns, reloadAll } from './store.js';
 import { renderRanking } from './ranking.js';
 import { renderLootHistory } from './loot-history.js';
 import { renderRunWeeks } from './run-weeks.js';
@@ -34,6 +34,7 @@ export function renderHome(container, rerender) {
     el('h1', { className: 'page-title' }, '메이플 보스 기록'),
     el('div', { className: 'header-actions' },
       createThemeToggle(),
+      refreshButton(),
       el('button', { className: 'icon-btn', type: 'button', onclick: openRouletteModal }, '채널 룰렛'),
       el('a', { href: '#/manage', className: 'icon-btn' }, '유저 관리'),
       el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),
@@ -95,6 +96,30 @@ function syncButton() {
       }
     },
   }, '스케줄러에서 가져오기');
+  return button;
+}
+
+/**
+ * 헤더 새로고침 — 스케줄러에서 잡은 보스를 바로 가져오고(10분 제한 없이), 다른 사람이 고친 기록까지 다시 불러온다.
+ * 다시 불러오면 화면 전체를 새로 그리므로 버튼 상태는 따로 되돌리지 않아도 된다(실패할 때만 되돌린다).
+ */
+function refreshButton() {
+  const button = el('button', {
+    className: 'icon-btn', type: 'button', title: '스케줄러에서 잡은 보스를 가져오고 기록을 새로 불러와요',
+    onclick: async () => {
+      button.disabled = true;
+      button.textContent = '새로고침 중..';
+      await syncFromScheduler({ manual: true });
+      try {
+        await reloadAll();
+      } catch (e) {
+        console.error('[home] 새로고침 실패:', e);
+        toast('기록을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.', 'err');
+        button.disabled = false;
+        button.textContent = '새로고침';
+      }
+    },
+  }, '새로고침');
   return button;
 }
 
