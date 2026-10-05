@@ -102,7 +102,7 @@
 }
 
 /* ── 크기 통일 — 칩·작은 버튼·헤더 버튼은 어디에 있든 같은 높이 (그리드에 늘어나지 않게) ── */
-.member-chip, .btn-mini, .v2-run-add {
+.member-chip, .btn-mini {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -116,7 +116,6 @@
 .member-chip { height: 26px; padding: 0 11px; }
 .v2-run-members, .v2-run-actions { align-items: center; }
 .v2-run-card, .v2-boss-entry { align-content: start; }
-.v2-run-add { justify-self: start; }
 
 .header-actions { align-items: center; flex-wrap: wrap; }
 .header-actions > .icon-btn, .header-actions > .btn {

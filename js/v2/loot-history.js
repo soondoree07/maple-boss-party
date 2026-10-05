@@ -63,7 +63,7 @@ function whoLabel({ run, item }) {
 
 /**
  * 이 기록이 들어 있는 카드(같은 주 · 같은 파티)를 창으로 연다.
- * 카드에서 수정 · 삭제 · 보스 추가를 누르면 이 창을 먼저 닫고 원래 동작을 한다(저장 뒤 화면을 새로 그리므로).
+ * 카드에서 수정 · 삭제를 누르면 이 창을 먼저 닫고 원래 동작을 한다(저장 뒤 화면을 새로 그리므로).
  */
 function openRunCard(run, cardHandlers) {
   const group = groupRunsByParty(getRuns()).find(g => g.runs.some(r => r.id === run.id));
@@ -104,7 +104,7 @@ const renderList = (list, cardHandlers, beforeOpen) =>
 
 /**
  * 메인 화면 칸 — 이번 달 전리품.
- * @param {{ onEdit, onDeleted, onAddMore }} cardHandlers - 줄을 눌러 연 기록 카드의 버튼 동작 (run-card.js 와 같은 모양)
+ * @param {{ onEdit, onDeleted }} cardHandlers - 줄을 눌러 연 기록 카드의 버튼 동작 (run-card.js 와 같은 모양)
  */
 export function renderLootHistory(cardHandlers) {
   const months = groupByMonth(lootEntries(getRuns()));

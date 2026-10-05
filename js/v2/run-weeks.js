@@ -32,8 +32,8 @@ function weekTitle(weekStart) {
   return range;
 }
 
-/** 카드 높이 어림값(줄 수). 머리 · 파티원 · 추가 버튼 + 보스마다 머리 · 버튼 + 드랍템 줄. */
-const estimateHeight = (group) => 3 + group.runs.reduce((sum, run) => sum + 2 + run.loot.length, 0);
+/** 카드 높이 어림값(줄 수). 머리 · 파티원 + 보스마다 머리 · 버튼 + 드랍템 줄. */
+const estimateHeight = (group) => 2 + group.runs.reduce((sum, run) => sum + 2 + run.loot.length, 0);
 
 /** 카드들을 두 열로 나눈다. 순서대로 더 짧은 열에 넣는다. */
 function renderColumns(cards) {
@@ -49,7 +49,7 @@ function renderColumns(cards) {
 
 /**
  * @param {object[]} cardGroups - calc.groupRunsByParty 결과 (보여 줄 만큼 자른 것)
- * @param {object} handlers - run-card 의 onEdit · onDeleted · onAddMore
+ * @param {object} handlers - run-card 의 onEdit · onDeleted
  */
 export function renderRunWeeks(cardGroups, handlers) {
   return el('div', { className: 'v2-run-weeks' }, groupByWeek(cardGroups).map(({ weekStart, groups }) => {

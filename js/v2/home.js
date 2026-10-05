@@ -22,35 +22,33 @@ let visibleCount = PAGE_SIZE; // "더 보기"로 늘린 개수는 다시 그려�
 export function renderHome(container, rerender) {
   clear(container);
 
-  const addRun = () => openRunForm(null, rerender);
-  // 기록 카드의 수정 · 삭제 · 보스 추가 (보스 기록 목록과 전리품 줄에서 연 카드가 같이 쓴다)
+  // 기록은 스케줄러에서만 들어온다. 화면에서는 수정 · 삭제만 한다
+  // (보스 기록 목록과 전리품 줄에서 연 카드가 같이 쓴다).
   const cardHandlers = {
     onEdit: (run) => openRunForm(run, rerender),
     onDeleted: rerender,
-    onAddMore: (characterIds, date) => openRunForm(null, rerender, { characterIds, date }),
   };
 
   container.appendChild(el('header', { className: 'page-header' },
     el('h1', { className: 'page-title' }, '메이플 보스 기록'),
     el('div', { className: 'header-actions' },
       createThemeToggle(),
-      refreshButton(),
       el('button', { className: 'icon-btn', type: 'button', onclick: openRouletteModal }, '채널 룰렛'),
       el('a', { href: '#/manage', className: 'icon-btn' }, '유저 관리'),
-      el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),
+      syncButton(),
     ),
   ));
 
   container.appendChild(el('main', { className: 'v2-home' },
     renderRanking(),
     renderLootHistory(cardHandlers),
-    renderRunList(rerender, addRun, cardHandlers),
+    renderRunList(rerender, cardHandlers),
     el('footer', { className: 'v2-home-footer' },
       el('a', { href: '#/archive', className: 'btn btn-ghost' }, '과거 기록 보기')),
   ));
 }
 
-function renderRunList(rerender, addRun, handlers) {
+function renderRunList(rerender, handlers) {
   const runs = getRuns();
 
   if (runs.length === 0) {
@@ -58,8 +56,6 @@ function renderRunList(rerender, addRun, handlers) {
       el('h2', { className: 'v2-section-title' }, '보스 기록'),
       el('div', { className: 'empty-state' },
         el('p', null, '아직 기록이 없어요'),
-        el('p', { className: 'empty-state-sub' }, '보스를 잡으면 첫 기록을 남겨 보세요'),
-        el('button', { className: 'btn btn-primary', type: 'button', onclick: addRun }, '+ 기록 추가'),
       ),
     );
   }
@@ -70,8 +66,6 @@ function renderRunList(rerender, addRun, handlers) {
     el('div', { className: 'v2-section-head' },
       el('h2', { className: 'v2-section-title' }, '보스 기록'),
       el('span', { className: 'v2-section-sub' }, `보스 ${runs.length}건`),
-      syncButton(),
-      el('button', { className: 'btn btn-primary btn-mini', type: 'button', onclick: addRun }, '+ 기록 추가'),
     ),
     renderRunWeeks(shown, handlers),
     groups.length > visibleCount
@@ -83,43 +77,29 @@ function renderRunList(rerender, addRun, handlers) {
   );
 }
 
-/** 스케줄러에서 잡은 보스를 지금 가져오기 (사이트를 열 때도 10분에 한 번 자동으로 가져온다) */
+/**
+ * 스케줄러에서 가져오기 — 잡은 보스를 바로 가져오고(10분 제한 없이), 다른 사람이 고친 기록까지 다시 불러온다.
+ * 사이트를 열 때도 10분에 한 번 자동으로 가져온다.
+ * 다시 불러오면 화면 전체를 새로 그리므로 버튼 상태는 따로 되돌리지 않아도 된다(실패할 때만 되돌린다).
+ */
 function syncButton() {
+  const label = '스케줄러에서 가져오기';
   const button = el('button', {
-    className: 'btn btn-ghost btn-mini', type: 'button', title: '스케줄러에서 이번 주에 잡은 보스를 지난주와 같은 파티로 기록해요',
+    className: 'btn btn-primary', type: 'button', title: '스케줄러에서 잡은 보스를 가져오고 기록을 새로 불러와요',
     onclick: async () => {
       button.disabled = true;
       button.textContent = '가져오는 중..';
-      try { await syncFromScheduler({ manual: true }); } finally {
-        button.disabled = false;
-        button.textContent = '스케줄러에서 가져오기';
-      }
-    },
-  }, '스케줄러에서 가져오기');
-  return button;
-}
-
-/**
- * 헤더 새로고침 — 스케줄러에서 잡은 보스를 바로 가져오고(10분 제한 없이), 다른 사람이 고친 기록까지 다시 불러온다.
- * 다시 불러오면 화면 전체를 새로 그리므로 버튼 상태는 따로 되돌리지 않아도 된다(실패할 때만 되돌린다).
- */
-function refreshButton() {
-  const button = el('button', {
-    className: 'icon-btn', type: 'button', title: '스케줄러에서 잡은 보스를 가져오고 기록을 새로 불러와요',
-    onclick: async () => {
-      button.disabled = true;
-      button.textContent = '새로고침 중..';
       await syncFromScheduler({ manual: true });
       try {
         await reloadAll();
       } catch (e) {
-        console.error('[home] 새로고침 실패:', e);
+        console.error('[home] 기록 다시 불러오기 실패:', e);
         toast('기록을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.', 'err');
         button.disabled = false;
-        button.textContent = '새로고침';
+        button.textContent = label;
       }
     },
-  }, '새로고침');
+  }, label);
   return button;
 }
 

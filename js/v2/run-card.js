@@ -2,9 +2,9 @@
 //
 // 카드 머리: 날짜 · 파티원. 혼자면 카드 전체 수익, 파티면 파티원마다 번 돈(외부 인원은 "기타" 1인당).
 // 보스 한 줄마다: 보스 · 난이도 · 결정석 · 수익 / 드랍템 / 수정·삭제.
-// 맨 아래 "+ 이 파티로 보스 추가" 는 같은 파티를 골라 둔 채로 기록 창을 연다.
+// 새 기록은 스케줄러에서만 들어오므로 카드에서 보스를 더하는 버튼은 없다.
 
-import { el, parseDateStr, confirmDialog, todayStr, getWeekRange } from '../utils.js';
+import { el, parseDateStr, confirmDialog } from '../utils.js';
 import { getBoss, difficultyLabel, getLootImage } from '../data.js';
 import { removeRun, isAutoRun } from './auto-runs.js';
 import { formatEok, runTotal, lootPrice, runShares } from './calc.js';
@@ -21,7 +21,7 @@ export function cardDateLabel(dateStr) {
 
 /**
  * @param {{ characterIds: string[], runs: object[] }} group - calc.groupRunsByParty 결과 하나
- * @param {{ onEdit: (run) => void, onDeleted: () => void, onAddMore: (characterIds, date) => void }} handlers
+ * @param {{ onEdit: (run) => void, onDeleted: () => void }} handlers
  */
 export function renderRunGroupCard(group, handlers) {
   const dates = [...new Set(group.runs.map(run => run.date))];
@@ -41,10 +41,6 @@ export function renderRunGroupCard(group, handlers) {
       : memberShares(group).map(({ label, eok }) => el('span', { className: 'member-chip v2-share-chip' },
         label, el('strong', null, formatEok(eok))))),
     group.runs.map(run => renderBossEntry(run, dates.length > 1, handlers)),
-    el('button', {
-      className: 'btn btn-ghost btn-mini v2-run-add', type: 'button',
-      onclick: () => handlers.onAddMore(group.characterIds, addMoreDate(group)),
-    }, '+ 이 파티로 보스 추가'),
   );
 }
 
@@ -67,16 +63,6 @@ function memberShares(group) {
       : { label: `${EXTERNAL_LABEL} ×${externals.length} 1인당`, eok: sum / externals.length });
   }
   return shares;
-}
-
-/**
- * "이 파티로 보스 추가"의 날짜. 이번 주 카드면 오늘, 지난 주 카드면 그 카드의 마지막 날
- * (오늘로 넣으면 이번 주 새 카드로 가 버려서 그 카드에 붙지 않는다).
- */
-function addMoreDate(group) {
-  const today = todayStr();
-  if (getWeekRange(parseDateStr(today)).start === group.weekStart) return today;
-  return group.runs[group.runs.length - 1].date;
 }
 
 function renderBossEntry(run, showDate, { onEdit, onDeleted }) {

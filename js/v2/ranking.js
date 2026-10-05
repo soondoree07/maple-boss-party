@@ -10,7 +10,7 @@ const PERIODS = [
   { key: 'all', label: '전체' },
 ];
 
-// 다시 그려도(기록 추가 · 실시간 갱신) 보던 기간을 유지한다.
+// 다시 그려도(기록 수정 · 실시간 갱신) 보던 기간을 유지한다.
 let currentPeriod = 'week';
 
 export function renderRanking() {
