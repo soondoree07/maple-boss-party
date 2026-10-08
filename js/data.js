@@ -112,7 +112,7 @@ const RING_BOX_NAMES = new Set(Object.values(RING_BOX));
 export const isRingBox = (name) => RING_BOX_NAMES.has(name);
 
 // 보스 · 난이도별 반지 상자. 출처: 메이플스토리 공식 "보스별 주요 보상" + 인벤 · 나무위키 난이도 구분.
-// 칼로스 · 대적자 · 카링 · 벨로나는 하드(카오스) 이상 = 생명, 그 아래 = 백옥 (나무위키 "특수 스킬 반지" 대조 2026-10-08).
+// 칼로스 · 대적자 · 카링 · 벨로나 · 흉성은 하드(카오스) 이상 = 생명, 그 아래 = 백옥 (나무위키 보스 문서 대조 2026-10-08).
 const RING_BOX_BY_DIFFICULTY = {
   suu:       { hard: RING_BOX.red, extreme: RING_BOX.white },
   damien:    { hard: RING_BOX.red },
@@ -124,7 +124,7 @@ const RING_BOX_BY_DIFFICULTY = {
   gas:       { chaos: RING_BOX.black },
   seren:     { normal: RING_BOX.black, hard: RING_BOX.white, extreme: RING_BOX.white },
   blackmage: { hard: RING_BOX.white, extreme: RING_BOX.white },
-  lotus:     { normal: RING_BOX.white, hard: RING_BOX.white },
+  lotus:     { normal: RING_BOX.white, hard: RING_BOX.life },
   kaling:    { easy: RING_BOX.white, normal: RING_BOX.white, hard: RING_BOX.life, extreme: RING_BOX.life },
   bellona:   { easy: RING_BOX.white, normal: RING_BOX.white, hard: RING_BOX.life },
   kalos:     { easy: RING_BOX.white, normal: RING_BOX.white, chaos: RING_BOX.life, extreme: RING_BOX.life },
@@ -200,7 +200,7 @@ export const BOSSES = [
     id: 'limbo', name: '림보', cycle: 'weekly', color: '#60A5FA',
     difficulties: [
       { key: 'normal', crystal: 9.9, loot: ['3단계 소울 에테르', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '신마석', ...COMMON] },
-      { key: 'hard',   crystal: 23.8, loot: ['3단계 소울 에테르', ...LEGACY_LOOT.limbo] },
+      { key: 'hard',   crystal: 23.8, loot: ['3단계 소울 에테르', '에테상자', ...LEGACY_LOOT.limbo] },
     ],
   },
   {
@@ -219,7 +219,7 @@ export const BOSSES = [
     id: 'baldrix', name: '발드릭스', cycle: 'weekly', color: '#34D399',
     difficulties: [
       { key: 'normal', crystal: 13.2, loot: ['3단계 소울 에테르', '신마석', ...PURPLE_CORE, ...COMMON] },
-      { key: 'hard',   crystal: 30.7, loot: ['3단계 소울 에테르', '죽음의 맹세', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 30.7, loot: ['3단계 소울 에테르', '죽음의 맹세', '에테상자', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
@@ -228,7 +228,7 @@ export const BOSSES = [
       // 반지 상자(백옥·생명) = 리4·컨4 / 혼돈의 칠흑 장신구 상자 = 퍼플코어 / 광기의 에테르넬 방어구 상자 = 에테상자
       { key: 'easy',   crystal: 3.9,  loot: ['리4', '컨4'] },
       { key: 'normal', crystal: 8.2,  loot: ['연마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
-      { key: 'hard',   crystal: 29.5, loot: ['굶주리는 핏빛 원혼', '에테상자', '신마석', '연마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
+      { key: 'hard',   crystal: 29.5, loot: ['굶주리는 핏빛 원혼', '에테상자', '신마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
     ],
   },
   {
@@ -280,7 +280,7 @@ export const BOSSES = [
     id: 'jupiter', name: '유피테르', cycle: 'weekly', color: '#FB923C',
     difficulties: [
       { key: 'normal', crystal: 15.6, loot: ['4단계 소울 에테르', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',   crystal: 48.4, loot: ['4단계 소울 에테르', '오만의 원죄', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 48.4, loot: ['4단계 소울 에테르', '오만의 원죄', '에테상자', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
@@ -306,9 +306,9 @@ export const BOSSES = [
   {
     id: 'adversary', name: '최초의 대적자', cycle: 'weekly', color: '#FFD93D',
     difficulties: [
-      { key: 'easy',    crystal: 2.6, loot: ['연마석', ...COMMON] },
+      { key: 'easy',    crystal: 2.6, loot: [...COMMON] },
       { key: 'normal',  crystal: 5.3, loot: ['1단계 소울 에테르', '연마석', ...COMMON] },
-      { key: 'hard',    crystal: 13.9, loot: ['1단계 소울 에테르', '불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON] },
+      { key: 'hard',    crystal: 13.9, loot: ['1단계 소울 에테르', '불멸의 유산', '에테상자', '연마석', ...COMMON] },
       { key: 'extreme', crystal: 47.1, loot: ['1단계 소울 에테르', '해머(훈장)', '불멸의 유산', '에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
