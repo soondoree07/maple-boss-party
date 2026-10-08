@@ -86,7 +86,7 @@ const COMMON = ['리4', '컨4'];
 
 // ── 보스 반지 상자 ───────────────────────────────────
 //
-// 반지는 상자를 열어 나온다. 기록 창에서 상자를 누르면 RING_BOX_CONTENTS 중에서 고른다.
+// 반지는 상자를 열어 나온다. 기록 창에서 상자를 누르면 getRingBoxContents(상자) 중에서 고른다.
 // 리레 4 · 컨티 4 만 값이 있고, 나머지 반지는 모두 꽝 = "그 상자 이름 + 0억"으로 기록한다 (사용자 결정 2026-10-01).
 // 녹옥 상자는 1~3레벨만 나와 리4 · 컨4 가 없으므로 드랍 목록에 넣지 않는다.
 export const RING_BOX = {
@@ -100,26 +100,35 @@ export const RING_BOX_CONTENTS = [
   { name: '컨4', label: '컨티뉴어스 링 4' },
   { name: null, label: '꽝' }, // name 이 없으면 상자 이름으로 기록
 ];
+// 생명 상자는 백옥 상자에 생명의 연마석이 더 들어간 상자다 (2025-03-20 패치). 신념의 연마석은 안 나온다.
+const LIFE_BOX_CONTENTS = [
+  ...RING_BOX_CONTENTS.slice(0, 2),
+  { name: '연마석', label: '생명의 연마석' },
+  ...RING_BOX_CONTENTS.slice(2),
+];
+/** 그 상자를 열었을 때 고를 수 있는 것 [{ name, label }] */
+export const getRingBoxContents = (boxName) => (boxName === RING_BOX.life ? LIFE_BOX_CONTENTS : RING_BOX_CONTENTS);
 const RING_BOX_NAMES = new Set(Object.values(RING_BOX));
 export const isRingBox = (name) => RING_BOX_NAMES.has(name);
 
 // 보스 · 난이도별 반지 상자. 출처: 메이플스토리 공식 "보스별 주요 보상" + 인벤 · 나무위키 난이도 구분.
-// 카링 · 벨로나는 하드 이상 = 생명, 그 아래 = 백옥 (사용자 확인 2026-10-01).
+// 칼로스 · 대적자 · 카링 · 벨로나는 하드(카오스) 이상 = 생명, 그 아래 = 백옥 (나무위키 "특수 스킬 반지" 대조 2026-10-08).
 const RING_BOX_BY_DIFFICULTY = {
   suu:       { hard: RING_BOX.red, extreme: RING_BOX.white },
   damien:    { hard: RING_BOX.red },
   lucid:     { hard: RING_BOX.red },
   will:      { hard: RING_BOX.red },
-  jinhilla:  { hard: RING_BOX.black },
+  jinhilla:  { normal: RING_BOX.red, hard: RING_BOX.black },
   dunkel:    { hard: RING_BOX.black },
   dusk:      { chaos: RING_BOX.black },
+  gas:       { chaos: RING_BOX.black },
   seren:     { normal: RING_BOX.black, hard: RING_BOX.white, extreme: RING_BOX.white },
   blackmage: { hard: RING_BOX.white, extreme: RING_BOX.white },
   lotus:     { normal: RING_BOX.white, hard: RING_BOX.white },
   kaling:    { easy: RING_BOX.white, normal: RING_BOX.white, hard: RING_BOX.life, extreme: RING_BOX.life },
   bellona:   { easy: RING_BOX.white, normal: RING_BOX.white, hard: RING_BOX.life },
-  kalos:     { easy: RING_BOX.life, normal: RING_BOX.life, chaos: RING_BOX.life, extreme: RING_BOX.life },
-  adversary: { easy: RING_BOX.life, normal: RING_BOX.life, hard: RING_BOX.life, extreme: RING_BOX.life },
+  kalos:     { easy: RING_BOX.white, normal: RING_BOX.white, chaos: RING_BOX.life, extreme: RING_BOX.life },
+  adversary: { easy: RING_BOX.white, normal: RING_BOX.white, hard: RING_BOX.life, extreme: RING_BOX.life },
   limbo:     { normal: RING_BOX.life, hard: RING_BOX.life },
   baldrix:   { normal: RING_BOX.life, hard: RING_BOX.life },
   jupiter:   { normal: RING_BOX.life, hard: RING_BOX.life },
