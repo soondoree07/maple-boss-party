@@ -33,7 +33,9 @@ const PURPLE  = ['루컨마', '마깃안', '몽벨', '마도서', '거공', '고
 const SOUL    = ['1단계 소울 에테르', '2단계 소울 에테르', '3단계 소울 에테르', '4단계 소울 에테르'];
 // 반지 상자 이름은 "꽝" 기록이다 (상자 이름 + 0억). 정렬 자리를 리4 · 컨4 바로 뒤에 둔다.
 const DEFAULT = ['리3', '리4', '컨3', '컨4',
-  '홍옥의 보스 반지 상자', '흑옥의 보스 반지 상자', '백옥의 보스 반지 상자', '생명의 보스 반지 상자', '에테상자'];
+  '홍옥의 보스 반지 상자', '흑옥의 보스 반지 상자', '백옥의 보스 반지 상자', '생명의 보스 반지 상자',
+  // 에테르넬 방어구 상자는 보스마다 이름이 다르다 (2026-10-08 나눔). '에테상자'는 나누기 전 이름.
+  '의지 에테상자', '고대 에테상자', '환상 에테상자', '흉수 에테상자', '광기 에테상자', '욕망 에테상자', '맹세 에테상자', '갈망 에테상자', '에테상자'];
 
 // 전리품 그룹 표시 순서: 유니크 → 해머 → 에픽 → 퍼플코어 → 소울 에테르 → 기본
 const LOOT_GROUP_ORDER = ['unique', 'hammer', 'epic', 'purple', 'soul', 'default'];
@@ -140,11 +142,11 @@ const PURPLE_CORE = ['거공', '몽벨', '마깃안', '루컨마', '고근', '�
 // (사용자 결정: 표에 적힌 난이도는 표 값 / 빈칸은 기존 보스 전리품 / 신규 18보스 빈칸은 결정석만)
 const LEGACY_LOOT = {
   seren:     ['해머(얼굴장식)', '미트라의 분노', '영달포', ...COMMON],
-  kalos:     ['해머(눈장식)', '에테상자', '연마석', '영달포', ...COMMON],
-  adversary: ['해머(훈장)', '불멸의 유산', '에테상자', '연마석', '영달포', ...COMMON],
-  kaling:    ['해머(귀고리)', '에테상자', '신마석', ...PURPLE_CORE, ...COMMON],
-  lotus:     ['황홀한 악몽', '에테상자', '신마석', ...PURPLE_CORE, ...COMMON],
-  limbo:     ['근원의 속삭임', '장신망상자', '신마석', ...PURPLE_CORE, ...COMMON],
+  kalos:     ['해머(눈장식)', '의지 에테상자', '연마석', '영달포', ...COMMON],
+  adversary: ['해머(훈장)', '불멸의 유산', '고대 에테상자', '연마석', '영달포', ...COMMON],
+  kaling:    ['해머(귀고리)', '흉수 에테상자', '신마석', ...PURPLE_CORE, ...COMMON],
+  lotus:     ['황홀한 악몽', '환상 에테상자', '신마석', ...PURPLE_CORE, ...COMMON],
+  limbo:     ['근원의 속삭임', '신마석', ...PURPLE_CORE, ...COMMON],
   baldrix:   ['죽음의 맹세', '장신망상자', '신마석', ...PURPLE_CORE, ...COMMON],
   jupiter:   ['오만의 원죄', ...COMMON],
   blackmage: ['해머(벨트)', '창세의 뱃지', ...COMMON],
@@ -163,8 +165,8 @@ export const BOSSES = [
     difficulties: [
       { key: 'easy',    crystal: 2.3, loot: [...COMMON] },
       { key: 'normal',  crystal: 4.7, loot: ['연마석', ...COMMON] },
-      { key: 'chaos',   crystal: 12.3, loot: ['에테상자', '연마석', ...COMMON] },
-      { key: 'extreme', crystal: 41.0, loot: ['해머(눈장식)', '에테상자', '영달포', '연마석', ...COMMON] },
+      { key: 'chaos',   crystal: 12.3, loot: ['의지 에테상자', '연마석', ...COMMON] },
+      { key: 'extreme', crystal: 41.0, loot: ['해머(눈장식)', '의지 에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
@@ -200,7 +202,7 @@ export const BOSSES = [
     id: 'limbo', name: '림보', cycle: 'weekly', color: '#60A5FA',
     difficulties: [
       { key: 'normal', crystal: 9.9, loot: ['3단계 소울 에테르', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '신마석', ...COMMON] },
-      { key: 'hard',   crystal: 23.8, loot: ['3단계 소울 에테르', '에테상자', ...LEGACY_LOOT.limbo] },
+      { key: 'hard',   crystal: 23.8, loot: ['3단계 소울 에테르', '욕망 에테상자', ...LEGACY_LOOT.limbo] },
     ],
   },
   {
@@ -219,16 +221,16 @@ export const BOSSES = [
     id: 'baldrix', name: '발드릭스', cycle: 'weekly', color: '#34D399',
     difficulties: [
       { key: 'normal', crystal: 13.2, loot: ['3단계 소울 에테르', '신마석', ...PURPLE_CORE, ...COMMON] },
-      { key: 'hard',   crystal: 30.7, loot: ['3단계 소울 에테르', '죽음의 맹세', '에테상자', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 30.7, loot: ['3단계 소울 에테르', '죽음의 맹세', '맹세 에테상자', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
     id: 'bellona', name: '벨로나', cycle: 'weekly', color: '#F0ABFC',
     difficulties: [
-      // 반지 상자(백옥·생명) = 리4·컨4 / 혼돈의 칠흑 장신구 상자 = 퍼플코어 / 광기의 에테르넬 방어구 상자 = 에테상자
+      // 반지 상자(백옥·생명) = 리4·컨4 / 혼돈의 칠흑 장신구 상자 = 퍼플코어 / 광기의 에테르넬 방어구 상자 = 광기 에테상자
       { key: 'easy',   crystal: 3.9,  loot: ['리4', '컨4'] },
       { key: 'normal', crystal: 8.2,  loot: ['연마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
-      { key: 'hard',   crystal: 29.5, loot: ['굶주리는 핏빛 원혼', '에테상자', '신마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
+      { key: 'hard',   crystal: 29.5, loot: ['굶주리는 핏빛 원혼', '광기 에테상자', '신마석', ...PURPLE_CORE, '2단계 소울 에테르', '리4', '컨4'] },
     ],
   },
   {
@@ -280,7 +282,7 @@ export const BOSSES = [
     id: 'jupiter', name: '유피테르', cycle: 'weekly', color: '#FB923C',
     difficulties: [
       { key: 'normal', crystal: 15.6, loot: ['4단계 소울 에테르', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',   crystal: 48.4, loot: ['4단계 소울 에테르', '오만의 원죄', '에테상자', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'hard',   crystal: 48.4, loot: ['4단계 소울 에테르', '오만의 원죄', '갈망 에테상자', '신마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
     ],
   },
   {
@@ -308,8 +310,8 @@ export const BOSSES = [
     difficulties: [
       { key: 'easy',    crystal: 2.6, loot: [...COMMON] },
       { key: 'normal',  crystal: 5.3, loot: ['1단계 소울 에테르', '연마석', ...COMMON] },
-      { key: 'hard',    crystal: 13.9, loot: ['1단계 소울 에테르', '불멸의 유산', '에테상자', '연마석', ...COMMON] },
-      { key: 'extreme', crystal: 47.1, loot: ['1단계 소울 에테르', '해머(훈장)', '불멸의 유산', '에테상자', '영달포', '연마석', ...COMMON] },
+      { key: 'hard',    crystal: 13.9, loot: ['1단계 소울 에테르', '불멸의 유산', '고대 에테상자', '연마석', ...COMMON] },
+      { key: 'extreme', crystal: 47.1, loot: ['1단계 소울 에테르', '해머(훈장)', '불멸의 유산', '고대 에테상자', '영달포', '연마석', ...COMMON] },
     ],
   },
   {
@@ -317,8 +319,8 @@ export const BOSSES = [
     difficulties: [
       { key: 'easy',    crystal: 3.2, loot: [] },
       { key: 'normal',  crystal: 5.9, loot: ['1단계 소울 에테르', '연마석', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'hard',    crystal: 15.6, loot: ['1단계 소울 에테르', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
-      { key: 'extreme', crystal: 53.8, loot: ['1단계 소울 에테르', '해머(귀고리)', '신마석', '에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
+      { key: 'hard',    crystal: 15.6, loot: ['1단계 소울 에테르', '신마석', '흉수 에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', ...COMMON] },
+      { key: 'extreme', crystal: 53.8, loot: ['1단계 소울 에테르', '해머(귀고리)', '신마석', '흉수 에테상자', '루컨마', '마깃안', '몽벨', '거공', '마도서', '고근', '커포링', '영달포', ...COMMON] },
     ],
   },
   {
@@ -423,6 +425,14 @@ export const LOOT_IMAGE = {
   '언컨':           'png/언컨.png',
   // 박스 / 석재 / 영달포
   '에테상자':       'png/에테상자.png',
+  '의지 에테상자': 'png/의지 에테상자.png',
+  '고대 에테상자': 'png/고대 에테상자.webp',
+  '환상 에테상자': 'png/환상 에테상자.webp',
+  '흉수 에테상자': 'png/흉수 에테상자.webp',
+  '광기 에테상자': 'png/광기 에테상자.webp',
+  '욕망 에테상자': 'png/욕망 에테상자.webp',
+  '맹세 에테상자': 'png/맹세 에테상자.webp',
+  '갈망 에테상자': 'png/갈망 에테상자.webp',
   '장신망상자':     'png/장신망상자.webp',
   '연마석':         'png/연마석.webp',
   '신마석':         'png/신마석.webp',
