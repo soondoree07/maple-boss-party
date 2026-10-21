@@ -1,4 +1,4 @@
-// v2/loot-history.js — 월별 전리품 (메인: 이번 달만 / "전체 보기": 달마다 누가 뭘 얼마에)
+// v2/loot-history.js — 월별 전리품 (메인: 이번 달 최신 10줄 + 더 보기 / "전체 보기": 달마다 누가 뭘 얼마에)
 //
 // 기록(run)마다 들어 있는 드랍템을 한 줄씩 펼쳐 달별로 묶는다.
 // 한 줄 = 날짜 · 아이템 · 보스 · 누가(독식이면 그 사람, 분배면 파티원 전체) · 가격(나누기 전).
@@ -102,6 +102,29 @@ function renderEntry(entry, cardHandlers, beforeOpen) {
 const renderList = (list, cardHandlers, beforeOpen) =>
   el('ul', { className: 'v2-loot-list' }, list.map(entry => renderEntry(entry, cardHandlers, beforeOpen)));
 
+/** 메인 칸에서 처음 보여 줄 줄 수. 나머지는 "더 보기"로 펼친다. */
+const MAIN_VISIBLE_COUNT = 10;
+// 펼친 상태는 화면을 새로 그려도(기록 수정 · 삭제 뒤) 유지한다.
+let mainListExpanded = false;
+
+/** 최신 MAIN_VISIBLE_COUNT 줄만 보여 주고, 나머지는 "더 보기 / 접기" 버튼으로 펼친다. */
+function renderCollapsibleList(list, cardHandlers) {
+  const ul = renderList(list, cardHandlers);
+  const hiddenCount = list.length - MAIN_VISIBLE_COUNT;
+  if (hiddenCount <= 0) return ul;
+
+  const extraRows = [...ul.children].slice(MAIN_VISIBLE_COUNT);
+  const button = el('button', { className: 'btn btn-ghost v2-more', type: 'button' });
+  const apply = () => {
+    extraRows.forEach(row => { row.hidden = !mainListExpanded; });
+    button.textContent = mainListExpanded ? '접기' : `더 보기 (${hiddenCount}개 더)`;
+    button.setAttribute('aria-expanded', String(mainListExpanded));
+  };
+  button.onclick = () => { mainListExpanded = !mainListExpanded; apply(); };
+  apply();
+  return el('div', null, ul, button);
+}
+
 /**
  * 메인 화면 칸 — 이번 달 전리품.
  * @param {{ onEdit, onDeleted }} cardHandlers - 줄을 눌러 연 기록 카드의 버튼 동작 (run-card.js 와 같은 모양)
@@ -121,7 +144,7 @@ export function renderLootHistory(cardHandlers) {
     ),
     current ? renderRingSummary(current.list) : null,
     current
-      ? renderList(current.list, cardHandlers)
+      ? renderCollapsibleList(current.list, cardHandlers)
       : el('p', { className: 'form-hint' }, '이번 달엔 아직 드랍템이 없어요. 기록에 드랍템을 넣으면 여기에 모여요.'),
   );
 }
