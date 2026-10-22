@@ -376,12 +376,12 @@ for (const boss of BOSSES) {
 
 // ── 채널 ──────────────────────────────────────────────
 //
-// 채널 40개. 인게임 채널 선택창 순서:
-//   1채널 → 20세이상 → 2채널 → 3채널 → ... → 39채널
+// 채널 60개. 인게임 채널 선택창 순서:
+//   1채널 → 20세이상 → 2채널 → 3채널 → ... → 59채널
 
 export const CHANNELS = (() => {
   const list = ['1', '20세이상'];
-  for (let i = 2; i <= 39; i++) list.push(String(i));
+  for (let i = 2; i <= 59; i++) list.push(String(i));
   return list;
 })();
 
