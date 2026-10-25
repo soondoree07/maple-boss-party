@@ -10,13 +10,13 @@
 
 export const DIFFICULTY_LABEL = {
   easy:    '이지',
-  normal:  '노멀',
+  normal:  '노말',
   hard:    '하드',
   chaos:   '카오스',
   extreme: '익스트림',
 };
 
-// 난이도 정렬 순서 (이지 < 노멀 < 하드 < 카오스 < 익스트림)
+// 난이도 정렬 순서 (이지 < 노말 < 하드 < 카오스 < 익스트림)
 
 export const difficultyLabel = (key) => DIFFICULTY_LABEL[key] || key;
 

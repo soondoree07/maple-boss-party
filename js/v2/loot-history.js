@@ -55,8 +55,9 @@ const monthLabel = (month) => {
   return `${y}년 ${m}월`;
 };
 
-/** 누가 가져갔는지. 독식이면 그 사람, 분배면 파티원 전체. */
+/** 누가 가져갔는지. 혼자 잡았으면 이름만, 독식이면 그 사람, 분배면 파티원 전체. */
 function whoLabel({ run, item }) {
+  if (run.characterIds.length === 1) return memberLabels(run.characterIds)[0];
   if (item.mode === 'solo') return `${characterName(item.takerCharacterId)} 독식`;
   return `${memberLabels(run.characterIds).join(' · ')} 분배`;
 }

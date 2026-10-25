@@ -100,9 +100,12 @@ function renderBossEntry(run, showDate, { onEdit, onDeleted }) {
 function renderLootLine(item, headcount) {
   const img = getLootImage(item.name);
   const price = lootPrice(item);
-  const how = item.mode === 'solo'
-    ? `${formatEok(price)} ${characterName(item.takerCharacterId)} 독식`
-    : `${formatEok(price)} 1인당 ${formatEok(price / headcount)} 분배`;
+  // 혼자 잡은 기록은 "독식" 없이 이름만 쓴다 (사용자 결정 2026-10-25).
+  const how = headcount === 1
+    ? `${formatEok(price)} ${characterName(item.takerCharacterId)}`
+    : item.mode === 'solo'
+      ? `${formatEok(price)} ${characterName(item.takerCharacterId)} 독식`
+      : `${formatEok(price)} 1인당 ${formatEok(price / headcount)} 분배`;
   return el('div', { className: 'v2-run-line' },
     el('span', { className: 'v2-run-label v2-loot-name' },
       img ? el('img', { className: 'v2-loot-img', src: img, alt: '' }) : null,
