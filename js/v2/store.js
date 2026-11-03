@@ -51,18 +51,27 @@ const byNewest = (a, b) => b.date.localeCompare(a.date) || String(b.createdAt).l
 let loadSeq = 0;
 let latestLoad = Promise.resolve();
 
+// Supabase 는 한 번에 최대 1000줄만 돌려준다. 기록은 자동 기록으로 금방 1000건을 넘으므로 나눠 받는다.
+// (한 번에 받으면 넘친 줄이 아무거나 빠져서, 방금 저장 · 수정한 기록이 화면에서 사라진다.)
+const PAGE_ROWS = 1000;
+
+/** 테이블 전체를 PAGE_ROWS 씩 끝까지 받는다. id 순으로 정렬해야 쪽마다 겹치거나 빠지는 줄이 없다. */
+async function fetchAllRows(table) {
+  const rows = [];
+  for (let from = 0; ; from += PAGE_ROWS) {
+    const { data, error } = await supabase.from(table).select('*').order('id').range(from, from + PAGE_ROWS - 1);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < PAGE_ROWS) return rows;
+  }
+}
+
 async function fetchAll() {
-  const [u, c, r] = await Promise.all([
-    supabase.from('users').select('*'),
-    supabase.from('characters').select('*'),
-    supabase.from('runs').select('*'),
-  ]);
-  const err = u.error || c.error || r.error;
-  if (err) throw err;
+  const [users, characters, runs] = await Promise.all(['users', 'characters', 'runs'].map(fetchAllRows));
   return {
-    users: (u.data || []).map(userFromRow).sort(bySortThenName),
-    characters: (c.data || []).map(charFromRow).sort(bySortThenName),
-    runs: (r.data || []).map(runFromRow).sort(byNewest),
+    users: users.map(userFromRow).sort(bySortThenName),
+    characters: characters.map(charFromRow).sort(bySortThenName),
+    runs: runs.map(runFromRow).sort(byNewest),
   };
 }
 

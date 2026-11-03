@@ -3,7 +3,7 @@
 // 새 기록은 스케줄러에서만 들어오고(auto-runs.js), 이 창은 기록 하나를 고친다.
 // 날짜 → 참여 캐릭터 → 보스 칸 하나(보스 · 난이도 · 그 보스 드랍템).
 
-import { el, toast } from '../utils.js';
+import { el, toast, todayStr } from '../utils.js';
 import { saveRun, saveNewRuns, makeId } from './store.js';
 import { openModal, field } from './modal.js';
 import { createCharacterPicker } from './character-picker.js';
@@ -11,6 +11,16 @@ import { createBossBlock } from './boss-block.js';
 import { takerChoices } from './members.js';
 import { createSchedulerSource, scheduleHint } from './scheduler-bosses.js';
 import { isAutoRun, removeAutoRun, removeMergedAutoRuns } from './auto-runs.js';
+
+/**
+ * 전리품은 기록 날짜의 달에 모인다. 한 주가 두 달에 걸치면(예: 10/29~11/4) 지난달 날짜 기록의 드랍템은
+ * 메인 "이번 달 전리품"에 안 보이므로, 어느 달에 들어갔는지 알려 준다.
+ */
+function notifyOtherMonth(date, loot) {
+  if (!loot.length || date.slice(0, 7) === todayStr().slice(0, 7)) return;
+  const [year, month] = date.split('-').map(Number);
+  toast(`기록 날짜가 ${month}월 ${Number(date.slice(8))}일이라 드랍템은 ${year}년 ${month}월 전리품에 들어갔어요. "전체 보기"에서 볼 수 있어요.`, 'ok', 6000);
+}
 
 /**
  * @param {object} existing - 수정할 기록
@@ -70,7 +80,7 @@ export function openRunForm(existing, onSaved) {
     } finally {
       button.disabled = false; // 어떤 경우에도 버튼이 잠긴 채 남지 않게
     }
-    if (ok) { close(); onSaved(); }
+    if (ok) { close(); onSaved(); notifyOtherMonth(dateInput.value, entry.loot); }
   };
 
   // 저장 규칙: 자동 기록을 고치면 새 일반 기록으로 바꾸고 자동 기록은 지운다("자동" 표시가 사라진다).
