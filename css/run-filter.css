@@ -1,5 +1,5 @@
 /* ============================================================
-   run-filter.css — 메인 "보스 기록" 거르기 줄 (캐릭터 고르기 버튼 · 파티 스위치)
+   run-filter.css — 메인 "보스 기록" 거르기 줄 (캐릭터 고르기 버튼 · 모달 안 파티 스위치)
    js/v2/run-filter.js 와 짝. 색은 토큰만 쓴다(css/theme.css).
    ============================================================ */
 
@@ -23,10 +23,23 @@
 .v2-filter-modal { display: grid; gap: 12px; }
 .v2-filter-hint { margin: 0; font-size: 13px; color: var(--text-tertiary); }
 
-.v2-switch { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; cursor: pointer; user-select: none; }
+.v2-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--fill-1);
+  cursor: pointer;
+  user-select: none;
+}
+.v2-switch-text { display: grid; gap: 2px; margin-right: auto; }
+.v2-switch-text strong { font-size: 14px; color: var(--text-primary); }
+.v2-switch-text small { font-size: 12px; color: var(--text-tertiary); }
 .v2-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .v2-switch-track {
   position: relative;
+  flex: none;
   width: 40px;
   height: 24px;
   border-radius: 999px;
@@ -48,4 +61,3 @@
 .v2-switch input:checked + .v2-switch-track { background: var(--accent-gold); }
 .v2-switch input:checked + .v2-switch-track::after { transform: translateX(16px); }
 .v2-switch input:focus-visible + .v2-switch-track { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-.v2-switch-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
