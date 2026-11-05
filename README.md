@@ -32,6 +32,7 @@
 ```
 index.html            진입 (head 스크립트가 라이트/다크를 첫 화면 전에 정함)
 css/style.css         기본 토큰 · 공용 컴포넌트(버튼, 창, 입력칸, 토스트, 룰렛)
+favicon.svg           탭 아이콘(아잉 눈 · 입 · 볼터치, 바탕 투명) + favicon-32.png · apple-touch-icon.png(흰 바탕)
 css/v2.css            화면별 레이아웃 (순위, 카드, 기록 창, 전리품, 관리, 과거 기록)
 css/run-filter.css    보스 기록 거르기 줄 (캐릭터 고르기 버튼 · 파티 스위치)
 css/theme.css         무드: 화이트 + 토스 느낌 박스, [data-theme="dark"] 다크 색
