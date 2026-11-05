@@ -12,12 +12,13 @@ import { externalSlotIds, isExternalCharacter, EXTERNAL_LABEL } from './members.
  * @param {object} opts
  * @param {string[]} [opts.initial]   - 처음부터 골라 둘 캐릭터 id
  * @param {() => void} [opts.onChange]
+ * @param {boolean} [opts.includeExternal] - false 면 외부 인원(기타) 줄을 안 그린다 (기록 거르기용)
  * @returns {{ node: HTMLElement, getSelected: () => string[], setSelected: (ids: string[]) => void }}
  */
-export function createCharacterPicker({ initial = [], onChange = () => {} }) {
+export function createCharacterPicker({ initial = [], onChange = () => {}, includeExternal = true }) {
   const selected = new Set();
   const toggles = new Map(); // 우리 캐릭터 id → button
-  const slots = externalSlotIds();
+  const slots = includeExternal ? externalSlotIds() : [];
   let externalCount = 0;
   let deletedIds = []; // 지금은 없는 캐릭터 — 고를 수는 없고 그대로 유지만 한다
   const deletedRow = el('div', { className: 'v2-pick-group' });

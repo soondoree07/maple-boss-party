@@ -1,0 +1,51 @@
+/* ============================================================
+   run-filter.css — 메인 "보스 기록" 거르기 줄 (캐릭터 고르기 버튼 · 파티 스위치)
+   js/v2/run-filter.js 와 짝. 색은 토큰만 쓴다(css/theme.css).
+   ============================================================ */
+
+.v2-run-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.v2-filter-pick {
+  max-width: 100%;
+  border: none;
+  background: var(--fill-2);
+  color: var(--text-secondary);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v2-filter-pick:hover { background: var(--fill-3); color: var(--text-primary); }
+.v2-filter-pick.active { background: var(--accent-gold); color: var(--on-accent); }
+.v2-filter-modal { display: grid; gap: 12px; }
+.v2-filter-hint { margin: 0; font-size: 13px; color: var(--text-tertiary); }
+
+.v2-switch { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; cursor: pointer; user-select: none; }
+.v2-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.v2-switch-track {
+  position: relative;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--fill-3);
+  transition: background 0.2s ease;
+}
+.v2-switch-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--on-accent);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.v2-switch input:checked + .v2-switch-track { background: var(--accent-gold); }
+.v2-switch input:checked + .v2-switch-track::after { transform: translateX(16px); }
+.v2-switch input:focus-visible + .v2-switch-track { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
+.v2-switch-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }

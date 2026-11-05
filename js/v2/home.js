@@ -5,6 +5,7 @@ import { getRuns, reloadAll } from './store.js';
 import { renderRanking } from './ranking.js';
 import { renderLootHistory } from './loot-history.js';
 import { renderRunWeeks } from './run-weeks.js';
+import { renderRunFilterBar, filterRuns, isFiltering } from './run-filter.js';
 import { syncFromScheduler } from './auto-runs.js';
 import { groupRunsByParty } from './calc.js';
 import { openRunForm } from './run-form.js';
@@ -60,14 +61,21 @@ function renderRunList(rerender, handlers) {
     );
   }
 
-  const groups = groupRunsByParty(runs);
+  // 거르는 조건이 바뀌면 처음 20장부터 다시 보여 준다
+  const onFilterChange = () => { visibleCount = PAGE_SIZE; rerender(); };
+  const filtered = filterRuns(runs);
+  const groups = groupRunsByParty(filtered);
   const shown = groups.slice(0, visibleCount);
   return el('section', { className: 'v2-section' },
     el('div', { className: 'v2-section-head' },
       el('h2', { className: 'v2-section-title' }, '보스 기록'),
-      el('span', { className: 'v2-section-sub' }, `보스 ${runs.length}건`),
+      el('span', { className: 'v2-section-sub' }, runCountLabel(filtered.length, runs.length)),
     ),
-    renderRunWeeks(shown, handlers),
+    renderRunFilterBar(onFilterChange),
+    groups.length === 0
+      ? el('div', { className: 'empty-state' },
+          el('p', null, '고른 조건에 맞는 기록이 없어요. 파티를 끄거나 다른 캐릭터를 골라 보세요.'))
+      : renderRunWeeks(shown, handlers),
     groups.length > visibleCount
       ? el('button', {
           className: 'btn btn-ghost v2-more', type: 'button',
@@ -76,6 +84,10 @@ function renderRunList(rerender, handlers) {
       : null,
   );
 }
+
+/** "보스 1023건", 거르는 중이면 "보스 20건 / 전체 1023건" */
+const runCountLabel = (shownCount, totalCount) =>
+  isFiltering() ? `보스 ${shownCount}건 / 전체 ${totalCount}건` : `보스 ${totalCount}건`;
 
 /**
  * 스케줄러에서 가져오기 — 잡은 보스를 바로 가져오고(10분 제한 없이), 다른 사람이 고친 기록까지 다시 불러온다.
